@@ -1,0 +1,38 @@
+# 指令詞典縮寫代碼表 (Command Lexicon Tag Schema)
+# 檔案內只存單字母代碼，工具與執行期引擎自動轉譯為全名，免打字。
+# 格式: 組別 \t 代碼 \t 中文全名 \t 英文鍵名 \t 範例
+
+# --- 動作類 (A 組) ---
+ACTION	c	點擊	TAP	點|按|點擊|點開|點選|輕觸
+ACTION	t	輸入文字	INPUT_TEXT	輸入|打字|填入|填寫
+ACTION	s	搜尋	SEARCH	搜尋|查|找|搜索|查詢|查找
+ACTION	b	返回	BACK	返回|上一頁|回上頁|後退
+ACTION	r	捲動／滑動	SCROLL_SWIPE	下滑|往上滑|左滑|右滑
+ACTION	w	開關切換	TOGGLE	開啟|關閉|切換|啟用|停用
+ACTION	l	長按	LONG_PRESS	長按|按住
+ACTION	d	雙擊	DOUBLE_TAP	雙擊|點兩下|連點兩下
+ACTION	o	開啟 App	OPEN_APP	打開|啟動|切換到
+ACTION	x	擷取資訊	EXTRACT	抓出來|複製出來|提取出來|抄下來
+ACTION	g	傳送／分享	SEND_SHARE	傳給|分享|發給|轉發|存到
+ACTION	p	播放／暫停	PLAY_PAUSE	播放|暫停|聽歌|放歌
+
+# --- 連接詞 (J 組) ---
+CONNECTOR	1	依序接下一步	SEQ_NEXT	然後|接著|再|並|之後|最後
+CONNECTOR	2	條件／結果	COND_AFTER	查完後|搜尋完後|複製後
+
+# --- 目標名詞 (N 組) ---
+NOUN	B	按鈕	BUTTON	路線|行車路線|儲存|分享|開始
+NOUN	I	輸入框	INPUT_BOX	搜尋框|輸入框|文字框
+NOUN	A	App 名	APP_NAME	Google 地圖|LINE|YouTube|Chrome
+NOUN	P	頁面／區域	PAGE_REGION	設定頁|首頁|藍牙|深色模式
+
+# --- 特殊 (S 組) ---
+SPECIAL	e	語音錯字變體	ASR_HOMOPHONE	變點極->並點擊|點極->點擊
+SPECIAL	z	不使用／雜訊	NOISE_IGNORE	單字誤命中|無關助詞
+SPECIAL	?	待觀察	PENDING_OBSERVE	實測後再決定
+
+# --- 多意思條件後綴 (Condition Suffixes) ---
+CONDITION	+A	後面接 App 名	FOLLOWED_BY_APP	開啟 LINE -> o+A
+CONDITION	+W	後面接開關項目	FOLLOWED_BY_TOGGLE	開啟 藍牙 -> w+W
+CONDITION	+Q	後面接要查的內容	FOLLOWED_BY_QUERY	搜尋 臺北101 -> s+Q
+CONDITION	+S	畫面上有同名按鈕	ON_SCREEN_BUTTON	查看路線(畫面有路線鈕) -> c+S

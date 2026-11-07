@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "description": "Distilled Unified Stage-Conditioned 16-D Feature Weight Matrix (W_stage), Soft Stage Gate Matrix (W_gate), and Bilinear Interactions (M_stage)",
+  "featureNames": [
+    "f0_exact_or_norm_query_match",
+    "f1_subword_bigram_semantic_sim",
+    "f2_residual_intent_and_website_affinity",
+    "f3_is_search_entry_role",
+    "f4_is_editable_input_box",
+    "f5_is_search_submit_or_suggestion",
+    "f6_is_content_card_in_viewport",
+    "f7_is_top_search_echo_or_filter_tab",
+    "f8_phase2_goal_role_alignment",
+    "f9_phase3_posture_transition_prior",
+    "f10_nanodet_visual_intent_align",
+    "f11_episodic_self_healing_memory",
+    "f12_clicked_loop_penalty",
+    "f13_forbidden_safety_mask",
+    "f14_spatial_top_bar_prior",
+    "f15_pole_visibility_margin"
+  ],
+  "gateStateFeatureNames": [
+    "s0_has_query_intent",
+    "s1_is_query_submitted_memory",
+    "s2_has_editable_input_box",
+    "s3_input_already_contains_query",
+    "s4_viewport_matching_result_density",
+    "s5_is_search_results_posture",
+    "s6_top_input_is_focused",
+    "s7_direct_navigation_intent"
+  ],
+  "softStageGateWeights": {
+    "STAGE_A_EXPAND_SEARCH": {
+      "bias": -1.2,
+      "weights": [ 3.8, -4.5, -5.0, -3.5, -2.5, -2.0, -3.0, -4.0 ]
+    },
+    "STAGE_B_INPUT_TYPE": {
+      "bias": -1.5,
+      "weights": [ 3.2, -4.2, 4.5, -4.8, -2.2, -1.8, 2.4, -4.0 ]
+    },
+    "STAGE_B_SUBMIT_QUERY": {
+      "bias": -2.0,
+      "weights": [ 3.0, -3.8, 3.6, 5.2, -1.5, -1.2, 1.8, -4.0 ]
+    },
+    "STAGE_C_SELECT_RESULT": {
+      "bias": -1.8,
+      "weights": [ 3.4, 5.4, -0.4, 1.2, 3.8, 3.2, -3.5, -4.0 ]
+    },
+    "IN_APP_NAVIGATION": {
+      "bias": -0.5,
+      "weights": [ -3.5, -2.0, -1.0, -2.0, 0.8, 0.5, -1.5, 5.8 ]
+    }
+  },
+  "stageWeights": {
+    "STAGE_A_EXPAND_SEARCH": {
+      "bias": 5.5,
+      "weights": [
+        8.5, 4.5, 0.0, 96.0, 46.0, 10.0, -14.0, -38.0,
+        34.0, 22.0, 30.0, 36.0, -68.0, -250.0, 30.0, 8.5
+      ],
+      "bilinearInteractions": [
+        { "i": 3, "j": 14, "weight": 28.0, "comment": "Search entry role x top bar spatial prior" },
+        { "i": 3, "j": 11, "weight": 24.0, "comment": "Search entry role x episodic memory" }
+      ]
+    },
+    "STAGE_B_INPUT_TYPE": {
+      "bias": 5.5,
+      "weights": [
+        6.0, 4.0, 0.0, 12.0, 118.0, -16.0, -22.0, -42.0,
+        28.0, 18.0, 24.0, 26.0, -48.0, -250.0, 25.0, 10.0
+      ],
+      "bilinearInteractions": [
+        { "i": 4, "j": 14, "weight": 26.0, "comment": "Editable input box x top bar spatial prior" }
+      ]
+    },
+    "STAGE_B_SUBMIT_QUERY": {
+      "bias": 5.5,
+      "weights": [
+        40.0, 25.0, 12.0, -26.0, -78.0, 98.0, 26.0, -62.0,
+        28.0, 18.0, 22.0, 28.0, -68.0, -250.0, 10.0, 8.5
+      ],
+      "bilinearInteractions": [
+        { "i": 5, "j": 0, "weight": 34.0, "comment": "Autocomplete suggestion x exact query match" }
+      ]
+    },
+    "STAGE_C_SELECT_RESULT": {
+      "bias": 10.5,
+      "weights": [
+        72.0, 48.0, 44.0, -98.0, -138.0, -42.0, 56.0, -135.0,
+        30.0, 24.0, 25.0, 35.0, -78.0, -250.0, -38.0, 12.5
+      ],
+      "bilinearInteractions": [
+        { "i": 6, "j": 0, "weight": 36.0, "comment": "Viewport content card x query match" },
+        { "i": 6, "j": 1, "weight": 30.0, "comment": "Viewport content card x bigram semantic similarity" },
+        { "i": 6, "j": 2, "weight": 34.0, "comment": "Viewport content card x residual intent & website domain affinity" },
+        { "i": 7, "j": 14, "weight": -58.0, "comment": "Top search echo or filter tab x top bar penalty" }
+      ]
+    },
+    "IN_APP_NAVIGATION": {
+      "bias": 8.5,
+      "weights": [
+        64.0, 40.0, 32.0, 14.0, -32.0, 12.0, 32.0, -52.0,
+        38.0, 30.0, 32.0, 38.0, -68.0, -250.0, 0.0, 10.5
+      ],
+      "bilinearInteractions": [
+        { "i": 0, "j": 6, "weight": 30.0, "comment": "Direct target match x main viewport card" },
+        { "i": 8, "j": 9, "weight": 22.0, "comment": "Phase 2 button role x Phase 3 screen posture synergy" }
+      ]
+    }
+  }
+}

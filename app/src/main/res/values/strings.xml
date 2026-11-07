@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI 助手</string>
+    <string name="accessibility_service_desc">【AI 助手 — 無障礙語音與視覺輔助工具】協助視障、長輩與手部行動不便使用者，透過語音指令與繁體中文語音播報（TTS）完成畫面閱讀、按鈕點擊、文字輸入與跨頁導航。\n\n【隱私與資料安全承諾（Google Play 合規）】：\n1. 本服務僅於您主動下達輔助指令時，即時解析螢幕介面元件結構與局部畫面。\n2. 所有 AI 視覺與語義推理 100% 於手機本機離線完成（本應用未申請任何網路 INTERNET 權限）。\n3. 絕不收集、儲存、分享或上傳任何個人資料、密碼或螢幕畫面至任何外部伺服器。</string>
+</resources>

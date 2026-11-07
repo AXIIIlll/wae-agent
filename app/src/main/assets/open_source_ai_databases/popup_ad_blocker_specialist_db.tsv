@@ -1,0 +1,25 @@
+# Dedicated Popup, Ad, Update & Permission Blocker Specialist Database (Isolated for PopupDismissalMicroAiEngine)
+# Sources: AdGuard/EasyList Mobile Annoyances & Cookie Rules + AOSP Permission Dialogs + Top 100 TW/CN Mobile App Popup Corpus
+# Format: CATEGORY<TAB>SUBTYPE_OR_PRIORITY<TAB>TERMS_PIPE_SEPARATED
+POPUP_CONTEXT_SIGNAL	AD_PROMO	廣告|贊助|推薦活動|限時特賣|天降紅包|專屬紅包|新人紅包|驚喜紅包|每日簽到|簽到領蝦幣|免運券|領取優惠券|專屬優惠|限時搶購|雙11|雙12|618|年貨節|開屏廣告|全屏廣告|活動推播|熱門活動|新客專享|首單免費|抽獎|幸運轉盤|广告|赞助|限时特卖|天降红包|专属红包|每日签到|免运券|优惠券|限时抢购|开屏广告|sponsored|advertisement|special offer|daily check-in|lucky draw|flash sale|promo|promotion|limited time offer|exclusive deal
+POPUP_CONTEXT_SIGNAL	APP_UPDATE	版本更新|發現新版本|檢測到新版本|立即更新|升級提示|版本升級|新版本上線|體驗新版本|更新內容|優化體驗|修复已知問題|发现新版本|检测到新版本|版本升级|新版本上线|update available|new version available|upgrade now|app update|whats new
+POPUP_CONTEXT_SIGNAL	RATING_REVIEW	給個好評|五星好評|為我們評分|喜歡我們嗎|給我們鼓勵|去評分|寫評價|意見回饋|滿意度調查|给个好评|为我们评分|喜歡這個應用程式嗎|rate us|rate this app|enjoying the app|leave a review|give feedback
+POPUP_CONTEXT_SIGNAL	NOTIFICATION_PUSH	開啟通知|打開通知|開啟推播|推播通知|不錯過任何訊息|開啟訊息通知|第一時間收到|開啟提醒|打开通知|开启推送|消息通知|turn on notifications|enable notifications|allow notifications|stay updated|never miss
+POPUP_CONTEXT_SIGNAL	COOKIE_PRIVACY	cookie|cookies|隱私權政策|服務條款|使用者協議|個人資料保護|我們使用cookie|接受所有cookie|管理cookie|隐私政策|用户协议|個人情報|privacy policy|terms of service|accept cookies|cookie preferences|consent
+POPUP_CONTEXT_SIGNAL	SYSTEM_PERMISSION	允許存取|存取您的位置|使用精確位置|開啟定位服務|為改善定位精確度|開啟高精確度|藍牙權限|附近裝置權限|相機權限|麥克風權限|媒體存取權限|電話權限|通訊錄權限|要允許|授權請求|允许访问|访问您的位置|位置信息|开启定位|蓝牙权限|allow access to|access your location|device location|precise location|turn on location|location accuracy
+POPUP_CONTEXT_SIGNAL	VIP_TRIAL_UPSELL	YouTube Premium|Music Premium|免費試用1個月|免費體驗會員|升級VIP|開通會員|去廣告特權|背景播放|尊享會員|超前點播|免廣告看全集|免费试用|升级会员|开通VIP|try premium|free trial|upgrade to pro|remove ads|go ad-free
+DISMISS_REJECT_ACTION	1.00	略過廣告|跳過廣告|關閉廣告|跳过广告|关闭广告|skip ad|skip ads|close ad|dismiss ad|ad_skip|btn_skip_ad|skip_button
+DISMISS_REJECT_ACTION	0.98	略過|跳過|跳过|skip|直接進入|進入首頁|进入应用|enter app|continue to app
+DISMISS_REJECT_ACTION	0.96	以後再說|稍後再說|稍後提醒|下次再說|暫不更新|暫不升級|暫不開啟|暫不|稍後|以後|以后再说|稍后再说|稍后提醒|下次再说|暂不更新|暂不升级|暂不开启|not now|maybe later|remind me later|later|no thanks|no, thanks|skip for now
+DISMISS_REJECT_ACTION	0.95	殘忍拒絕|放棄優惠|放棄福利|不需要|不用了|算了吧|不感興趣|忍痛放棄|拒絕|不，謝謝|残忍拒绝|放弃优惠|不用了|不感兴趣|拒絕非必要|僅接受必要|reject non-essential|continue without|decline|do not accept
+DISMISS_REJECT_ACTION	0.94	我知道了|朕知道了|知道了|了解|明白了|不再顯示|不再提示|不再提醒|今日不再顯示|7天內不再提示|不再弹出|got it|i understand|dont show again|do not show again|dismiss|acknowledge
+DISMISS_REJECT_ACTION	0.92	關閉|關閉視窗|關閉彈窗|关闭|关闭弹窗|关闭窗口|close|close button|close dialog|close modal|btn_close|iv_close|ic_close|close_btn|dialog_close|popup_close|dismiss_btn
+DISMISS_REJECT_ACTION	0.90	取消|返回|cancel|×|✕|✖|x|圖示:關閉|[關閉或略過彈窗]|[圖示:關閉]
+PERMISSION_ALLOW_ACTION	0.99	僅在使用該應用程式時允許|使用應用程式期間允許|在使用該應用程式時允許|使用期間允許|仅在使用该应用时允许|使用应用期间允许|while using the app|allow only while using the app|permission_allow_foreground_only_button
+PERMISSION_ALLOW_ACTION	0.96	僅限這一次|只允許這一次|僅此一次|仅此一次|only this time|permission_allow_one_time_button
+PERMISSION_ALLOW_ACTION	0.95	允許|全部允許|始終允許|開啟定位|確定開啟|啟用定位|同意並繼續|同意|我同意|接受|確定|好|好的|允许|全部允许|同意并继续|开启定位|allow|allow all|turn on|enable|accept|agree|ok|okay|permission_allow_button|button1
+SWIPE_DISMISS_CONTAINER	BOTTOM_SHEET	design_bottom_sheet|bottom_sheet|bottomsheet|modal_bottom_sheet|standard_bottom_sheet|sheet_container|drawer_sheet|sliding_panel|pull_down_sheet|action_sheet|half_screen_dialog|bottom_dialog
+SWIPE_DISMISS_CONTAINER	DRAG_HANDLE	drag_handle|sheet_handle|pill_handle|grabber|pull_indicator|bottom_sheet_handle|handle_bar|top_handle|swipe_indicator|iv_handle
+SWIPE_DISMISS_CONTAINER	TOP_BANNER	in_app_banner|top_banner|floating_banner|top_toast|heads_up|notification_banner|snackbar|snackbar_layout|top_popup|cookie_banner|push_banner
+DARK_PATTERN_TRAP_BLACKLIST	FAKE_CTA	免費試用|立即試用|免費體驗|0元開通|0元領取|立即開通|開通會員|開通VIP|立即升級VIP|自動續費|立即領取|立馬領取|點此領取|開心收下|立即抽獎|去抽獎|立即搶購|馬上搶|去看看|查看詳情|了解詳情|點此查看|看影片領|看廣告領|立即下載|高速下載|安全下載|一鍵安裝|立即安裝|打開應用程式|免费试用|立即试用|0元开通|立即开通|立即领取|开心收下|去看看|查看详情|立即下载|高速下载|一键安装|start free trial|try for free|claim reward|claim now|get it now|install now|download now|upgrade now|subscribe now|learn more|shop now|open app|watch ad
+LEGIT_TASK_SHEET_WHITELIST	MAIN_TASK_UI	選擇商品規格|選擇規格|商品規格|顏色分類|尺寸選擇|購買數量|加入購物車|立即購買|確認支付|提交訂單|去結帳|規劃路線|路線資訊|輸入起點|您的位置|選擇目的地|開始導航|分享至|傳送給|選擇收件人|新增至播放清單|儲存至清單|搜尋結果|台北101|臺北101

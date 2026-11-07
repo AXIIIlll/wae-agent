@@ -1,0 +1,8 @@
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2630 '☰' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2699 '⚙' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2794 '➔' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+1F50D '🔍' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2713 '✓' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2605 '★' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\TestHelpers.kt:27: U+2715 '✕' "[➔🔍✕✓★⚙☰]"
+app/src/test\java\com\example\newandroidapp\e2e\Tier1FeatureCoverageTest.kt:843: U+1F50D '🔍' val forbiddenSample = "🔍"

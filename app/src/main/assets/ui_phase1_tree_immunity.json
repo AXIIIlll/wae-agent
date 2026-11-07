@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "phase": "Phase 1: Cross-Framework UI Tree Immunity & Structural Prior",
+  "trained_corpus": "MobileViews + Real Jetpack Compose Hierarchies (Offline On-Device Prior)",
+  "trained_apps_count": 401,
+  "trained_states_count": 1836,
+  "sampled_states_evaluated": 80,
+  "total_raw_nodes_evaluated": 1038,
+  "total_final_nodes_produced": 561,
+  "ground_truth_actions_checked": 396,
+  "ground_truth_actions_retained": 385,
+  "ground_truth_action_recall_percent": 97.2,
+  "max_interactive_unit_area_ratio": 0.55,
+  "max_icon_leaf_area_ratio": 0.22,
+  "void_dedupe_iou_threshold": 0.85,
+  "min_main_viewport_interactive_nodes_for_fast_tree": 2,
+  "filter_synthetic_role_shim_leaves": true,
+  "synthetic_role_shim_classes": [
+    "android.widget.Button",
+    "android.widget.CheckBox",
+    "android.widget.Switch",
+    "android.widget.RadioButton",
+    "android.widget.ToggleButton"
+  ]
+}

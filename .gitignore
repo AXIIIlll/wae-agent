@@ -1,0 +1,31 @@
+# Gradle & Android build artifacts
+.gradle/
+build/
+app/build/
+app/.cxx/
+local.properties
+
+# Built binaries and bundles in root
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Keystore & signing secrets
+keystore/
+*.jks
+*.keystore
+
+# External large research datasets (1.7GB+)
+external_datasets/
+
+# Temporary runtime & debug logs
+replay_pid*.log
+yt_live.xml
+_
+
+# IDE & OS files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

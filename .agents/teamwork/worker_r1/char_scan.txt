@@ -1,0 +1,86 @@
+Char: 'Δ' (U+0394) total 4
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:110: deltaSb.append("ΔFRAME[首幀完整基準]: 共 ${sorted.size} 個有效互動/語義元件")
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:120: deltaSb.append("ΔFRAME[NO_CHANGE]: 畫面無語義或座標變動 (0 Token 增量)")
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:122: deltaSb.appendLine("ΔFRAME[+${added.size} 新增, ~${changed.size} 變動, -$removedCount 移除]:")
+   app/src/main\java\com\example\newandroidapp\vision\VisionAccessibilityService.kt:1591: safeLocked to "毫秒重鎖定(${freshScanMs}ms, Δ=${dx},${dy}px)"
+Char: '←' (U+2190) total 2
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:15: *      在 < 0.1ms 內精準識別出 [圖示:☰選單]、[圖示:✕關閉]、[圖示:＋新增]、[圖示:←返回]、[圖示:🔍搜尋]、[圖示:⋮更多]！
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:35: idLower.contains("back") || idLower.contains("up") || idLower.contains("return") -> return "圖示:←返回"
+Char: '↔' (U+2194) total 3
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:37: val scrollDirections: String = "", // 例如 "↕", "↔"
+   app/src/main\java\com\example\newandroidapp\vision\ZOrderTreeCollector.kt:221: canScrollV && canScrollH -> "↕↔"
+   app/src/main\java\com\example\newandroidapp\vision\ZOrderTreeCollector.kt:222: canScrollH -> "↔"
+Char: '↕' (U+2195) total 5
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:9: * 2. 狀態內嵌（Inline State）：將勾選 [✓]/[ ]、選中 [★]、輸入框提示 [⌨:...]、可滑動方向 [↕] 直接內嵌於標籤。
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:37: val scrollDirections: String = "", // 例如 "↕", "↔"
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:70: val inlineStatePrefix: String,  // 狀態內嵌符號，如 [✓], [ ], [★], [⌨:提示], [↕]
+   app/src/main\java\com\example\newandroidapp\vision\ZOrderTreeCollector.kt:221: canScrollV && canScrollH -> "↕↔"
+   app/src/main\java\com\example\newandroidapp\vision\ZOrderTreeCollector.kt:223: canScrollV -> "↕"
+Char: '⊗' (U+2297) total 1
+   app/src/main\java\com\example\newandroidapp\vision\HotspotAndSpatialBinder.kt:317: if (!raw.isEnabled) sb.append("[⊗停用]")
+Char: '⋮' (U+22EE) total 4
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:15: *      在 < 0.1ms 內精準識別出 [圖示:☰選單]、[圖示:✕關閉]、[圖示:＋新增]、[圖示:←返回]、[圖示:🔍搜尋]、[圖示:⋮更多]！
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:40: idLower.contains("more") || idLower.contains("overflow") || idLower.contains("option") -> return "圖示:⋮更多"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:169: // 特徵 4：偵測「⋮ 更多選單」（垂直中軸線上有 3 個短小的孤立點）
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:184: return "圖示:⋮更多"
+Char: '⌨' (U+2328) total 3
+   app/src/main\java\com\example\newandroidapp\vision\HotspotAndSpatialBinder.kt:324: sb.append("[⌨:$hint]")
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:9: * 2. 狀態內嵌（Inline State）：將勾選 [✓]/[ ]、選中 [★]、輸入框提示 [⌨:...]、可滑動方向 [↕] 直接內嵌於標籤。
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:70: val inlineStatePrefix: String,  // 狀態內嵌符號，如 [✓], [ ], [★], [⌨:提示], [↕]
+Char: '⏹' (U+23F9) total 1
+   app/src/main\java\com\example\newandroidapp\vision\VisionAccessibilityService.kt:606: finishBenchmarkRun("⏹ $reason")
+Char: '★' (U+2605) total 3
+   app/src/main\java\com\example\newandroidapp\vision\HotspotAndSpatialBinder.kt:321: if (raw.isSelected) sb.append("[★]")
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:9: * 2. 狀態內嵌（Inline State）：將勾選 [✓]/[ ]、選中 [★]、輸入框提示 [⌨:...]、可滑動方向 [↕] 直接內嵌於標籤。
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:70: val inlineStatePrefix: String,  // 狀態內嵌符號，如 [✓], [ ], [★], [⌨:提示], [↕]
+Char: '☰' (U+2630) total 4
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:15: *      在 < 0.1ms 內精準識別出 [圖示:☰選單]、[圖示:✕關閉]、[圖示:＋新增]、[圖示:←返回]、[圖示:🔍搜尋]、[圖示:⋮更多]！
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:37: idLower.contains("menu") || idLower.contains("drawer") || idLower.contains("nav") -> return "圖示:☰選單"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:120: // 特徵 1：計算水平投影的獨立波峰數（偵測「☰ 漢堡選單」：3 條水平橫線，中間夾著空白列）
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:134: return "圖示:☰選單"
+Char: '⚙' (U+2699) total 1
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:41: idLower.contains("setting") || idLower.contains("config") || idLower.contains("gear") -> return "圖示:⚙設定"
+Char: '✓' (U+2713) total 3
+   app/src/main\java\com\example\newandroidapp\vision\HotspotAndSpatialBinder.kt:319: sb.append(if (raw.isChecked) "[✓]" else "[ ]")
+   app/src/main\java\com\example\newandroidapp\vision\SemanticCompressor.kt:9: * 2. 狀態內嵌（Inline State）：將勾選 [✓]/[ ]、選中 [★]、輸入框提示 [⌨:...]、可滑動方向 [↕] 直接內嵌於標籤。
+   app/src/main\java\com\example\newandroidapp\vision\VisionModels.kt:70: val inlineStatePrefix: String,  // 狀態內嵌符號，如 [✓], [ ], [★], [⌨:提示], [↕]
+Char: '✕' (U+2715) total 10
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:547: // B. 當畫面存在模態遮罩 (hasModalScrim) 或明顯彈窗語境時，頂層的關閉按鈕 (✕ / × / 關閉)
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:548: val isCloseSymbol = rawLabel == "✕" || rawLabel == "×" || rawLabel == "✖" ||
+   app/src/main\java\com\example\newandroidapp\vision\RoiVisionFallbackEngine.kt:24: *    - 通道 B：極輕量 Sobel 邊緣梯度與連通域偵測（捕捉無文字的純視覺按鈕，如右上角 ✕ 關閉鈕、圖形按鈕）。
+   app/src/main\java\com\example\newandroidapp\vision\RoiVisionFallbackEngine.kt:174: // 通道 B：極輕量 Sobel 邊緣梯度與高對比色塊偵測（捕捉無文字的圖形按鈕或右上角關閉鈕 ✕）
+   app/src/main\java\com\example\newandroidapp\vision\RoiVisionFallbackEngine.kt:362: val hint = if (isTopRightCorner) "右上角圖示鈕(✕)" else "自繪按鈕熱區"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:15: *      在 < 0.1ms 內精準識別出 [圖示:☰選單]、[圖示:✕關閉]、[圖示:＋新增]、[圖示:←返回]、[圖示:🔍搜尋]、[圖示:⋮更多]！
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:36: idLower.contains("close") || idLower.contains("dismiss") || idLower.contains("cancel") || idLower.contains("clear") -> return "圖示:✕關閉"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:137: // 特徵 2：正對角線 (r == c) 與反對角線 (r + c == 15) 密度 vs. 十字中心空白度（偵測「✕ 關閉」）
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:166: return "圖示:✕關閉"
+   app/src/main\java\com\example\newandroidapp\vision\VisionVisualizerView.kt:146: val ghostTitle = "✕已剔除:${s1.raw.text.ifBlank { "幽靈節點" }}(露${(s1.visibleRatio * 100).toInt()}%)"
+Char: '✖' (U+2716) total 1
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:548: val isCloseSymbol = rawLabel == "✕" || rawLabel == "×" || rawLabel == "✖" ||
+Char: '➔' (U+2794) total 14
+   app/src/main\java\com\example\newandroidapp\MainActivity.kt:62: *    - 首屏僅保留「單行頂欄 ➔ 極致留白輸入框 ➔ 下懸浮三鍵 ➔ 狀態列 ➔ 進階設定入口」，將防護、省電、壓測與日誌收斂於進階抽屜。
+   app/src/main\java\com\example\newandroidapp\MainActivity.kt:1188: aiDecisionTv.text = "已啟動閉環任務：「$goal」— 穩定幀等待 ➔ 決策 ➔ 動作 ➔ 指紋驗證"
+   app/src/main\java\com\example\newandroidapp\MainActivity.kt:1260: append("流程：${coop.stage1Decomposition} ➔ ${coop.stage4SafetyAndCoord}")
+   app/src/main\java\com\example\newandroidapp\ai\DualLocalAiCoordinator.kt:17: *   自動將跨 App 與 App 內多步任務拆解為：`啟動目標 App` ➔ `自動排除彈窗並展開搜尋/導航入口` ➔ `填入關鍵字並送出搜尋` ➔ `於結果列表定位目標並點擊操作`。
+   app/src/main\java\com\example\newandroidapp\ai\DualLocalAiCoordinator.kt:161: stage1Decomposition = "動態探索手機已安裝 App ➔ 命中「${appInfo.label}」(${appInfo.packageName}, 信心=${"%.2f".format(matchedApp.second)})",
+   app/src/main\java\com\example\newandroidapp\ai\DualLocalAiCoordinator.kt:451: reasoningTrace = "$stage2Log ➔ $stage3Log $memBadge",
+   app/src/main\java\com\example\newandroidapp\ai\DualLocalAiCoordinator.kt:506: val stage4Log = "[安全放行＋文字輸入送出] #${chosenNode.shortMarkId}「${chosenNode.label}」填入「$resolvedInputPayload」➔ (${chosenNode.finalTapPx.x},${chosenNode.finalTapPx.y}px) $memBadge"
+   app/src/main\java\com\example\newandroidapp\ai\DualLocalAiCoordinator.kt:550: val stage4Log = "[安全放行＋未遮擋座標綁定] #${chosenNode.shortMarkId}「${chosenNode.label}」露出率 ${(chosenNode.visibleRatio * 100).toInt()}% ➔ 像素 (${chosenNode.finalTapPx.x},${chosenNode.finalTapPx.y}px) $memBadge"
+   app/src/main\java\com\example\newandroidapp\ai\NeedleNativeBridge.kt:14: *   （NeedleIsolatedClient ➔ NeedleIsolatedAiService）。原生層崩潰只會讓 `:ai` 行程重啟，主程式與無障礙服務不受影響。
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:318: * 3. App 內三階段搜尋與操作鏈 (`Stage A 展開搜尋入口` ➔ `Stage B 輸入文字並送出` ➔ `Stage C 結果列表定位點擊 + 搜尋框 -60f 懲罰防重打字`)
+   app/src/main\java\com\example\newandroidapp\stability\NeedleIsolatedClient.kt:20: * 【第 5 項】主行程 ➔ 獨立 `:ai` 行程的 Needle 3 呼叫客戶端
+   app/src/main\java\com\example\newandroidapp\stability\SmartDailyAssistantHelper.kt:21: *    過濾系統列、純數字雜訊與裝飾元件，按人類閱讀動線（頂部標題 ➔ 核心內容 ➔ 底部主要按鈕）提取當前頁面重點並以繁體中文 TTS 朗讀。
+   app/src/main\java\com\example\newandroidapp\stability\StabilityFlightRecorder.kt:39: return "[$timestamp] #$stepIndex [$appLabel] 節點:$visibleNodesCount(${visionLatencyMs}ms) ➔ $aiOpcode(信:${(aiConfidence * 100).toInt()}%, ${aiLatencyMs}ms) | $verifyIcon | $retryOrFallbackInfo | RAM:${usedMemoryMb}MB | $outcomeNote"
+   app/src/main\java\com\example\newandroidapp\stability\VoiceCommandAndTtsManager.kt:294: .replace("➔", "，接著")
+Char: '📤' (U+1F4E4) total 1
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:42: idLower.contains("share") || idLower.contains("send") -> return "圖示:📤分享"
+Char: '🔍' (U+1F50D) total 7
+   app/src/main\java\com\example\newandroidapp\ai\AndroidNativeAiEngine.kt:218: } else if (fullLabel.contains("搜尋") || fullLabel.contains("search") || fullLabel.contains("🔍")) {
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:355: "🔍", "搜尋", "搜索", "search", "查找", "輸入關鍵字", "找商品", "找影片", "找音樂", "找地點"
+   app/src/main\java\com\example\newandroidapp\stability\InAppOperationPlanner.kt:359: "搜尋", "搜索", "search", "前往", "送出", "完成", "go", "enter", "🔍"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:15: *      在 < 0.1ms 內精準識別出 [圖示:☰選單]、[圖示:✕關閉]、[圖示:＋新增]、[圖示:←返回]、[圖示:🔍搜尋]、[圖示:⋮更多]！
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:38: idLower.contains("search") || idLower.contains("find") -> return "圖示:🔍搜尋"
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:187: // 特徵 5：偵測「🔍 搜尋放大鏡」（左上方空心圓環 + 右下角 r>=11, c>=11 握柄）
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:191: return "圖示:🔍搜尋"
+Char: '🗑' (U+1F5D1) total 1
+   app/src/main\java\com\example\newandroidapp\vision\TinyIconClassifier.kt:43: idLower.contains("delete") || idLower.contains("trash") -> return "圖示:🗑刪除"

@@ -1,0 +1,88 @@
+# Taiwan, Mainland China & Global Android App Package & Colloquial Alias Database
+com.android.chrome	Chrome	GOOGLE_BROWSER	chrome|google chrome|瀏覽器|浏览器|克羅姆|谷哥瀏覽器|谷歌浏览器
+com.google.android.googlequicksearchbox	Google	SEARCH_ENGINE	google|谷歌|谷哥|google搜尋|google搜索|大神
+org.mozilla.firefox	Firefox	BROWSER	firefox|火狐|火狐瀏覽器|火狐浏览器
+com.microsoft.emmx	Edge	BROWSER	edge|微軟瀏覽器|微软浏览器
+com.brave.browser	Brave	BROWSER	brave|brave瀏覽器|小獅子瀏覽器
+com.sec.android.app.sbrowser	三星網際網路	BROWSER	三星瀏覽器|三星網際網路|samsung internet
+jp.naver.line.android	LINE	MESSAGING	line|賴|頼|line訊息|傳line|發line
+com.facebook.katana	Facebook	SOCIAL	facebook|fb|臉書|脸书
+com.facebook.orca	Messenger	MESSAGING	messenger|fb訊息|臉書訊息|메신저
+com.instagram.android	Instagram	SOCIAL	instagram|ig|哀居|唉居
+com.instagram.barcelona	Threads	SOCIAL	threads|脆|滑脆
+com.whatsapp	WhatsApp	MESSAGING	whatsapp|wa
+org.telegram.messenger	Telegram	MESSAGING	telegram|tg|電報|电报|紙飛機
+com.discord	Discord	MESSAGING	discord|dc|語音群
+com.twitter.android	X	SOCIAL	twitter|推特|x
+com.tencent.mm	微信	MESSAGING	微信|wechat|weixin
+com.tencent.mobileqq	QQ	MESSAGING	qq|騰訊qq|腾讯qq
+com.xingin.xhs	小紅書	SOCIAL	小紅書|小红书|red|xhs
+com.sina.weibo	微博	SOCIAL	微博|新浪微博|weibo
+com.zhihu.android	知乎	SOCIAL	知乎|zhihu
+com.Readfor.Dcard	Dcard	SOCIAL	dcard|狄卡|低卡
+tw.com.gamer.android.activeba	巴哈姆特	SOCIAL	巴哈姆特|巴哈
+com.google.android.youtube	YouTube	VIDEO_MEDIA	youtube|yt|優兔|油管|看影片
+com.google.android.apps.youtube.music	YouTube Music	MUSIC_MEDIA	youtube music|yt music|yt音樂
+com.spotify.music	Spotify	MUSIC_MEDIA	spotify|聲破天
+com.skysoft.kkbox.android	KKBOX	MUSIC_MEDIA	kkbox|kk音樂
+com.netflix.mediaclient	Netflix	VIDEO_MEDIA	netflix|網飛|奈飛|追劇
+com.disney.disneyplus	Disney+	VIDEO_MEDIA	disney+|disney plus|迪士尼
+tv.danmaku.bili	嗶哩嗶哩	VIDEO_MEDIA	bilibili|嗶哩嗶哩|哔哩哔哩|b站|逼站
+com.ss.android.ugc.aweme	抖音	VIDEO_MEDIA	抖音|douyin
+com.zhiliaoapp.musically	TikTok	VIDEO_MEDIA	tiktok|國際版抖音
+tv.twitch.android.app	Twitch	VIDEO_MEDIA	twitch|圖奇|看實況
+tw.com.gamer.android.animad	動畫瘋	VIDEO_MEDIA	動畫瘋|巴哈姆特動畫瘋|看動漫
+com.linecorp.linetv	LINE TV	VIDEO_MEDIA	line tv|linetv
+com.netease.cloudmusic	網易雲音樂	MUSIC_MEDIA	網易雲|网易云|網易雲音樂|网易云音乐
+com.tencent.qqmusic	QQ音樂	MUSIC_MEDIA	qq音樂|qq音乐
+com.google.android.apps.maps	Google 地圖	MAPS_NAV	google地圖|google地图|地圖|地图|maps|google maps|導航
+tw.com.thsrc.texpress	T-EX行動購票	TRANSPORT	台灣高鐵|台湾高铁|高鐵|高铁|高鐵app|t-ex|高鐵訂票
+tw.gov.tra.twtraffic	台鐵e訂通	TRANSPORT	台鐵|台铁|臺鐵|台鐵e訂通|火車時刻表|台鐵訂票
+com.trtc.metrogo	台北捷運Go	TRANSPORT	台北捷運|北捷|捷運|台北捷運go
+tw.com.busexpress	Bus+	TRANSPORT	bus+|公車|查公車|台灣等公車
+tw.com.youbike.plus	YouBike微笑單車	TRANSPORT	youbike|ubike|微笑單車
+com.ubercab	Uber	TRANSPORT	uber|優步|叫uber
+com.mtaxi.passenger	55688	TRANSPORT	55688|台灣大車隊|叫計程車
+com.autonavi.minimap	高德地圖	MAPS_NAV	高德地圖|高德地图|高德導航
+com.baidu.BaiduMap	百度地圖	MAPS_NAV	百度地圖|百度地图
+com.MobileTicket	鐵路12306	TRANSPORT	12306|鐵路12306|铁路12306
+ctrip.android.view	攜程旅行	TRAVEL	攜程|携程|ctrip
+com.booking	Booking.com	TRAVEL	booking|booking.com|訂房
+com.agoda.mobile.consumer	Agoda	TRAVEL	agoda|阿高達
+com.airbnb.android	Airbnb	TRAVEL	airbnb|愛彼迎
+com.klook	Klook	TRAVEL	klook|客路
+com.shopee.tw	蝦皮購物	SHOPPING	蝦皮|虾皮|蝦皮購物|shopee
+com.momo.mobile.shopping	momo購物網	SHOPPING	momo|momo購物|富邦momo
+com.pchome.android.shopping24h	PChome 24h購物	SHOPPING	pchome|pchome24h|網路家庭
+com.coupang.mobile	Coupang 酷澎	SHOPPING	coupang|酷澎
+com.taobao.taobao	淘寶	SHOPPING	淘寶|淘宝|taobao
+com.jingdong.app.mall	京東	SHOPPING	京東|京东|jd
+com.xunmeng.pinduoduo	拼多多	SHOPPING	拼多多|pdd
+com.ubercab.eats	Uber Eats	FOOD_DELIVERY	uber eats|ubereats|吳柏毅|叫外送
+com.global.foodpanda.android	foodpanda	FOOD_DELIVERY	foodpanda|熊貓外送|富胖達|叫熊貓
+com.sankuai.meituan	美團	FOOD_DELIVERY	美團|美团|美團外賣
+me.ele	餓了麼	FOOD_DELIVERY	餓了麼|饿了么
+com.jkos.app	街口支付	FINANCE_PAY	街口|街口支付|jkopay
+tw.com.pxmart.pxpay	PX Pay	FINANCE_PAY	px pay|pxpay|全聯|全聯支付
+tw.com.pxpayplus.app	全支付	FINANCE_PAY	全支付|pxpay plus
+tw.com.icash.a.openpoint	OPEN POINT	CONVENIENCE	open point|openpoint|7-11|小七
+com.family.main	全家便利商店	CONVENIENCE	全家|familymart|全家app
+com.eg.android.AlipayGphone	支付寶	FINANCE_PAY	支付寶|支付宝|alipay
+com.cathaybk.mymobibank.android	國泰世華 CUBE	FINANCE_BANK	國泰世華|cube|cube app
+com.chinatrust.mobilebank	中信 Home Bank	FINANCE_BANK	中國信託|中信銀行|home bank
+tw.com.taishinbank.richart	Richart	FINANCE_BANK	richart|台新銀行|台新richart
+com.esunbank	玉山銀行	FINANCE_BANK	玉山銀行|玉山行動銀行|玉山wallet
+com.android.settings	設定	SYSTEM	設定|设置|系統設定|系统设置|手機設定|settings
+com.google.android.gm	Gmail	EMAIL	gmail|信箱|電子郵件|收信|谷歌郵箱
+com.google.android.calendar	Google 日曆	PRODUCTIVITY	日曆|日历|行事曆|calendar|google日曆
+com.google.android.apps.photos	Google 相簿	GALLERY	相簿|相册|google相簿|photos
+com.google.android.apps.docs	Google 雲端硬碟	PRODUCTIVITY	雲端硬碟|google drive|drive
+com.google.android.keep	Google Keep	PRODUCTIVITY	keep|google keep|備忘錄|筆記
+com.google.android.apps.translate	Google 翻譯	TOOLS	google翻譯|翻譯|翻译|translate
+com.google.android.calculator	計算機	TOOLS	計算機|计算器|算數|calculator
+com.google.android.deskclock	時鐘	TOOLS	時鐘|时钟|鬧鐘|闹钟|計時器|碼錶|clock|alarm
+com.android.camera2	相機	CAMERA	相機|相机|拍照|錄影|camera
+com.google.android.dialer	電話	PHONE	電話|电话|撥號|打電話|phone|dialer
+com.google.android.apps.messaging	訊息	MESSAGING	簡訊|短信|訊息|信息|messages|sms
+com.openai.chatgpt	ChatGPT	AI_ASSISTANT	chatgpt|gpt
+notion.id	Notion	PRODUCTIVITY	notion|筆記軟體
