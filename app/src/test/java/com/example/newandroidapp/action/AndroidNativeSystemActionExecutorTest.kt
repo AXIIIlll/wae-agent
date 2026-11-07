@@ -46,6 +46,48 @@ class AndroidNativeSystemActionExecutorTest {
     }
 
     @Test
+    fun `test brightness commands parsing for percent raise lower max min and auto`() {
+        val b40 = AndroidNativeSystemActionExecutor.parseCommand("把亮度調到 40%")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.BrightnessCommand
+        assertNotNull(b40)
+        assertEquals(AndroidNativeSystemActionExecutor.BrightnessOperation.SET_PERCENT, b40!!.operation)
+        assertEquals(40, b40.targetPercent)
+
+        val bDim = AndroidNativeSystemActionExecutor.parseCommand("把螢幕調暗一點")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.BrightnessCommand
+        assertNotNull(bDim)
+        assertEquals(AndroidNativeSystemActionExecutor.BrightnessOperation.LOWER, bDim!!.operation)
+
+        val bBright = AndroidNativeSystemActionExecutor.parseCommand("把亮度調亮一點")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.BrightnessCommand
+        assertNotNull(bBright)
+        assertEquals(AndroidNativeSystemActionExecutor.BrightnessOperation.RAISE, bBright!!.operation)
+
+        val bAuto = AndroidNativeSystemActionExecutor.parseCommand("開啟自動亮度")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.BrightnessCommand
+        assertNotNull(bAuto)
+        assertEquals(AndroidNativeSystemActionExecutor.BrightnessOperation.AUTO, bAuto!!.operation)
+    }
+
+    @Test
+    fun `test system status query commands for battery and volume`() {
+        val batCmd = AndroidNativeSystemActionExecutor.parseCommand("現在剩多少電")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.SystemStatusQueryCommand
+        assertNotNull(batCmd)
+        assertEquals(AndroidNativeSystemActionExecutor.StatusQueryType.BATTERY, batCmd!!.queryType)
+
+        val volCmd = AndroidNativeSystemActionExecutor.parseCommand("現在音量幾%")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.SystemStatusQueryCommand
+        assertNotNull(volCmd)
+        assertEquals(AndroidNativeSystemActionExecutor.StatusQueryType.VOLUME, volCmd!!.queryType)
+
+        val allCmd = AndroidNativeSystemActionExecutor.parseCommand("查詢系統狀態")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.SystemStatusQueryCommand
+        assertNotNull(allCmd)
+        assertEquals(AndroidNativeSystemActionExecutor.StatusQueryType.ALL, allCmd!!.queryType)
+    }
+
+    @Test
     fun `test alarm commands parsing with 24h Arabic and Chinese time and skipUi true`() {
         val alarmMorning = AndroidNativeSystemActionExecutor.parseCommand("設定早上 7 點 30 分的鬧鐘")
             as? AndroidNativeSystemActionExecutor.NativeSystemCommand.SetAlarmCommand
@@ -97,6 +139,66 @@ class AndroidNativeSystemActionExecutorTest {
     }
 
     @Test
+    fun `test google maps navigation and place search deep intents`() {
+        val navDrive = AndroidNativeSystemActionExecutor.parseCommand("導航去台北車站")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.MapNavigationCommand
+        assertNotNull(navDrive)
+        assertEquals("台北車站", navDrive!!.destination)
+        assertEquals("d", navDrive.travelMode)
+
+        val navWalk = AndroidNativeSystemActionExecutor.parseCommand("步行導航到台北 101")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.MapNavigationCommand
+        assertNotNull(navWalk)
+        assertEquals("台北 101", navWalk!!.destination)
+        assertEquals("w", navWalk.travelMode)
+
+        val mapSearchNearby = AndroidNativeSystemActionExecutor.parseCommand("搜尋附近的加油站")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.MapSearchCommand
+        assertNotNull(mapSearchNearby)
+        assertEquals("附近的加油站", mapSearchNearby!!.query)
+
+        val mapSearchExplicit = AndroidNativeSystemActionExecutor.parseCommand("在地圖搜尋桃園機場")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.MapSearchCommand
+        assertNotNull(mapSearchExplicit)
+        assertEquals("桃園機場", mapSearchExplicit!!.query)
+    }
+
+    @Test
+    fun `test youtube and web direct search deep intents`() {
+        val ytSearch = AndroidNativeSystemActionExecutor.parseCommand("在 YouTube 搜尋周杰倫")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.YouTubeSearchCommand
+        assertNotNull(ytSearch)
+        assertEquals("周杰倫", ytSearch!!.query)
+
+        val webSearch = AndroidNativeSystemActionExecutor.parseCommand("上網搜尋今日天氣")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.WebSearchCommand
+        assertNotNull(webSearch)
+        assertEquals("今日天氣", webSearch!!.query)
+    }
+
+    @Test
+    fun `test calendar event dial phone and compose sms deep intents`() {
+        val calCmd = AndroidNativeSystemActionExecutor.parseCommand("新增明天下午 3 點開會的日曆行程")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.AddCalendarEventCommand
+        assertNotNull(calCmd)
+        assertEquals(1, calCmd!!.dayOffset)
+        assertEquals(15, calCmd.hour24)
+        assertEquals(0, calCmd.minute)
+        assertEquals("開會", calCmd.title)
+
+        val dialCmd = AndroidNativeSystemActionExecutor.parseCommand("打電話給 0912-345-678")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.DialPhoneCommand
+        assertNotNull(dialCmd)
+        assertEquals("0912345678", dialCmd!!.phoneNumber)
+
+        val smsCmd = AndroidNativeSystemActionExecutor.parseCommand("傳簡訊給 0912345678 說我快到了")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.ComposeSmsCommand
+        assertNotNull(smsCmd)
+        assertEquals("0912345678", smsCmd!!.phoneNumber)
+        assertEquals("我快到了", smsCmd.body)
+    }
+
+    @Test
     fun `test global actions and settings subpage deep intents`() {
         val homeCmd = AndroidNativeSystemActionExecutor.parseCommand("回到桌面")
             as? AndroidNativeSystemActionExecutor.NativeSystemCommand.GlobalActionCommand
@@ -122,6 +224,11 @@ class AndroidNativeSystemActionExecutorTest {
         val (reply, execCmd) = AndroidNativeAiEngine.generateConversationalReply(rawAlarm, null)
         assertTrue(reply.isNotBlank())
         assertEquals(rawAlarm, execCmd)
+
+        val rawBattery = "現在剩多少電"
+        val (batReply, batExecCmd) = AndroidNativeAiEngine.generateConversationalReply(rawBattery, null)
+        assertTrue(batReply.isNotBlank())
+        assertEquals(rawBattery, batExecCmd)
 
         // Ensure multi-step UI instructions are not hijacked
         assertNull(AndroidNativeSystemActionExecutor.parseCommand("打開 YouTube 搜尋 周杰倫"))

@@ -269,6 +269,21 @@ object LocalKnowledgeAndReasoningEngine {
             return dailyChat
         }
 
+        // 3.5 若屬於 Android 原生系統指令或本機電量/音量狀態查詢（避免被誤判為需要上網查的疑問句）
+        val nativeCmd = com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(q)
+        if (nativeCmd != null) {
+            if (nativeCmd is com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.NativeSystemCommand.SystemStatusQueryCommand && context != null) {
+                val execRes = com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.executeCommand(nativeCmd, context)
+                if (execRes.succeeded && execRes.summaryText.isNotBlank()) {
+                    return ConversationalReasoningResult(
+                        replyText = HumanColloquialPersonaEngine.enforceConciseLength(execRes.summaryText),
+                        plannedExecutableCommand = q
+                    )
+                }
+            }
+            return null
+        }
+
         // 4. 檢查本機百科與常識知識圖譜（例如：「誰是蔣介石」、「台灣最高的山」、「什麼是黑洞」）
         val extraction = extractQuestionTopic(q)
         val cleanTopic = extraction.cleanTopic.lowercase()
