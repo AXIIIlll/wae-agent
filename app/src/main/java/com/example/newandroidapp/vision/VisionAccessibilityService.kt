@@ -1,4 +1,4 @@
-﻿package com.example.newandroidapp.vision
+package com.example.newandroidapp.vision
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
@@ -174,6 +174,14 @@ class VisionAccessibilityService : AccessibilityService() {
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    private fun copyTextToSystemClipboard(rawText: String) {
+        val clean = rawText.trim()
+        if (clean.isEmpty()) return
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+        cm.setPrimaryClip(ClipData.newPlainText("AI_HUD_MSG", clean))
+        Toast.makeText(this, "已複製對話內容", Toast.LENGTH_SHORT).show()
+    }
+
     private fun renderCapsuleBubbles(messages: List<com.example.newandroidapp.chat.ChatMessage>) {
         val container = capsuleChatContainer ?: return
         container.removeAllViews()
@@ -188,12 +196,22 @@ class VisionAccessibilityService : AccessibilityService() {
                         val tv = TextView(this@VisionAccessibilityService).apply {
                             text = msg.text
                             textSize = 13f
-                            setTextColor(Color.WHITE)
+                            setTextColor(Color.parseColor("#F4F4F5"))
                             background = GradientDrawable().apply {
-                                setColor(Color.parseColor("#2563EB"))
+                                setColor(Color.parseColor("#27272A"))
                                 cornerRadius = dp(12).toFloat()
                             }
                             setPadding(dp(12), dp(8), dp(12), dp(8))
+                            isLongClickable = true
+                            setOnLongClickListener {
+                                copyTextToSystemClipboard(msg.text)
+                                true
+                            }
+                        }
+                        isLongClickable = true
+                        setOnLongClickListener {
+                            copyTextToSystemClipboard(msg.text)
+                            true
                         }
                         addView(tv)
                     }
@@ -206,46 +224,35 @@ class VisionAccessibilityService : AccessibilityService() {
                         val card = LinearLayout(this@VisionAccessibilityService).apply {
                             orientation = LinearLayout.VERTICAL
                             background = GradientDrawable().apply {
-                                setColor(Color.WHITE)
+                                setColor(Color.parseColor("#18181B"))
                                 cornerRadius = dp(12).toFloat()
-                                setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
+                                setStroke(stroke1dp, Color.parseColor("#27272A"))
                             }
                             setPadding(dp(12), dp(8), dp(12), dp(8))
-                        }
-                        val hRow = LinearLayout(this@VisionAccessibilityService).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            gravity = Gravity.CENTER_VERTICAL
-                        }
-                        val dot = View(this@VisionAccessibilityService).apply {
-                            background = GradientDrawable().apply {
-                                shape = GradientDrawable.OVAL
-                                setColor(Color.parseColor("#10B981"))
+                            isLongClickable = true
+                            setOnLongClickListener {
+                                copyTextToSystemClipboard(msg.text)
+                                true
                             }
                         }
-                        hRow.addView(dot, LinearLayout.LayoutParams(dp(6), dp(6)))
-                        val tagText = msg.metadataHeader ?: if (msg.isProactiveReport) "主動回報" else "AI 助手"
-                        val tagTv = TextView(this@VisionAccessibilityService).apply {
-                            text = tagText
-                            textSize = 11f
-                            setTextColor(Color.parseColor("#64748B"))
-                            setPadding(dp(8), 0, 0, 0)
-                        }
-                        hRow.addView(tagTv)
-                        card.addView(hRow)
 
                         val bodyTv = TextView(this@VisionAccessibilityService).apply {
                             text = msg.text
                             textSize = 13f
-                            setTextColor(Color.parseColor("#0F172A"))
-                            setPadding(0, dp(4), 0, 0)
+                            setTextColor(Color.parseColor("#F4F4F5"))
+                            isLongClickable = true
+                            setOnLongClickListener {
+                                copyTextToSystemClipboard(msg.text)
+                                true
+                            }
                         }
                         card.addView(bodyTv)
                         val execCmd = msg.executableCommand?.trim().orEmpty()
                         if (execCmd.isNotEmpty()) {
                             val inlineExecBtn = makeCompactHudButton(
                                 label = if (execCmd == "確認執行") "確認執行" else "執行此指令",
-                                bgHex = "#2563EB",
-                                textColor = Color.WHITE
+                                bgHex = "#F4F4F5",
+                                textColor = Color.parseColor("#09090B")
                             ).apply {
                                 textSize = 11f
                                 setPadding(dp(12), dp(6), dp(12), dp(6))
@@ -1507,32 +1514,152 @@ class VisionAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun updateAutoRunButtonUi() {
-        val busy = isAutoLoopRunning || isBenchmarkRunning
-        val strokePx = dp(2).coerceAtLeast(2)
-        // [funboy322 / avoid-ai-design] 懸浮球為純粹基礎白色圓（無任何 Emoji 表情符號）
-        floatingOrbView?.apply {
-            text = ""
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.WHITE)
-                setStroke(strokePx, if (busy) Color.parseColor("#2563EB") else Color.parseColor("#CBD5E1"))
+    /**
+     * Grok Bot 風格雙眼圓形 AI 懸浮球（100% Canvas 原生幾何繪製，零 Emoji）
+     * 具備深色圓形機身、內層面罩與兩顆靈動膠囊小眼睛，支援自然眨眼與語音/執行狀態切換。
+     */
+    private inner class GrokBotOrbView(context: Context) : TextView(context) {
+        var isBusyState: Boolean = false
+            set(value) {
+                if (field != value) {
+                    field = value
+                    invalidate()
+                }
+            }
+
+        var isVoiceListeningState: Boolean = false
+            set(value) {
+                if (field != value) {
+                    field = value
+                    invalidate()
+                }
+            }
+
+        private var isBlinking: Boolean = false
+
+        private val outerFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = Color.parseColor("#18181B")
+        }
+        private val outerStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+        }
+        private val visorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = Color.parseColor("#09090B")
+        }
+        private val eyePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = Color.parseColor("#F4F4F5")
+        }
+        private val tmpRect = RectF()
+
+        private val blinkOpenRunnable = Runnable {
+            isBlinking = false
+            invalidate()
+        }
+
+        private val blinkLoopRunnable = object : Runnable {
+            override fun run() {
+                if (!isAttachedToWindow || visibility != View.VISIBLE) return
+                isBlinking = true
+                invalidate()
+                mainHandler.postDelayed(blinkOpenRunnable, 130L)
+                mainHandler.postDelayed(this, 3800L)
             }
         }
+
+        override fun onAttachedToWindow() {
+            super.onAttachedToWindow()
+            mainHandler.removeCallbacks(blinkLoopRunnable)
+            mainHandler.postDelayed(blinkLoopRunnable, 2600L)
+        }
+
+        override fun onDetachedFromWindow() {
+            mainHandler.removeCallbacks(blinkLoopRunnable)
+            mainHandler.removeCallbacks(blinkOpenRunnable)
+            super.onDetachedFromWindow()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val w = width.toFloat()
+            val h = height.toFloat()
+            if (w <= 0f || h <= 0f) {
+                super.onDraw(canvas)
+                return
+            }
+            val cx = w * 0.5f
+            val cy = h * 0.5f
+            val strokeW = (resources.displayMetrics.density * 2f).coerceAtLeast(3f)
+            val radius = (minOf(w, h) * 0.5f) - strokeW * 0.6f
+
+            // 1. 外層深色圓形機身
+            canvas.drawCircle(cx, cy, radius, outerFillPaint)
+
+            // 2. 狀態外框環（閒置 #3F3F46、執行中 #F4F4F5、語音聆聽 #3B82F6）
+            outerStrokePaint.strokeWidth = strokeW
+            outerStrokePaint.color = when {
+                isVoiceListeningState -> Color.parseColor("#3B82F6")
+                isBusyState -> Color.parseColor("#F4F4F5")
+                else -> Color.parseColor("#3F3F46")
+            }
+            canvas.drawCircle(cx, cy, radius, outerStrokePaint)
+
+            // 3. 內層深邃面罩區
+            val visorW = w * 0.68f
+            val visorH = h * 0.48f
+            tmpRect.set(cx - visorW * 0.5f, cy - visorH * 0.5f, cx + visorW * 0.5f, cy + visorH * 0.5f)
+            canvas.drawRoundRect(tmpRect, visorH * 0.5f, visorH * 0.5f, visorPaint)
+
+            // 4. 兩顆 Grok Bot 小眼睛（垂直膠囊型，眨眼時收縮為細橫線）
+            eyePaint.color = if (isVoiceListeningState) Color.parseColor("#60A5FA") else Color.parseColor("#F4F4F5")
+            val eyeW = (w * 0.115f).coerceAtLeast(5f)
+            val fullEyeH = (h * 0.24f).coerceAtLeast(10f)
+            val eyeH = if (isBlinking) (h * 0.045f).coerceAtLeast(2.5f) else fullEyeH
+            val eyeOffsetX = w * 0.14f
+            val eyeCorner = eyeW * 0.5f
+
+            // 左眼
+            tmpRect.set(
+                cx - eyeOffsetX - eyeW * 0.5f,
+                cy - eyeH * 0.5f,
+                cx - eyeOffsetX + eyeW * 0.5f,
+                cy + eyeH * 0.5f
+            )
+            canvas.drawRoundRect(tmpRect, eyeCorner, eyeCorner, eyePaint)
+
+            // 右眼
+            tmpRect.set(
+                cx + eyeOffsetX - eyeW * 0.5f,
+                cy - eyeH * 0.5f,
+                cx + eyeOffsetX + eyeW * 0.5f,
+                cy + eyeH * 0.5f
+            )
+            canvas.drawRoundRect(tmpRect, eyeCorner, eyeCorner, eyePaint)
+        }
+    }
+
+    private fun updateAutoRunButtonUi() {
+        val busy = isAutoLoopRunning || isBenchmarkRunning
+        (floatingOrbView as? GrokBotOrbView)?.apply {
+            isBusyState = busy
+            isVoiceListeningState = VoiceCommandAndTtsManager.isListening
+        }
         autoRunStatusBtn?.apply {
+            val pillRadius = (height.takeIf { it > 0 } ?: dp(40)) / 2f
             if (busy) {
                 text = "停止"
                 setTextColor(Color.WHITE)
                 background = GradientDrawable().apply {
                     setColor(Color.parseColor("#DC2626"))
-                    cornerRadius = dp(12).toFloat()
+                    cornerRadius = pillRadius
                 }
             } else {
                 text = "執行"
-                setTextColor(Color.WHITE)
+                setTextColor(Color.parseColor("#09090B"))
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#2563EB"))
-                    cornerRadius = dp(12).toFloat()
+                    setColor(Color.parseColor("#F4F4F5"))
+                    cornerRadius = pillRadius
                 }
             }
         }
@@ -3071,53 +3198,48 @@ class VisionAccessibilityService : AccessibilityService() {
                 gravity = Gravity.END
             }
 
-            val orbSizePx = (48 * dm.density).toInt().coerceAtLeast(124)
+            val orbSizePx = (52 * dm.density).toInt().coerceAtLeast(136)
             val orbRadiusF = orbSizePx / 2f
-            val innerItemHeight = (orbSizePx - 24).coerceAtLeast(72)
+            val innerItemHeight = (orbSizePx - dp(12)).coerceAtLeast(88)
             val innerRadiusF = innerItemHeight / 2f
 
             val stroke1dp = dp(1).coerceAtLeast(1)
-            val stroke2dp = dp(2).coerceAtLeast(2)
 
-            // [funboy322 / avoid-ai-design] 側邊懸浮小助手改為純粹基礎白色圓（無任何 Emoji 表情符號）
-            val orbTv = TextView(this).apply {
+            // Grok Bot 雙小眼睛圓形 AI 懸浮球（100% Canvas 原生幾何繪製，零 Emoji）
+            val orbTv = GrokBotOrbView(this).apply {
                 text = ""
                 gravity = Gravity.CENTER
                 elevation = dp(6).toFloat()
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.WHITE)
-                    setStroke(stroke2dp, if (isAutoLoopRunning || isBenchmarkRunning) Color.parseColor("#2563EB") else Color.parseColor("#CBD5E1"))
-                }
+                isBusyState = isAutoLoopRunning || isBenchmarkRunning
+                isVoiceListeningState = VoiceCommandAndTtsManager.isListening
             }
             floatingOrbView = orbTv
 
-            val panelWidthPx = (screenW - dp(24)).coerceIn(560, 960)
-            // [等高膠囊變形] 展開後的膠囊高度（orbSizePx）與兩端半圓直徑（cornerRadius = orbSizePx / 2f）100% 等於圓球直徑！
+            val panelWidthPx = (screenW - dp(20)).coerceIn(580, 1020)
+            // [等高膠囊變形 · Unslop 極簡深色] 展開後的膠囊高度（orbSizePx）與兩端半圓直徑（cornerRadius = orbSizePx / 2f）100% 等於圓球直徑！
             val expandedCard = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 visibility = View.GONE
-                elevation = dp(8).toFloat()
+                elevation = dp(10).toFloat()
                 background = GradientDrawable().apply {
-                    setColor(Color.WHITE)
+                    setColor(Color.parseColor("#18181B"))
                     cornerRadius = orbRadiusF
-                    setStroke(stroke1dp, Color.parseColor("#CBD5E1"))
+                    setStroke(stroke1dp, Color.parseColor("#27272A"))
                 }
-                setPadding(dp(8), 0, dp(8), 0)
+                setPadding(dp(6), 0, dp(6), 0)
             }
             hudExpandedPanel = expandedCard
             hudLiveAppBadgeTv = null
             hudCurrentAppChipsRow = null
             hudOutputText = null
-            autoRunStatusBtn = null
             this@VisionAccessibilityService.capsuleChatContainer = null
             capsuleChatScrollView = null
 
             // 閒置 3 秒自動半透明化（不擋畫面），觸碰時立即恢復 1.0f
             val idleTranslucentRunnable = Runnable {
                 if (orbTv.visibility == View.VISIBLE && !VoiceCommandAndTtsManager.isListening) {
-                    orbTv.animate().alpha(0.42f).setDuration(280L).withLayer().start()
+                    orbTv.animate().alpha(0.48f).setDuration(280L).withLayer().start()
                 }
             }
 
@@ -3155,6 +3277,7 @@ class VisionAccessibilityService : AccessibilityService() {
             }
 
             lateinit var cmdInputEt: EditText
+            lateinit var voiceBtn: Button
             fun submitExpandedCommand() {
                 val goal = cmdInputEt.text?.toString()?.trim().orEmpty()
                 setHudFocusable(false)
@@ -3189,25 +3312,25 @@ class VisionAccessibilityService : AccessibilityService() {
                         startAutonomousTaskLoop(goal, selectedAiMode, lockToCurrentApp = false)
                     }
                 } else {
-                    Toast.makeText(this@VisionAccessibilityService, "請輸入指令或長按輸入框語音輸入", Toast.LENGTH_SHORT).show()
+                    startExpandedInputVoiceListening(cmdInputEt, voiceBtn)
                 }
             }
 
             cmdInputEt = EditText(this).apply {
                 setText(activeGoalForHud)
-                hint = "輸入指令（長按語音）..."
-                textSize = 13f
-                setTextColor(Color.parseColor("#0F172A"))
-                setHintTextColor(Color.parseColor("#94A3B8"))
+                hint = "輸入或語音…"
+                textSize = 13.5f
+                setTextColor(Color.parseColor("#F4F4F5"))
+                setHintTextColor(Color.parseColor("#71717A"))
                 isSingleLine = true
                 gravity = Gravity.CENTER_VERTICAL or Gravity.START
                 imeOptions = EditorInfo.IME_ACTION_SEND
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F8FAFC"))
+                    setColor(Color.parseColor("#09090B"))
                     cornerRadius = innerRadiusF
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
+                    setStroke(stroke1dp, Color.parseColor("#27272A"))
                 }
-                setPadding(dp(12), 0, dp(12), 0)
+                setPadding(dp(12), 0, dp(10), 0)
                 setOnEditorActionListener { _, actionId, keyEvent ->
                     val isEnterKey = keyEvent != null &&
                         keyEvent.keyCode == android.view.KeyEvent.KEYCODE_ENTER &&
@@ -3233,7 +3356,7 @@ class VisionAccessibilityService : AccessibilityService() {
                 if (!inputMoved) {
                     inputLongPressed = true
                     setHudFocusable(false)
-                    startExpandedInputVoiceListening(cmdInputEt)
+                    startExpandedInputVoiceListening(cmdInputEt, voiceBtn)
                 }
             }
 
@@ -3260,12 +3383,7 @@ class VisionAccessibilityService : AccessibilityService() {
                         if (!inputMoved && !inputLongPressed && ev.actionMasked == MotionEvent.ACTION_UP) {
                             if (VoiceCommandAndTtsManager.isListening) {
                                 VoiceCommandAndTtsManager.stopListening()
-                                cmdInputEt.hint = "輸入指令（長按語音）..."
-                                cmdInputEt.background = GradientDrawable().apply {
-                                    setColor(Color.parseColor("#F8FAFC"))
-                                    cornerRadius = innerRadiusF
-                                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
-                                }
+                                resetExpandedVoiceUiState(cmdInputEt, voiceBtn, innerRadiusF)
                             } else {
                                 setHudFocusable(true)
                             }
@@ -3275,28 +3393,59 @@ class VisionAccessibilityService : AccessibilityService() {
                 inputLongPressed
             }
 
-            val runCmdBtn = makeCompactHudButton("執行", "#2563EB", Color.WHITE).apply {
-                textSize = 13f
+            // 懸浮窗專屬「語音」搜尋鍵（點擊立即啟動/停止語音辨識）
+            voiceBtn = makeCompactHudButton("語音", "#27272A", Color.parseColor("#E4E4E7")).apply {
+                textSize = 12.5f
                 gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#2563EB"))
+                    setColor(Color.parseColor("#27272A"))
                     cornerRadius = innerRadiusF
                 }
-                setPadding(dp(16), 0, dp(16), 0)
+                setPadding(dp(10), 0, dp(10), 0)
                 setOnClickListener {
-                    submitExpandedCommand()
+                    setHudFocusable(false)
+                    if (VoiceCommandAndTtsManager.isListening) {
+                        VoiceCommandAndTtsManager.stopListening()
+                        resetExpandedVoiceUiState(cmdInputEt, voiceBtn, innerRadiusF)
+                        Toast.makeText(this@VisionAccessibilityService, "已停止語音聆聽", Toast.LENGTH_SHORT).show()
+                    } else {
+                        startExpandedInputVoiceListening(cmdInputEt, voiceBtn)
+                    }
                 }
             }
 
-            val collapseBtn = makeCompactHudButton("縮小", "#F8FAFC", Color.parseColor("#334155")).apply {
-                textSize = 13f
+            // 放大版高對比「執行」鍵
+            val runCmdBtn = makeCompactHudButton("執行", "#F4F4F5", Color.parseColor("#09090B")).apply {
+                textSize = 14.5f
+                minWidth = dp(64)
+                minimumWidth = dp(64)
+                gravity = Gravity.CENTER
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                background = GradientDrawable().apply {
+                    setColor(Color.parseColor("#F4F4F5"))
+                    cornerRadius = innerRadiusF
+                }
+                setPadding(dp(18), 0, dp(18), 0)
+                setOnClickListener {
+                    if (isAutoLoopRunning || isBenchmarkRunning) {
+                        stopAutonomousLoop("已手動停止")
+                    } else {
+                        submitExpandedCommand()
+                    }
+                }
+            }
+            autoRunStatusBtn = runCmdBtn
+            updateAutoRunButtonUi()
+
+            // 極簡縮小鍵（單一橫槓「—」）
+            val collapseBtn = makeCompactHudButton("—", "#27272A", Color.parseColor("#E4E4E7")).apply {
+                textSize = 15f
                 gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F8FAFC"))
+                    setColor(Color.parseColor("#27272A"))
                     cornerRadius = innerRadiusF
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
                 }
-                setPadding(dp(12), 0, dp(12), 0)
+                setPadding(0, 0, 0, 0)
                 setOnClickListener {
                     setHudFocusable(false)
                     val collapsedScaleX = (orbSizePx.toFloat() / panelWidthPx.toFloat()).coerceIn(0.12f, 0.35f)
@@ -3329,15 +3478,15 @@ class VisionAccessibilityService : AccessibilityService() {
                 }
             }
 
-            val closeBtn = makeCompactHudButton("關閉", "#F8FAFC", Color.parseColor("#64748B")).apply {
-                textSize = 13f
+            // 極簡關閉鍵（單一打叉「×」 \u00D7，嚴格避開 [\u2600-\u27BF]）
+            val closeBtn = makeCompactHudButton("×", "#27272A", Color.parseColor("#A1A1AA")).apply {
+                textSize = 17f
                 gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F8FAFC"))
+                    setColor(Color.parseColor("#27272A"))
                     cornerRadius = innerRadiusF
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
                 }
-                setPadding(dp(12), 0, dp(12), 0)
+                setPadding(0, 0, 0, 0)
                 setOnClickListener {
                     mainHandler.removeCallbacks(idleTranslucentRunnable)
                     setHudFocusable(false)
@@ -3347,16 +3496,20 @@ class VisionAccessibilityService : AccessibilityService() {
                 }
             }
 
+            val iconBtnWidth = dp(36).coerceAtLeast(innerItemHeight - dp(6))
             expandedCard.addView(cmdInputEt, LinearLayout.LayoutParams(0, innerItemHeight, 1f).apply {
-                rightMargin = dp(8)
+                rightMargin = dp(5)
+            })
+            expandedCard.addView(voiceBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, innerItemHeight).apply {
+                rightMargin = dp(5)
             })
             expandedCard.addView(runCmdBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, innerItemHeight).apply {
+                rightMargin = dp(5)
+            })
+            expandedCard.addView(collapseBtn, LinearLayout.LayoutParams(iconBtnWidth, innerItemHeight).apply {
                 rightMargin = dp(4)
             })
-            expandedCard.addView(collapseBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, innerItemHeight).apply {
-                rightMargin = dp(4)
-            })
-            expandedCard.addView(closeBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, innerItemHeight))
+            expandedCard.addView(closeBtn, LinearLayout.LayoutParams(iconBtnWidth, innerItemHeight))
 
             var downRawX = 0f
             var downRawY = 0f
@@ -3464,29 +3617,28 @@ class VisionAccessibilityService : AccessibilityService() {
             expandedCard.setOnTouchListener(dragAndTapListener)
             root.setOnTouchListener(dragAndTapListener)
 
-            // [heydamir/unslop Pass 2, 5, 6, 7] 純白高階層安全接管卡片，取代刺眼黃底紅綠雙色按鈕
+            // [heydamir/unslop] 極簡深色安全接管卡片
             val alertCard = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.START
                 visibility = View.GONE
                 elevation = dp(12).toFloat()
                 background = GradientDrawable().apply {
-                    setColor(Color.WHITE)
+                    setColor(Color.parseColor("#18181B"))
                     cornerRadius = dp(16).toFloat()
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
+                    setStroke(stroke1dp, Color.parseColor("#27272A"))
                 }
                 setPadding(dp(20), dp(16), dp(20), dp(16))
             }
             handoverAlertCard = alertCard
 
             val alertBadge = TextView(this).apply {
-                text = "SECURITY HANDOVER"
+                text = "安全接管"
                 textSize = 11f
-                setTextColor(Color.parseColor("#B45309"))
+                setTextColor(Color.parseColor("#F59E0B"))
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                letterSpacing = 0.05f
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#FEF3C7"))
+                    setColor(Color.parseColor("#27272A"))
                     cornerRadius = dp(6).toFloat()
                 }
                 setPadding(dp(8), dp(4), dp(8), dp(4))
@@ -3495,7 +3647,7 @@ class VisionAccessibilityService : AccessibilityService() {
             val alertTitle = TextView(this).apply {
                 text = "[安全暫停] 偵測到人機驗證碼 (CAPTCHA)"
                 textSize = 15f
-                setTextColor(Color.parseColor("#0F172A"))
+                setTextColor(Color.parseColor("#F4F4F5"))
                 typeface = android.graphics.Typeface.DEFAULT_BOLD
                 gravity = Gravity.START
                 setPadding(0, dp(8), 0, 0)
@@ -3505,7 +3657,7 @@ class VisionAccessibilityService : AccessibilityService() {
             val alertDesc = TextView(this).apply {
                 text = "請您手動完成輸入或驗證操作。\n完成後點擊「我已完成，繼續執行」恢復任務。"
                 textSize = 13f
-                setTextColor(Color.parseColor("#475569"))
+                setTextColor(Color.parseColor("#A1A1AA"))
                 setLineSpacing(0f, 1.3f)
                 gravity = Gravity.START
                 setPadding(0, dp(4), 0, dp(16))
@@ -3523,10 +3675,10 @@ class VisionAccessibilityService : AccessibilityService() {
                 isAllCaps = false
                 minHeight = dp(44)
                 minimumHeight = dp(44)
-                setTextColor(Color.WHITE)
+                setTextColor(Color.parseColor("#09090B"))
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#2563EB"))
+                    setColor(Color.parseColor("#F4F4F5"))
                     cornerRadius = dp(12).toFloat()
                 }
                 setPadding(dp(16), dp(8), dp(16), dp(8))
@@ -3541,12 +3693,11 @@ class VisionAccessibilityService : AccessibilityService() {
                 isAllCaps = false
                 minHeight = dp(44)
                 minimumHeight = dp(44)
-                setTextColor(Color.parseColor("#475569"))
+                setTextColor(Color.parseColor("#A1A1AA"))
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F1F5F9"))
+                    setColor(Color.parseColor("#27272A"))
                     cornerRadius = dp(12).toFloat()
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
                 }
                 setPadding(dp(16), dp(8), dp(16), dp(8))
                 setOnClickListener {
@@ -3588,12 +3739,31 @@ class VisionAccessibilityService : AccessibilityService() {
         }
     }
 
-    /**
-     * 懸浮球展開後，長按白色輸入框直接啟動語音輸入
-     */
-    private fun startExpandedInputVoiceListening(cmdInputEt: EditText) {
+    private fun resetExpandedVoiceUiState(cmdInputEt: EditText, voiceBtn: Button?, innerRadiusF: Float) {
         val stroke1dp = dp(1).coerceAtLeast(1)
+        cmdInputEt.hint = "輸入或語音…"
+        cmdInputEt.background = GradientDrawable().apply {
+            setColor(Color.parseColor("#09090B"))
+            cornerRadius = innerRadiusF
+            setStroke(stroke1dp, Color.parseColor("#27272A"))
+        }
+        voiceBtn?.apply {
+            text = "語音"
+            setTextColor(Color.parseColor("#E4E4E7"))
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#27272A"))
+                cornerRadius = innerRadiusF
+            }
+        }
+        updateAutoRunButtonUi()
+    }
+
+    /**
+     * 懸浮球展開後，點擊「語音」按鈕或長按輸入框直接啟動語音搜尋/輸入
+     */
+    private fun startExpandedInputVoiceListening(cmdInputEt: EditText, voiceBtn: Button? = null) {
         val stroke2dp = dp(2).coerceAtLeast(2)
+        val innerRadiusF = (cmdInputEt.height.takeIf { it > 0 } ?: dp(40)) / 2f
         if (!VoiceCommandAndTtsManager.hasRecordAudioPermission(this)) {
             Toast.makeText(this, "請先授予錄音權限", Toast.LENGTH_LONG).show()
             runCatching {
@@ -3604,13 +3774,22 @@ class VisionAccessibilityService : AccessibilityService() {
             }
             return
         }
-        cmdInputEt.hint = "正在聆聽語音..."
+        cmdInputEt.hint = "正在聆聽語音…"
         cmdInputEt.background = GradientDrawable().apply {
-            setColor(Color.parseColor("#EFF6FF"))
-            cornerRadius = dp(16).toFloat()
-            setStroke(stroke2dp, Color.parseColor("#2563EB"))
+            setColor(Color.parseColor("#09090B"))
+            cornerRadius = innerRadiusF
+            setStroke(stroke2dp, Color.parseColor("#3B82F6"))
         }
-        Toast.makeText(this, "開始語音輸入，請說話...", Toast.LENGTH_SHORT).show()
+        voiceBtn?.apply {
+            text = "聆聽"
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#2563EB"))
+                cornerRadius = innerRadiusF
+            }
+        }
+        (floatingOrbView as? GrokBotOrbView)?.isVoiceListeningState = true
+        Toast.makeText(this, "開始語音搜尋，請說話…", Toast.LENGTH_SHORT).show()
         VoiceCommandAndTtsManager.startListening(
             context = this,
             onPartialResult = { partial ->
@@ -3618,27 +3797,17 @@ class VisionAccessibilityService : AccessibilityService() {
                 cmdInputEt.setSelection(partial.length)
             },
             onFinalResult = { spoken ->
-                cmdInputEt.hint = "輸入指令（長按語音）..."
-                cmdInputEt.background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F8FAFC"))
-                    cornerRadius = dp(16).toFloat()
-                    setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
-                }
+                resetExpandedVoiceUiState(cmdInputEt, voiceBtn, innerRadiusF)
                 val clean = spoken.trim()
                 cmdInputEt.setText(clean)
                 cmdInputEt.setSelection(clean.length)
                 if (clean.isNotEmpty()) {
-                    Toast.makeText(this, "已填入語音文字，請確認後點「執行」", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "已填入語音文字，點「執行」即可開始", Toast.LENGTH_SHORT).show()
                 }
             },
             onStatusOrError = { msg ->
                 if (!VoiceCommandAndTtsManager.isListening) {
-                    cmdInputEt.hint = "輸入指令（長按語音）..."
-                    cmdInputEt.background = GradientDrawable().apply {
-                        setColor(Color.parseColor("#F8FAFC"))
-                        cornerRadius = dp(16).toFloat()
-                        setStroke(stroke1dp, Color.parseColor("#E2E8F0"))
-                    }
+                    resetExpandedVoiceUiState(cmdInputEt, voiceBtn, innerRadiusF)
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -3646,20 +3815,14 @@ class VisionAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 【功能 1：白圓球「長按語音轉文字」】
-     * 在任何 App 長按側邊純白圓球 360ms 啟動語音聆聽，
+     * 【功能 1：Grok Bot 雙眼圓球「長按語音轉文字」】
+     * 在任何 App 長按側邊圓球 360ms 啟動語音聆聽，
      * 說完話後自動展開輸入膠囊並將辨識文字填入輸入框，等待使用者確認後手動按「執行」發送。
      */
     private fun startDirectOrbVoiceListening(orbTv: TextView, cmdInputEt: EditText?) {
-        val stroke2dp = dp(2).coerceAtLeast(2)
-        val stroke3dp = dp(3).coerceAtLeast(3)
         if (!VoiceCommandAndTtsManager.hasRecordAudioPermission(this)) {
             orbTv.animate().scaleX(1f).scaleY(1f).setDuration(180L).withLayer().start()
-            orbTv.background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.WHITE)
-                setStroke(stroke2dp, Color.parseColor("#CBD5E1"))
-            }
+            updateAutoRunButtonUi()
             Toast.makeText(this, "請先授予錄音權限", Toast.LENGTH_LONG).show()
             hudOutputText?.text = "未取得麥克風權限，請先在主畫面授予錄音權限"
             runCatching {
@@ -3673,12 +3836,7 @@ class VisionAccessibilityService : AccessibilityService() {
         if (isAutoLoopRunning) {
             stopAutonomousLoop("已切換為長按語音聆聽")
         }
-        orbTv.text = ""
-        orbTv.background = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(Color.WHITE)
-            setStroke(stroke3dp, Color.parseColor("#2563EB"))
-        }
+        (orbTv as? GrokBotOrbView)?.isVoiceListeningState = true
         orbTv.animate()
             .scaleX(1.12f)
             .scaleY(1.12f)
@@ -3687,7 +3845,7 @@ class VisionAccessibilityService : AccessibilityService() {
             .withLayer()
             .start()
 
-        Toast.makeText(this, "請說話，說完將填入輸入框...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "請說話，說完將填入輸入框…", Toast.LENGTH_SHORT).show()
 
         VoiceCommandAndTtsManager.startListening(
             context = this,

@@ -1059,6 +1059,14 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun copyChatTextToClipboard(rawText: String) {
+        val clean = rawText.trim()
+        if (clean.isEmpty()) return
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+        cm.setPrimaryClip(ClipData.newPlainText("AI_CHAT_MESSAGE", clean))
+        Toast.makeText(this, "已複製對話內容", Toast.LENGTH_SHORT).show()
+    }
+
     private fun renderChatBubbles(messages: List<ChatMessage>) {
         chatBubbleContainer.removeAllViews()
         if (messages.isEmpty()) {
@@ -1129,6 +1137,16 @@ class MainActivity : Activity() {
                             setTextColor(Color.parseColor("#F4F4F5"))
                             background = roundRectBg("#27272A", "#27272A", dp(16).toFloat(), strokePx = 0)
                             setPadding(dp(14), dp(10), dp(14), dp(10))
+                            isLongClickable = true
+                            setOnLongClickListener {
+                                copyChatTextToClipboard(msg.text)
+                                true
+                            }
+                        }
+                        isLongClickable = true
+                        setOnLongClickListener {
+                            copyChatTextToClipboard(msg.text)
+                            true
                         }
                         addView(tv, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                             leftMargin = dp(56)
@@ -1144,6 +1162,11 @@ class MainActivity : Activity() {
                             orientation = LinearLayout.VERTICAL
                             background = roundRectBg("#18181B", "#27272A", dp(16).toFloat(), strokePx = dp(1).coerceAtLeast(1))
                             setPadding(dp(14), dp(12), dp(14), dp(12))
+                            isLongClickable = true
+                            setOnLongClickListener {
+                                copyChatTextToClipboard(msg.text)
+                                true
+                            }
                         }
 
                         val isNoteMsg = msg.text.startsWith("已記下筆記：") ||
@@ -1158,6 +1181,11 @@ class MainActivity : Activity() {
                                     text = "目前沒有筆記。"
                                     textSize = 14f
                                     setTextColor(Color.parseColor("#A1A1AA"))
+                                    isLongClickable = true
+                                    setOnLongClickListener {
+                                        copyChatTextToClipboard(msg.text)
+                                        true
+                                    }
                                 }
                                 card.addView(emptyNoteTv)
                             } else {
@@ -1171,6 +1199,11 @@ class MainActivity : Activity() {
                                     textSize = 12f
                                     setTextColor(Color.parseColor("#A1A1AA"))
                                     setPadding(0, 0, 0, dp(6))
+                                    isLongClickable = true
+                                    setOnLongClickListener {
+                                        copyChatTextToClipboard(msg.text)
+                                        true
+                                    }
                                 }
                                 card.addView(titleTv)
 
@@ -1184,11 +1217,21 @@ class MainActivity : Activity() {
                                         orientation = LinearLayout.HORIZONTAL
                                         gravity = Gravity.CENTER_VERTICAL
                                         setPadding(0, dp(8), 0, dp(8))
+                                        isLongClickable = true
+                                        setOnLongClickListener {
+                                            copyChatTextToClipboard(note.content)
+                                            true
+                                        }
                                     }
                                     val contentTv = TextView(this@MainActivity).apply {
                                         text = note.content
                                         textSize = 14f
                                         setTextColor(Color.parseColor("#F4F4F5"))
+                                        isLongClickable = true
+                                        setOnLongClickListener {
+                                            copyChatTextToClipboard(note.content)
+                                            true
+                                        }
                                     }
                                     val timeTv = TextView(this@MainActivity).apply {
                                         text = note.formattedTime
@@ -1227,6 +1270,11 @@ class MainActivity : Activity() {
                                 textSize = 14f
                                 setTextColor(Color.parseColor("#F4F4F5"))
                                 setLineSpacing(0f, 1.32f)
+                                isLongClickable = true
+                                setOnLongClickListener {
+                                    copyChatTextToClipboard(msg.text)
+                                    true
+                                }
                             }
                             card.addView(bodyTv)
                         }
@@ -1998,7 +2046,7 @@ class MainActivity : Activity() {
                     VisionAccessibilityService.selectedAiMode = currentAiMode
                     svc.toggleFloatingHud(true)
                     serviceStatusBtn.postDelayed({ updateServiceButtonState() }, 150L)
-                    Toast.makeText(this, "已開啟側邊白色圓形懸浮球（點擊可展開當前 App 指令區）", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "已開啟側邊 AI 懸浮球（點擊可展開指令與語音搜尋）", Toast.LENGTH_SHORT).show()
                 }
             }
             return
@@ -2017,7 +2065,7 @@ class MainActivity : Activity() {
                     if (reconnectedSvc != null) {
                         reconnectedSvc.toggleFloatingHud(true)
                         updateServiceButtonState()
-                        Toast.makeText(this, "已開啟側邊白色圓形懸浮球", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "已開啟側邊 AI 懸浮球", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(this, "系統無障礙服務需重新授權，請在設定中重新切換「AI 助手」", Toast.LENGTH_LONG).show()
                         runCatching {
