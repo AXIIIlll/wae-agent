@@ -1,4 +1,4 @@
-package com.example.newandroidapp.ai
+﻿package com.example.newandroidapp.ai
 
 import android.content.Context
 import android.graphics.Point
@@ -249,7 +249,10 @@ object DualLocalAiCoordinator {
 
         // 【口語追問多輪直接動作 (Multi-Turn Follow-Up: 滑動 / 候選項目直選)】
         val lowerGoal = cleanGoal.lowercase()
-        if (lowerGoal.contains("往下滑") || lowerGoal.contains("向下滑") || lowerGoal == "下滑") {
+        // 僅「純滑動追問」才走快捷滑動；含「打開/進入/點進/搜尋」等複合任務必須交給完整規劃器（先啟動 App 再操作）
+        val isPureSwipeFollowUp = cleanGoal.length <= 12 &&
+            !Regex("(打開|開啟|啟動|進入|點進|點擊|搜尋|然後|接著|並且|去)").containsMatchIn(cleanGoal)
+        if (isPureSwipeFollowUp && lowerGoal.contains("往下滑") || lowerGoal.contains("向下滑") || lowerGoal == "下滑") {
             val totalMs = (safeElapsedRealtime() - startMs).coerceAtLeast(1L)
             return AiActionDecision(
                 engineName = "雙模型合作 (口語追問滑動)",
@@ -264,7 +267,7 @@ object DualLocalAiCoordinator {
                 reasoningTrace = "口語追問指令解析為向下捲動列表 (SD)"
             )
         }
-        if (lowerGoal.contains("往上滑") || lowerGoal.contains("向上滑") || lowerGoal == "上滑") {
+        if (isPureSwipeFollowUp && lowerGoal.contains("往上滑") || lowerGoal.contains("向上滑") || lowerGoal == "上滑") {
             val totalMs = (safeElapsedRealtime() - startMs).coerceAtLeast(1L)
             return AiActionDecision(
                 engineName = "雙模型合作 (口語追問滑動)",
@@ -280,7 +283,7 @@ object DualLocalAiCoordinator {
             )
         }
 
-        if (lowerGoal.contains("往左滑") || lowerGoal.contains("向左滑") || lowerGoal.contains("左滑") || lowerGoal.contains("左翻") || lowerGoal == "swipe left") {
+        if (isPureSwipeFollowUp && lowerGoal.contains("往左滑") || lowerGoal.contains("向左滑") || lowerGoal.contains("左滑") || lowerGoal.contains("左翻") || lowerGoal == "swipe left") {
             val totalMs = (safeElapsedRealtime() - startMs).coerceAtLeast(1L)
             return AiActionDecision(
                 engineName = "雙模型合作 (口語追問滑動)",
@@ -296,7 +299,7 @@ object DualLocalAiCoordinator {
             )
         }
 
-        if (lowerGoal.contains("往右滑") || lowerGoal.contains("向右滑") || lowerGoal.contains("右滑") || lowerGoal.contains("右翻") || lowerGoal == "swipe right") {
+        if (isPureSwipeFollowUp && lowerGoal.contains("往右滑") || lowerGoal.contains("向右滑") || lowerGoal.contains("右滑") || lowerGoal.contains("右翻") || lowerGoal == "swipe right") {
             val totalMs = (safeElapsedRealtime() - startMs).coerceAtLeast(1L)
             return AiActionDecision(
                 engineName = "雙模型合作 (口語追問滑動)",
@@ -1493,3 +1496,4 @@ object DualLocalAiCoordinator {
         )
     }
 }
+
