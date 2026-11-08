@@ -155,6 +155,25 @@ class VisionAccessibilityService : AccessibilityService() {
     private var capsuleChatContainer: LinearLayout? = null
     private var capsuleObserver: com.example.newandroidapp.chat.ConversationObserver? = null
     private var capsuleChatScrollView: ScrollView? = null
+    private var orbMicroToastCard: LinearLayout? = null
+    private var orbMicroToastLp: WindowManager.LayoutParams? = null
+    private var orbMicroToastBar: View? = null
+    private var orbMicroToastTv: TextView? = null
+    private val hideOrbMicroToastRunnable = Runnable {
+        val card = orbMicroToastCard ?: return@Runnable
+        if (card.visibility == View.VISIBLE) {
+            card.animate()
+                .alpha(0f)
+                .scaleX(0.90f)
+                .scaleY(0.90f)
+                .setDuration(180L)
+                .withLayer()
+                .withEndAction {
+                    card.visibility = View.GONE
+                }
+                .start()
+        }
+    }
 
     @Volatile
     var isHandoverPaused: Boolean = false
@@ -1168,8 +1187,18 @@ class VisionAccessibilityService : AccessibilityService() {
                 metadataHeader = if (nativeSysRes.succeeded) "原生系統指令 · 已完成" else "原生系統指令 · 提示",
                 isSensitive = com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery(rawCleanGoal)
             )
+            if (hudExpandedPanel?.visibility == View.VISIBLE) {
+                hudExpandedPanel?.visibility = View.GONE
+                floatingOrbView?.visibility = View.VISIBLE
+            }
+            val firstLineSummary = nativeSysRes.summaryText.lines().firstOrNull { it.isNotBlank() } ?: nativeSysRes.summaryText
+            triggerOrbEmotionAndToast(
+                animId = if (nativeSysRes.succeeded) 35 else 37,
+                message = firstLineSummary,
+                animDurationMs = 2400L,
+                toastDurationMs = 2600L
+            )
             VoiceCommandAndTtsManager.speak(this, nativeSysRes.summaryText, flush = true)
-            Toast.makeText(this, nativeSysRes.summaryText, Toast.LENGTH_SHORT).show()
             return
         }
         if (isHandoverPaused) {
@@ -1248,6 +1277,12 @@ class VisionAccessibilityService : AccessibilityService() {
             hudCommandInputEt?.setText(cleanGoal)
             val scopeTag = if (loopLockedToCurrentApp) "當前 App ($latestForegroundAppLabel)" else "全機自動巡航"
             hudOutputText?.text = "[$scopeTag] 實時閉環執行：「$cleanGoal」"
+            triggerOrbEmotionAndToast(
+                animId = 62,
+                message = "開始執行：$cleanGoal",
+                animDurationMs = 1800L,
+                toastDurationMs = 2000L
+            )
             executeNextAutonomousStep()
         }, initialDelayMs)
     }
@@ -1379,6 +1414,21 @@ class VisionAccessibilityService : AccessibilityService() {
             if (hudOutputText != null && reason.isNotEmpty()) {
                 hudOutputText?.text = reason
             }
+            if (reason.isNotEmpty() && reason != "切換至使用者任務") {
+                val endAnimId = when {
+                    reason.contains("弄好了") || reason.contains("已完成") || reason.contains("成功") -> 35
+                    reason.contains("安全閘門") || reason.contains("待確認") -> 43
+                    reason.contains("沒看到") || reason.contains("無反應") || reason.contains("無法") ||
+                        reason.contains("找不到") || reason.contains("上限") || reason.contains("異常") -> 40
+                    else -> 58
+                }
+                triggerOrbEmotionAndToast(
+                    animId = endAnimId,
+                    message = reason,
+                    animDurationMs = 2600L,
+                    toastDurationMs = 2600L
+                )
+            }
         }
     }
 
@@ -1408,6 +1458,7 @@ class VisionAccessibilityService : AccessibilityService() {
         )
 
         mainHandler.post {
+            (floatingOrbView as? GrokBotOrbView)?.triggerAnimation(43, 3000L)
             showHandoverAlertOverlay(category, detail)
         }
     }
@@ -1542,20 +1593,122 @@ class VisionAccessibilityService : AccessibilityService() {
     }
 
     /**
+     * 動態計算並更新懸浮球旁「極簡深色微氣泡 (Micro-Toast Bubble)」的座標：
+     * - 當懸浮球位於螢幕右半側時，微氣泡自動錨定於懸浮球左側 8dp（由右向左延伸，絕不擠壓懸浮球）。
+     * - 當懸浮球位於螢幕左半側時，微氣泡自動錨定於懸浮球右側 8dp（由左向右延伸）。
+     */
+    private fun syncOrbMicroToastPosition() {
+        val wm = windowManager ?: return
+        val card = orbMicroToastCard ?: return
+        val toastLp = orbMicroToastLp ?: return
+        val rootLp = floatingRootLp ?: return
+        if (!isHudAttached) return
+        val (liveW, liveH) = getLiveScreenSizePx()
+        val orbSizePx = (floatingOrbView?.width?.takeIf { it > 0 } ?: (52 * resources.displayMetrics.density).toInt().coerceAtLeast(136))
+        val onRightSide = (rootLp.x + orbSizePx / 2) >= (liveW / 2)
+        if (onRightSide) {
+            toastLp.gravity = Gravity.TOP or Gravity.END
+            toastLp.x = (liveW - rootLp.x + dp(8)).coerceAtLeast(dp(64))
+        } else {
+            toastLp.gravity = Gravity.TOP or Gravity.START
+            toastLp.x = (rootLp.x + orbSizePx + dp(8)).coerceAtLeast(dp(64))
+        }
+        toastLp.y = (rootLp.y + dp(6)).coerceIn(8, (liveH - dp(52)).coerceAtLeast(8))
+        runCatching { wm.updateViewLayout(card, toastLp) }
+    }
+
+    /**
+     * 在懸浮球旁浮出極簡深色微氣泡（左側帶有與懸浮球當下情緒同色系的動態色條，預設 2.2 秒後自動淡出）
+     */
+    fun showOrbMicroToast(
+        message: String,
+        accentColor: Int = Color.parseColor("#38BDF8"),
+        durationMs: Long = 2200L
+    ) {
+        val cleanMsg = message.trim()
+        if (cleanMsg.isEmpty()) return
+        mainHandler.post {
+            if (!isHudAttached) return@post
+            val card = orbMicroToastCard ?: return@post
+            val tv = orbMicroToastTv ?: return@post
+            val bar = orbMicroToastBar
+            mainHandler.removeCallbacks(hideOrbMicroToastRunnable)
+
+            tv.text = if (cleanMsg.length > 36) cleanMsg.take(36) + "…" else cleanMsg
+            bar?.background = GradientDrawable().apply {
+                setColor(accentColor)
+                cornerRadius = dp(2).toFloat()
+            }
+            val stroke1dp = dp(1).coerceAtLeast(1)
+            val borderAlphaColor = Color.argb(
+                145,
+                Color.red(accentColor),
+                Color.green(accentColor),
+                Color.blue(accentColor)
+            )
+            card.background = GradientDrawable().apply {
+                setColor(Color.parseColor("#EB18181B"))
+                cornerRadius = dp(18).toFloat()
+                setStroke(stroke1dp, borderAlphaColor)
+            }
+
+            syncOrbMicroToastPosition()
+            if (card.visibility != View.VISIBLE) {
+                card.alpha = 0f
+                card.scaleX = 0.88f
+                card.scaleY = 0.88f
+                card.visibility = View.VISIBLE
+            }
+            card.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(150L)
+                .withLayer()
+                .start()
+
+            mainHandler.postDelayed(hideOrbMicroToastRunnable, durationMs.coerceIn(900L, 5000L))
+        }
+    }
+
+    /**
+     * 【方向二核心：Grok-Bot 88 種情緒色彩 × 控手機實時狀態連動】
+     * 同時喚醒懸浮球透明度、觸發指定情緒/眼神動畫，並在懸浮球旁同步彈出對應情緒色系的極簡微氣泡。
+     */
+    fun triggerOrbEmotionAndToast(
+        animId: Int,
+        message: String? = null,
+        animDurationMs: Long = 1800L,
+        toastDurationMs: Long = 2200L
+    ) {
+        mainHandler.post {
+            val orb = floatingOrbView as? GrokBotOrbView
+            orb?.apply {
+                animate().cancel()
+                alpha = 1f
+                triggerAnimation(animId, animDurationMs)
+            }
+            val accent = orb?.getAnimationAccentColor(animId) ?: Color.parseColor("#38BDF8")
+            if (!message.isNullOrBlank()) {
+                showOrbMicroToast(message, accent, toastDurationMs)
+            }
+        }
+    }
+
+    /**
      * 【功能 4：畫面重點智慧朗讀】
      * 即時掃描當前畫面元件樹與局部 OCR，過濾雜訊後產生結構化重點摘要並以繁體中文 TTS 朗讀
      */
     fun readCurrentScreenSummaryAloud(onSummaryReady: ((String) -> Unit)? = null) {
         hudOutputText?.text = "正在解析當前畫面重點並準備朗讀..."
+        triggerOrbEmotionAndToast(63, "正在掃描畫面重點...", animDurationMs = 1600L, toastDurationMs = 1800L)
         captureLiveScreenAndRunPipeline { rep ->
             val appName = latestForegroundAppLabel
             val (displaySummary, spokenSummary) = SmartDailyAssistantHelper.buildSmartScreenSummary(appName, rep)
             mainHandler.post {
                 hudOutputText?.text = displaySummary
                 onSummaryReady?.invoke(displaySummary)
-                if (hudExpandedPanel?.visibility != View.VISIBLE) {
-                    Toast.makeText(this, spokenSummary.take(85), Toast.LENGTH_LONG).show()
-                }
+                triggerOrbEmotionAndToast(53, spokenSummary.take(32), animDurationMs = 3600L, toastDurationMs = 3600L)
                 VoiceCommandAndTtsManager.speakForced(this, spokenSummary, flush = true)
             }
         }
@@ -1678,6 +1831,9 @@ class VisionAccessibilityService : AccessibilityService() {
                 val totalWaitedMs = attempt * SmartLoadingDetector.POLL_INTERVAL_MS
                 if (check.isLoading && totalWaitedMs < SmartLoadingDetector.MAX_WAIT_TIMEOUT_MS) {
                     hudOutputText?.text = "載入中 (${check.indicatorType})，智慧等待畫面就緒 (${totalWaitedMs}ms)..."
+                    if (attempt == 2) {
+                        triggerOrbEmotionAndToast(14, "等待畫面載入就緒...", animDurationMs = 1200L, toastDurationMs = 1400L)
+                    }
                     mainHandler.postDelayed({
                         waitForSmartLoadingSettled(attempt + 1, onSettled)
                     }, SmartLoadingDetector.POLL_INTERVAL_MS)
@@ -1757,6 +1913,7 @@ class VisionAccessibilityService : AccessibilityService() {
                     )
                 }
                 hudOutputText?.text = "偵測到誤跳外部 App ($fgPkg)，自動拉回目標 App！"
+                triggerOrbEmotionAndToast(39, "攔截外部跳轉，自動拉回", animDurationMs = 1600L, toastDurationMs = 2000L)
                 VoiceCommandAndTtsManager.speak(this@VisionAccessibilityService, "偵測到誤跳外部程式，自動拉回目標程式")
                 StabilityFlightRecorder.recordStep(
                     context = applicationContext,
@@ -1895,6 +2052,7 @@ class VisionAccessibilityService : AccessibilityService() {
                 InAppWorkingMemory.rollbackScroll()
                 currentLoopStep = (currentLoopStep - 1).coerceAtLeast(0)
                 hudOutputText?.text = "[智慧視覺補盲] 節點樹未見目標，啟動 NanoDet + OCR 像素掃描..."
+                triggerOrbEmotionAndToast(63, "啟動 OCR 像素視覺掃描...", animDurationMs = 1600L, toastDurationMs = 1800L)
                 executeNextAutonomousStep(forcePixelVisionCapture = true)
                 return
             }
@@ -1954,11 +2112,13 @@ class VisionAccessibilityService : AccessibilityService() {
                             retryOrFallbackInfo = "啟動App",
                             outcomeNote = "開啟 ${dec.targetAppLabel ?: pkg}"
                         )
+                        val appDisplayName = dec.targetAppLabel ?: pkg
+                        triggerOrbEmotionAndToast(46, "正在打開「$appDisplayName」", animDurationMs = 1600L, toastDurationMs = 1800L)
                         if (currentSubGoalIndex + 1 < totalSubGoals) {
                             currentSubGoalIndex++
                         } else {
                             mainHandler.postDelayed({
-                                stopAutonomousLoop("已成功為您打開「${dec.targetAppLabel ?: pkg}」！")
+                                stopAutonomousLoop("已成功為您打開「$appDisplayName」！")
                             }, 280L)
                             return
                         }
@@ -2020,6 +2180,20 @@ class VisionAccessibilityService : AccessibilityService() {
                             }
 
                             hudOutputText?.text = "[步數 $currentLoopStep] 點擊「${chosenNode.label}」$reLockNote ${if (isFallbackAttempt) "(候選降級重試)" else ""}"
+                            val tapGazeId = (floatingOrbView as? GrokBotOrbView)?.triggerGazeForTargetPoint(
+                                targetX = lockedPx.x.toFloat(),
+                                targetY = lockedPx.y.toFloat(),
+                                screenW = rep.screenWidth,
+                                screenH = rep.screenHeight,
+                                durationMs = 1200L
+                            ) ?: 66
+                            val shortTapLabel = chosenNode.label.trim().ifBlank { "目標元件" }.take(14)
+                            triggerOrbEmotionAndToast(
+                                animId = tapGazeId,
+                                message = "點擊「$shortTapLabel」",
+                                animDurationMs = 1200L,
+                                toastDurationMs = 1600L
+                            )
 
                             val tapDefense = HeadsUpNotificationDefenseGuard.evaluateTopBannerOcclusionStrategy(
                                 actionType = AiActionType.TAP,
@@ -2198,6 +2372,7 @@ class VisionAccessibilityService : AccessibilityService() {
                                                         stopAutonomousLoop("連續點擊候選元件後畫面均無反應，已安全停止避免誤觸")
                                                         return
                                                     }
+                                                    triggerOrbEmotionAndToast(37, "重試下一候選元件...", animDurationMs = 1400L, toastDurationMs = 1500L)
                                                     // 留在同一子目標，下一輪自動挑選第 2/3 名候選重試
                                                     mainHandler.postDelayed({ executeNextAutonomousStep() }, 200L)
                                                     return
@@ -2322,6 +2497,12 @@ class VisionAccessibilityService : AccessibilityService() {
                         reverifyAndLockTargetCoordinateAsync(dec.targetNode, px) { lockedPx, reLockNote ->
                             if (!isAutoLoopRunning) return@reverifyAndLockTargetCoordinateAsync
                             hudOutputText?.text = "[步數 $currentLoopStep] 填入「$textToInput」$reLockNote"
+                            triggerOrbEmotionAndToast(
+                                animId = 69,
+                                message = "輸入「${textToInput.take(14)}」",
+                                animDurationMs = 1600L,
+                                toastDurationMs = 1800L
+                            )
                             performRealTextInputAt(
                                 x = lockedPx.x.toFloat(),
                                 y = lockedPx.y.toFloat(),
@@ -2443,6 +2624,12 @@ class VisionAccessibilityService : AccessibilityService() {
 
                 AiActionType.SCROLL_DOWN, AiActionType.SCROLL_UP -> {
                     val isDown = dec.actionType == AiActionType.SCROLL_DOWN
+                    triggerOrbEmotionAndToast(
+                        animId = if (isDown) 68 else 67,
+                        message = if (isDown) "往下滑動尋找..." else "往上滑動瀏覽...",
+                        animDurationMs = 1500L,
+                        toastDurationMs = 1600L
+                    )
                     if (dec.compactOpcode != "SD_EXPLORE" && dec.compactOpcode != "SU_EXPLORE") {
                         InAppWorkingMemory.recordScroll()
                     }
@@ -2563,6 +2750,7 @@ class VisionAccessibilityService : AccessibilityService() {
                     if (isAutoBacktrack) {
                         consecutiveScrollNoChangeCount = 0
                         hudOutputText?.text = "偵測到死胡同，自動按返回鍵退回上一頁並改選下一候選"
+                        triggerOrbEmotionAndToast(44, "返回上一頁重試...", animDurationMs = 1400L, toastDurationMs = 1600L)
                         VoiceCommandAndTtsManager.speak(this@VisionAccessibilityService, "偵測到死胡同，自動返回上一頁重試")
                         SmartDailyAssistantHelper.markAiActionWindow(750L)
                         performGlobalAction(GLOBAL_ACTION_BACK)
@@ -2760,6 +2948,12 @@ class VisionAccessibilityService : AccessibilityService() {
                     val isLeft = dec.actionType == AiActionType.SWIPE_LEFT
                     val gestureName = if (isLeft) "向左滑動" else "向右滑動"
                     hudOutputText?.text = "[步數 $currentLoopStep] $gestureName"
+                    triggerOrbEmotionAndToast(
+                        animId = if (isLeft) 23 else 24,
+                        message = gestureName,
+                        animDurationMs = 1400L,
+                        toastDurationMs = 1600L
+                    )
                     val targetY = dec.targetNode?.convergedBounds?.centerY()?.toFloat()
                     performRealHorizontalSwipe(isLeft = isLeft, targetY = targetY) {
                         if (!isAutoLoopRunning) return@performRealHorizontalSwipe
@@ -3137,6 +3331,7 @@ class VisionAccessibilityService : AccessibilityService() {
                 val startSnapX = lp.x
                 if (startSnapX == targetX) {
                     runCatching { wm.updateViewLayout(root, lp) }
+                    syncOrbMicroToastPosition()
                     scheduleOrbIdleFade()
                     return
                 }
@@ -3149,6 +3344,7 @@ class VisionAccessibilityService : AccessibilityService() {
                         if (isHudAttached && orbTv.visibility == View.VISIBLE) {
                             lp.x = anim.animatedValue as Int
                             runCatching { wm.updateViewLayout(root, lp) }
+                            syncOrbMicroToastPosition()
                         }
                     }
                     start()
@@ -3181,6 +3377,9 @@ class VisionAccessibilityService : AccessibilityService() {
                     com.example.newandroidapp.chat.ConversationManager.appendUserMessage(goal)
                     cmdInputEt.setText("")
                     if (SmartDailyAssistantHelper.isScreenReadingCommand(goal)) {
+                        expandedCard.visibility = View.GONE
+                        orbTv.visibility = View.VISIBLE
+                        snapOrbToNearestEdge()
                         readCurrentScreenSummaryAloud { summary ->
                             com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
                                 text = summary,
@@ -3188,9 +3387,35 @@ class VisionAccessibilityService : AccessibilityService() {
                                 isSensitive = true
                             )
                         }
-                    } else {
-                        startAutonomousTaskLoop(goal, selectedAiMode, lockToCurrentApp = false)
+                        return
                     }
+                    // 若為純對話問答（如「你可以做什麼」、「現在幾點」、「125*8」等無需啟動跨 App 操控的問答）
+                    val nativeCmd = com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(goal)
+                    if (nativeCmd == null) {
+                        val (replyText, plannedExec) = com.example.newandroidapp.ai.AndroidNativeAiEngine.generateConversationalReply(
+                            userText = goal,
+                            report = latestLiveReport,
+                            context = applicationContext
+                        )
+                        if (plannedExec == null) {
+                            com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+                                text = replyText,
+                                metadataHeader = "AI 助手"
+                            )
+                            expandedCard.visibility = View.GONE
+                            orbTv.visibility = View.VISIBLE
+                            snapOrbToNearestEdge()
+                            triggerOrbEmotionAndToast(
+                                animId = 35,
+                                message = replyText,
+                                animDurationMs = 2400L,
+                                toastDurationMs = 2800L
+                            )
+                            VoiceCommandAndTtsManager.speak(this@VisionAccessibilityService, replyText, flush = true)
+                            return
+                        }
+                    }
+                    startAutonomousTaskLoop(goal, selectedAiMode, lockToCurrentApp = false)
                 } else {
                     startExpandedInputVoiceListening(cmdInputEt, voiceBtn)
                 }
@@ -3451,6 +3676,7 @@ class VisionAccessibilityService : AccessibilityService() {
                                 orbTv.dragVelocityGazeY = (dy / dp(80).toFloat()).coerceIn(-0.55f, 0.55f)
                             }
                             runCatching { wm.updateViewLayout(root, lp) }
+                            syncOrbMicroToastPosition()
                         }
                         true
                     }
@@ -3470,6 +3696,8 @@ class VisionAccessibilityService : AccessibilityService() {
                                 scheduleOrbIdleFade()
                                 Toast.makeText(this@VisionAccessibilityService, "已停止語音聆聽", Toast.LENGTH_SHORT).show()
                             } else {
+                                mainHandler.removeCallbacks(hideOrbMicroToastRunnable)
+                                orbMicroToastCard?.visibility = View.GONE
                                 val (liveW, liveH) = getLiveScreenSizePx()
                                 val fromRightSide = (lp.x + orbSizePx / 2) >= (liveW / 2)
                                 orbTv.visibility = View.GONE
@@ -3606,12 +3834,69 @@ class VisionAccessibilityService : AccessibilityService() {
             root.addView(orbTv, LinearLayout.LayoutParams(orbSizePx, orbSizePx))
             root.addView(expandedCard, LinearLayout.LayoutParams(panelWidthPx, orbSizePx))
             root.addView(alertCard, LinearLayout.LayoutParams(panelWidthPx, LinearLayout.LayoutParams.WRAP_CONTENT))
+
+            // 【方向二：懸浮球旁 2 秒極簡深色微氣泡 (Micro-Toast Bubble)】
+            // 獨立無焦點、全穿透觸控視窗，自動錨定於懸浮球內側 8dp，左側色條與懸浮球當下情緒色彩即時同步
+            val microBar = View(this).apply {
+                background = GradientDrawable().apply {
+                    setColor(Color.parseColor("#FDE047"))
+                    cornerRadius = dp(2).toFloat()
+                }
+            }
+            orbMicroToastBar = microBar
+
+            val microTv = TextView(this).apply {
+                text = ""
+                textSize = 12.5f
+                setTextColor(Color.parseColor("#F4F4F5"))
+                maxLines = 2
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                maxWidth = dp(220)
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            orbMicroToastTv = microTv
+
+            val microCard = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                visibility = View.GONE
+                elevation = dp(8).toFloat()
+                background = GradientDrawable().apply {
+                    setColor(Color.parseColor("#EB18181B"))
+                    cornerRadius = dp(18).toFloat()
+                    setStroke(stroke1dp, Color.parseColor("#3F3F46"))
+                }
+                setPadding(dp(11), dp(7), dp(13), dp(7))
+                addView(microBar, LinearLayout.LayoutParams(dp(3).coerceAtLeast(3), dp(14).coerceAtLeast(14)).apply {
+                    rightMargin = dp(8)
+                })
+                addView(microTv, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+            }
+            orbMicroToastCard = microCard
+
+            val microLp = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.END
+                x = dp(68)
+                y = lp.y + dp(6)
+            }
+            orbMicroToastLp = microLp
+
             scheduleOrbIdleFade()
 
             runCatching {
                 wm.addView(root, lp)
                 floatingRoot = root
                 attachedOverlayViews.add(root)
+                wm.addView(microCard, microLp)
+                attachedOverlayViews.add(microCard)
                 isHudAttached = true
 
                 SystemBarBlockerGuard.syncPhysicalShieldOverlays(
@@ -4412,6 +4697,10 @@ class VisionAccessibilityService : AccessibilityService() {
         hudCurrentAppChipsRow = null
         hudOutputText = null
         autoRunStatusBtn = null
+        orbMicroToastCard = null
+        orbMicroToastLp = null
+        orbMicroToastBar = null
+        orbMicroToastTv = null
     }
 
     /**
@@ -4421,6 +4710,7 @@ class VisionAccessibilityService : AccessibilityService() {
     fun removeFloatingHud() {
         isAutoLoopRunning = false
         isHudAttached = false
+        mainHandler.removeCallbacks(hideOrbMicroToastRunnable)
         capsuleObserver?.let {
             com.example.newandroidapp.chat.ConversationManager.removeObserver(it)
         }

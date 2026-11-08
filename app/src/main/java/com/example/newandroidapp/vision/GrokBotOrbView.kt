@@ -178,6 +178,43 @@ class GrokBotOrbView(context: Context) : TextView(context) {
     }
 
     /**
+     * 依據螢幕目標點擊座標 (targetX, targetY)，讓懸浮球雙眼即時看向目標所在方位（#23~#30 或 #66 鎖定聚焦）
+     */
+    fun triggerGazeForTargetPoint(
+        targetX: Float,
+        targetY: Float,
+        screenW: Int,
+        screenH: Int,
+        durationMs: Long = 1100L
+    ): Int {
+        val sw = screenW.coerceAtLeast(720).toFloat()
+        val sh = screenH.coerceAtLeast(1280).toFloat()
+        val nx = (targetX / sw) - 0.5f // -0.5 (左) .. +0.5 (右)
+        val ny = (targetY / sh) - 0.5f // -0.5 (上) .. +0.5 (下)
+        val animId = when {
+            nx < -0.16f && ny < -0.16f -> 27 // 左上斜視
+            nx > 0.16f && ny < -0.16f -> 28  // 右上斜視
+            nx < -0.16f && ny > 0.16f -> 29  // 左下斜視
+            nx > 0.16f && ny > 0.16f -> 30   // 右下斜視
+            ny < -0.18f -> 25                // 向上仰視
+            ny > 0.18f -> 26                 // 向下俯視
+            nx < -0.18f -> 23                // 極左注視
+            nx > 0.18f -> 24                 // 極右注視
+            else -> 66                       // 正中央目標鎖定聚焦
+        }
+        triggerAnimation(animId, durationMs)
+        return animId
+    }
+
+    /**
+     * 取得指定動畫編號對應的情緒主題代表色（供懸浮微氣泡側邊色條與光暈同步）
+     */
+    fun getAnimationAccentColor(animId: Int): Int {
+        val state = computeAnimationFrame(animId.coerceIn(1, 88), 0.25f)
+        return state.eyeColor
+    }
+
+    /**
      * 切換至下一個隨機多彩情緒動畫並返回動畫編號與名稱
      */
     fun cycleNextEmotionAnimation(): Pair<Int, String> {
