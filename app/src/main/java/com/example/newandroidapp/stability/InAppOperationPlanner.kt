@@ -767,7 +767,30 @@ object InAppOperationPlanner {
         if (cur in SYSTEM_ALLOWED_OVERLAY_PACKAGES) return false
         if (isBrowserOrSearchEquivalentTransition(cur, exp)) return false
         if (cur.contains("inputmethod") || cur.contains("keyboard") || cur.contains("permission")) return false
+        if (isCompanionPackageOfSameApp(cur, exp)) return false
         return true
+    }
+
+    /**
+     * 同一個 App 的「姊妹行程」不算外部劫持。
+     * 例如「設定」的搜尋頁實際由 `com.android.settings.intelligence` 承載，
+     * 點設定首頁的搜尋框後前景套件會變成它，若誤判為劫持並按返回，搜尋頁會被關掉。
+     */
+    fun isCompanionPackageOfSameApp(pkgA: String, pkgB: String): Boolean {
+        val a = pkgA.trim()
+        val b = pkgB.trim()
+        if (a.isEmpty() || b.isEmpty()) return false
+        if (a == b) return true
+        val settingsFamily = setOf(
+            "com.android.settings",
+            "com.android.settings.intelligence",
+            "com.samsung.android.settings",
+            "com.samsung.android.settings.intelligence",
+            "com.google.android.settings.intelligence"
+        )
+        if (a in settingsFamily && b in settingsFamily) return true
+        // 通用規則：其中一方的套件名稱是另一方加上子層後綴（如 x.y 與 x.y.intelligence）
+        return a.startsWith("$b.") || b.startsWith("$a.")
     }
 
     /**

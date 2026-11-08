@@ -1,4 +1,4 @@
-package com.example.newandroidapp.ai
+﻿package com.example.newandroidapp.ai
 
 import com.example.newandroidapp.stability.BackwardChainingPlanner
 import com.example.newandroidapp.stability.TerminalVerb
@@ -361,4 +361,12 @@ class LocalKnowledgeAndReasoningEngineTest {
         )
         assertEquals(com.example.newandroidapp.stability.ActionComplexity.COMPLEX, forcedComplexity)
     }
-}
+
+    @Test
+    fun `test settings search page hosted by intelligence package is not treated as external hijack`() {
+        val planner = com.example.newandroidapp.stability.InAppOperationPlanner
+        assertTrue(!planner.isUnexpectedExternalAppHijack("com.android.settings.intelligence", "com.android.settings"))
+        assertTrue(!planner.isUnexpectedExternalAppHijack("com.android.settings", "com.android.settings"))
+        assertTrue(planner.isUnexpectedExternalAppHijack("com.some.ad.app", "com.android.settings"))
+    }}
+
