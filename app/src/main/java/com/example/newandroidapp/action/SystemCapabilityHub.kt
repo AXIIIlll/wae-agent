@@ -585,6 +585,21 @@ object SystemCapabilityHub {
         return queryNotesDirect(req.keyword, context)
     }
 
+    fun getNotesSnapshot(context: Context? = null): List<QuickNoteEntry> {
+        ensureNotesLoaded(context)
+        pruneExpiredNotes()
+        return inMemoryNotes.take(10)
+    }
+
+    fun deleteNoteByTimestamp(timestampMs: Long, context: Context? = null): Boolean {
+        ensureNotesLoaded(context)
+        val removed = inMemoryNotes.removeAll { it.timestampMs == timestampMs }
+        if (removed) {
+            persistNotes(context)
+        }
+        return removed
+    }
+
     private fun executeQuickNoteClear(context: Context): CapabilityResult {
         inMemoryNotes.clear()
         persistNotes(context)

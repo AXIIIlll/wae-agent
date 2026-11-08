@@ -188,13 +188,12 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
 
-        // [透明系統列與旋轉自適應邊界]
-        // 將頂部狀態列與底部導覽列設為完全透明（Color.TRANSPARENT），
-        // 搭配四向 WindowInsets 動態留白，直向與橫向旋轉皆不需實心白色 Blocker 遮擋
+        // [安卓系統上下安全擋板與自適應邊界]
+        // 頂部狀態列與底部導覽列採用深色實心擋板 (#09090B)，搭配四向 WindowInsets 動態同步高度
         @Suppress("DEPRECATION")
         runCatching {
-            window.statusBarColor = Color.TRANSPARENT
-            window.navigationBarColor = Color.TRANSPARENT
+            window.statusBarColor = Color.parseColor("#09090B")
+            window.navigationBarColor = Color.parseColor("#09090B")
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 window.isNavigationBarContrastEnforced = false
                 window.isStatusBarContrastEnforced = false
@@ -203,8 +202,7 @@ class MainActivity : Activity() {
                 window.setDecorFitsSystemWindows(false)
                 window.insetsController?.let { controller ->
                     controller.setSystemBarsAppearance(
-                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                            android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                        0,
                         android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
                             android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
                     )
@@ -218,24 +216,23 @@ class MainActivity : Activity() {
 
         val letterboxOuterContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#09090B"))
         }
 
-        // [funboy322 / avoid-ai-design] 極簡 Gemini / ChatGPT 風格：左右 100% 滿版無邊距，僅在最上方與最下方各加一條純白 Letterbox
+        // [heydamir/unslop] 極簡深色畫布 (#0A0A0C)，零多餘標題、零綠點、零常駐功能鍵轟炸
         val screenRoot = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#F8FAFC"))
+            setBackgroundColor(Color.parseColor("#0A0A0C"))
         }
 
         // =========================================================================
-        // 區塊 1：極簡「單行頂欄」（左：AI 助手，右：新對話 ｜ 懸浮球 ｜ 設定）
-        // [heydamir/unslop Pass 1, 2, 5, 6, 7] 8dp 空間格線、4 階字級 (18/15/13/11sp)、1dp 髮絲邊框與中性色階
+        // 區塊 1：極簡頂部操作條（無標題、無綠點、無「本機離線」；僅右側低調文字入口：新對話 ｜ 懸浮球 ｜ 設定）
         // =========================================================================
         val headerRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setBackgroundColor(Color.parseColor("#FFFFFF"))
-            setPadding(dp(16), dp(12), dp(16), dp(12))
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            setBackgroundColor(Color.parseColor("#09090B"))
+            setPadding(dp(16), dp(6), dp(16), dp(6))
         }
 
         val headerLeftCol = LinearLayout(this).apply {
@@ -243,71 +240,61 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        val titleTv = TextView(this).apply {
-            text = "AI 助手"
-            textSize = 18f
-            letterSpacing = -0.01f
-            setTextColor(Color.parseColor("#0F172A"))
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-        }
-
         aiEngineStatusTv = TextView(this).apply {
             text = ""
             visibility = View.GONE
         }
 
-        headerLeftCol.addView(titleTv)
-
         val clearChatBtn = createStyledButton(
             text = "新對話",
-            bgHex = "#FFFFFF",
-            textColor = Color.parseColor("#475569"),
-            strokeHex = "#E2E8F0",
-            cornerDp = 12
+            bgHex = "#09090B",
+            textColor = Color.parseColor("#71717A"),
+            strokeHex = "#09090B",
+            cornerDp = 8
         ).apply {
-            textSize = 13f
+            textSize = 12f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             minWidth = 0
             minimumWidth = 0
-            minHeight = dp(36)
-            minimumHeight = dp(36)
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            minHeight = dp(32)
+            minimumHeight = dp(32)
+            setPadding(dp(10), dp(4), dp(10), dp(4))
             setOnClickListener {
                 ConversationManager.clearConversation(applicationContext)
-                Toast.makeText(this@MainActivity, "已開啟新對話", Toast.LENGTH_SHORT).show()
             }
         }
 
         serviceStatusBtn = createStyledButton(
-            text = "開啟懸浮球",
-            bgHex = "#F8FAFC",
-            textColor = Color.parseColor("#0F172A"),
-            strokeHex = "#CBD5E1",
-            cornerDp = 12
+            text = "懸浮球",
+            bgHex = "#09090B",
+            textColor = Color.parseColor("#71717A"),
+            strokeHex = "#09090B",
+            cornerDp = 8
         ).apply {
-            textSize = 13f
+            textSize = 12f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             minWidth = 0
             minimumWidth = 0
-            minHeight = dp(36)
-            minimumHeight = dp(36)
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            minHeight = dp(32)
+            minimumHeight = dp(32)
+            setPadding(dp(10), dp(4), dp(10), dp(4))
             setOnClickListener { handleLiveServiceAction() }
         }
 
         advancedToggleTv = createStyledButton(
             text = "設定",
-            bgHex = "#FFFFFF",
-            textColor = Color.parseColor("#475569"),
-            strokeHex = "#E2E8F0",
-            cornerDp = 12
+            bgHex = "#09090B",
+            textColor = Color.parseColor("#71717A"),
+            strokeHex = "#09090B",
+            cornerDp = 8
         ).apply {
-            textSize = 13f
+            textSize = 12f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             minWidth = 0
             minimumWidth = 0
-            minHeight = dp(36)
-            minimumHeight = dp(36)
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            minHeight = dp(32)
+            minimumHeight = dp(32)
+            setPadding(dp(10), dp(4), dp(10), dp(4))
             setOnClickListener {
                 val isHidden = advancedDrawerLayout.visibility == View.GONE
                 if (isHidden) {
@@ -349,84 +336,63 @@ class MainActivity : Activity() {
             }
         }
 
-        headerRow.addView(headerLeftCol, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-            rightMargin = dp(8)
-        })
+        headerRow.addView(headerLeftCol, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         headerRow.addView(clearChatBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-            rightMargin = dp(8)
+            rightMargin = dp(4)
         })
         headerRow.addView(serviceStatusBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-            rightMargin = dp(8)
+            rightMargin = dp(4)
         })
         headerRow.addView(advancedToggleTv)
         screenRoot.addView(headerRow, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         screenRoot.addView(View(this).apply {
-            setBackgroundColor(Color.parseColor("#E2E8F0"))
+            setBackgroundColor(Color.parseColor("#18181B"))
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1).coerceAtLeast(1)))
 
-        // =========================================================================
-        // 區塊 2：輕量單行狀態提示條（中性灰底 + 6dp 翠綠狀態點）
-        // =========================================================================
         val statusStrip = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setBackgroundColor(Color.parseColor("#F8FAFC"))
-            setPadding(dp(16), dp(8), dp(16), dp(8))
-        }
-
-        val statusDot = View(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#10B981"))
-            }
+            visibility = View.GONE
         }
 
         aiDecisionTv = TextView(this).apply {
-            text = "本機雙引擎就緒 · 發送即對話，執行即操控畫面"
+            text = ""
             textSize = 11f
-            setTextColor(Color.parseColor("#64748B"))
-            setPadding(dp(8), 0, 0, 0)
-            maxLines = 2
+            setTextColor(Color.parseColor("#71717A"))
         }
-
-        statusStrip.addView(statusDot, LinearLayout.LayoutParams(dp(6), dp(6)))
-        statusStrip.addView(aiDecisionTv, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        screenRoot.addView(statusStrip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        screenRoot.addView(View(this).apply {
-            setBackgroundColor(Color.parseColor("#F1F5F9"))
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1).coerceAtLeast(1)))
+        statusStrip.addView(aiDecisionTv)
 
         // =========================================================================
-        // 區塊 3：中央滿版捲動對話區（ScrollView weight = 1f）
+        // 區塊 2：中央滿版捲動對話畫布（ScrollView weight = 1f）
         // =========================================================================
         val rootScroll = ScrollView(this).apply {
-            setBackgroundColor(Color.parseColor("#F8FAFC"))
+            setBackgroundColor(Color.parseColor("#0A0A0C"))
             isFillViewport = true
         }
         rootScrollView = rootScroll
 
         val mainContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(20))
+            setPadding(dp(16), dp(16), dp(16), dp(16))
         }
 
         chatBubbleContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+            gravity = Gravity.BOTTOM
         }
 
         // =========================================================================
-        // 區塊 4：底部固定輸入底座（App 快選 ＋ 輸入框 ＋ 播報/發送/執行）
-        // [heydamir/unslop Pass 2 & 6] 單一主強調色 (#2563EB 僅用於「執行」)，其餘控制項採石墨灰中性階梯
+        // 區塊 3：底部唯一常駐區（單一輸入框 ＋ 語音/送出二合一鍵）
         // =========================================================================
         val bottomDockCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#FFFFFF"))
-            setPadding(dp(16), dp(12), dp(16), dp(16))
+            setBackgroundColor(Color.parseColor("#0A0A0C"))
+            setPadding(dp(12), dp(8), dp(12), dp(12))
         }
 
         val appsScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
-            setPadding(0, 0, 0, dp(8))
+            visibility = View.GONE
         }
         installedAppsRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -440,16 +406,16 @@ class MainActivity : Activity() {
         val inputIslandCard = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = roundRectBg("#F8FAFC", "#CBD5E1", dp(20).toFloat(), strokePx = defaultStrokePx)
-            setPadding(dp(16), dp(4), dp(8), dp(4))
+            background = roundRectBg("#18181B", "#27272A", dp(16).toFloat(), strokePx = defaultStrokePx)
+            setPadding(dp(16), dp(6), dp(6), dp(6))
         }
 
         goalInputEt = EditText(this).apply {
             setText("")
-            hint = "輸入訊息或操作指令..."
-            textSize = 15f
-            setTextColor(Color.parseColor("#0F172A"))
-            setHintTextColor(Color.parseColor("#94A3B8"))
+            hint = "輸入或說話…"
+            textSize = 14f
+            setTextColor(Color.parseColor("#F4F4F5"))
+            setHintTextColor(Color.parseColor("#71717A"))
             background = null
             minLines = 1
             maxLines = 4
@@ -457,32 +423,40 @@ class MainActivity : Activity() {
             setPadding(0, dp(8), dp(8), dp(8))
             setOnFocusChangeListener { _, hasFocus ->
                 inputIslandCard.background = if (hasFocus) {
-                    roundRectBg("#FFFFFF", "#2563EB", dp(20).toFloat(), strokePx = focusStrokePx)
+                    roundRectBg("#18181B", "#3F3F46", dp(16).toFloat(), strokePx = focusStrokePx)
                 } else {
-                    roundRectBg("#F8FAFC", "#CBD5E1", dp(20).toFloat(), strokePx = defaultStrokePx)
+                    roundRectBg("#18181B", "#27272A", dp(16).toFloat(), strokePx = defaultStrokePx)
                 }
             }
+            addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    updateVoiceAndTtsButtonState()
+                }
+                override fun afterTextChanged(s: android.text.Editable?) {}
+            })
             setOnLongClickListener {
                 handleVoiceCommandClick()
                 true
             }
         }
 
+        // 語音 / 送出 二合一智慧按鈕（無文字時為「語音」，有文字時自動變為高對比「送出」）
         voiceInputBtn = createStyledButton(
             text = "語音",
-            bgHex = "#FFFFFF",
-            textColor = Color.parseColor("#334155"),
-            strokeHex = "#E2E8F0",
-            cornerDp = 16
+            bgHex = "#27272A",
+            textColor = Color.parseColor("#F4F4F5"),
+            strokeHex = "#27272A",
+            cornerDp = 12
         ).apply {
             textSize = 13f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             minWidth = 0
             minimumWidth = 0
-            minHeight = dp(36)
-            minimumHeight = dp(36)
-            setPadding(dp(12), dp(8), dp(12), dp(8))
-            setOnClickListener { handleVoiceCommandClick() }
+            minHeight = dp(38)
+            minimumHeight = dp(38)
+            setPadding(dp(14), dp(8), dp(14), dp(8))
+            setOnClickListener { handleUnifiedUserSubmit() }
         }
 
         inputIslandCard.addView(
@@ -499,6 +473,7 @@ class MainActivity : Activity() {
         val floatingThreeBtnRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            visibility = View.GONE
         }
 
         ttsToggleBtn = createStyledButton(
@@ -559,7 +534,6 @@ class MainActivity : Activity() {
             setOnClickListener { handleAutonomousAppOpenAndRun() }
         }
 
-        // 下方三鍵比例：播報 (0.5f) ： 發送 (1.0f) ： 執行 (1.0f)
         floatingThreeBtnRow.addView(
             ttsToggleBtn,
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.5f).apply {
@@ -577,11 +551,7 @@ class MainActivity : Activity() {
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f)
         )
 
-        bottomDockCard.addView(appsScroll)
         bottomDockCard.addView(inputIslandCard, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        bottomDockCard.addView(floatingThreeBtnRow, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-            topMargin = dp(8)
-        })
 
         advancedDrawerLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -996,35 +966,36 @@ class MainActivity : Activity() {
         mainContainer.addView(advancedDrawerLayout, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             bottomMargin = dp(12)
         })
+        mainContainer.addView(View(this), LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         mainContainer.addView(chatBubbleContainer, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
         rootScroll.addView(mainContainer)
         screenRoot.addView(rootScroll, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
-        val dockTopDivider = View(this).apply {
-            setBackgroundColor(Color.parseColor("#E2E8F0"))
-        }
-        screenRoot.addView(dockTopDivider, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1).coerceAtLeast(1)))
         screenRoot.addView(bottomDockCard, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
         val screenHInit = resources.displayMetrics.heightPixels.coerceAtLeast(1280)
         val initialTopBarPx = SystemBarBlockerGuard.getStatusBarHeightPx(this, screenHInit)
         val initialBottomBarPx = SystemBarBlockerGuard.getNavigationBarHeightPx(this, screenHInit)
 
-        // 1. 頂部透明安全留白條（直向/橫向動態對齊系統狀態列與鏡頭挖孔高度）
+        // 1. 頂部 Android 系統狀態列安全擋板（#09090B 實心擋板，動態對齊系統狀態列與鏡頭挖孔高度）
         val topLetterboxBar = View(this).apply {
-            setBackgroundColor(Color.TRANSPARENT)
+            setBackgroundColor(Color.parseColor("#09090B"))
         }
 
-        // 2. 底部透明安全留白條（直向/橫向動態對齊底部導覽列高度，絕不切到操作按鈕）
+        // 2. 底部 Android 系統導覽列安全擋板（#09090B 實心擋板 + 頂部 1dp 分隔線，動態對齊底部導覽列與鍵盤高度）
+        val bottomShieldDivider = View(this).apply {
+            setBackgroundColor(Color.parseColor("#18181B"))
+        }
         val bottomLetterboxBar = View(this).apply {
-            setBackgroundColor(Color.TRANSPARENT)
+            setBackgroundColor(Color.parseColor("#09090B"))
         }
 
         letterboxOuterContainer.addView(topLetterboxBar, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, initialTopBarPx))
         letterboxOuterContainer.addView(screenRoot, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        letterboxOuterContainer.addView(bottomShieldDivider, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1).coerceAtLeast(1)))
         letterboxOuterContainer.addView(bottomLetterboxBar, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, initialBottomBarPx))
 
-        // 動態監聽實機四向 WindowInsets（支援直向與橫向旋轉自適應，無需實心 Blocker）：
+        // 動態監聽實機四向 WindowInsets，確保頂部與底部系統擋板精確貼合系統欄與軟鍵盤：
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             letterboxOuterContainer.setOnApplyWindowInsetsListener { v, windowInsets ->
                 val sysInsets = windowInsets.getInsetsIgnoringVisibility(
@@ -1035,11 +1006,10 @@ class MainActivity : Activity() {
                 )
                 val imeInsets = windowInsets.getInsets(android.view.WindowInsets.Type.ime())
 
-                // 橫向旋轉時，導覽列或鏡頭挖孔可能位於左側或右側，動態設定左右安全邊距
                 v.setPadding(sysInsets.left, 0, sysInsets.right, 0)
 
-                val exactTopPx = sysInsets.top
-                val exactBottomPx = maxOf(sysInsets.bottom, imeInsets.bottom)
+                val exactTopPx = maxOf(sysInsets.top, initialTopBarPx)
+                val exactBottomPx = maxOf(sysInsets.bottom, imeInsets.bottom, initialBottomBarPx)
 
                 val topLp = topLetterboxBar.layoutParams
                 if (topLp != null && topLp.height != exactTopPx) {
@@ -1058,21 +1028,6 @@ class MainActivity : Activity() {
         setContentView(letterboxOuterContainer)
 
         selectAiBackendMode(LocalAiBackendMode.DUAL_FUSION)
-
-        // [Animate UI / motion-skills] 首屏區塊階層式入場微動效（Staggered Entrance Choreography）
-        val entranceViews = listOf(headerRow, statusStrip, rootScroll, bottomDockCard)
-        for ((index, v) in entranceViews.withIndex()) {
-            v.alpha = 0f
-            v.translationY = dp(12).toFloat()
-            v.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setStartDelay(index * 35L)
-                .setDuration(240L)
-                .setInterpolator(m3DecelerateInterpolator)
-                .withLayer()
-                .start()
-        }
 
         // 背景初始化雙本地 AI、本機已安裝 App 與 36+ 基礎測試集
         submitWorkerWithTimeout(timeoutMs = 30_000L) {
@@ -1107,69 +1062,36 @@ class MainActivity : Activity() {
     private fun renderChatBubbles(messages: List<ChatMessage>) {
         chatBubbleContainer.removeAllViews()
         if (messages.isEmpty()) {
-            // [heydamir/unslop Pass 4, 5, 6, 7] 非對稱左對齊 Editorial 歡迎卡片，取代常見 AI 生成之全置中模板盒
-            val emptyCard = LinearLayout(this).apply {
+            // [heydamir/unslop] 極簡空狀態：無外框盒、無綠點、無裝飾圖示、無廢話副標，僅留 3 個範例句
+            val emptyContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.START
-                background = roundRectBg("#FFFFFF", "#E2E8F0", dp(16).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-                setPadding(dp(20), dp(20), dp(20), dp(20))
+                setPadding(0, dp(16), 0, dp(4))
             }
-            val eyebrowRow = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            val dotView = View(this).apply {
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor("#10B981"))
-                }
-            }
-            val eyebrowTv = TextView(this).apply {
-                text = "ON-DEVICE AI AGENT"
-                textSize = 11f
-                setTextColor(Color.parseColor("#64748B"))
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                letterSpacing = 0.06f
-                setPadding(dp(8), 0, 0, 0)
-            }
-            eyebrowRow.addView(dotView, LinearLayout.LayoutParams(dp(6), dp(6)))
-            eyebrowRow.addView(eyebrowTv)
 
-            val welcomeTitle = TextView(this).apply {
-                text = "需要幫您處理什麼？"
-                textSize = 18f
-                setTextColor(Color.parseColor("#0F172A"))
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                gravity = Gravity.START
-                setPadding(0, dp(8), 0, dp(4))
+            val hintTv = TextView(this).apply {
+                text = "可以直接說："
+                textSize = 12f
+                setTextColor(Color.parseColor("#71717A"))
+                setPadding(dp(4), 0, 0, dp(8))
             }
-            val welcomeSub = TextView(this).apply {
-                text = "按「發送」進行純對話問答；按「執行」由本地雙核自動操控跨 App 畫面。"
-                textSize = 13f
-                setTextColor(Color.parseColor("#475569"))
-                setLineSpacing(0f, 1.3f)
-                gravity = Gravity.START
-                setPadding(0, 0, 0, dp(16))
-            }
-            emptyCard.addView(eyebrowRow)
-            emptyCard.addView(welcomeTitle)
-            emptyCard.addView(welcomeSub)
+            emptyContainer.addView(hintTv)
 
             val quickPrompts = listOf(
-                "現在畫面上有什麼重點？" to false,
-                "打開 YouTube 搜尋周杰倫" to false,
-                "朗讀當前畫面" to true,
-                "你可以幫我做什麼？" to false
+                "記下買牛奶" to false,
+                "去 YouTube 查詢周杰倫" to true,
+                "你可以做什麼" to false
             )
             for ((promptText, autoExecute) in quickPrompts) {
                 val pill = createStyledButton(
-                    text = "→  $promptText",
-                    bgHex = "#F8FAFC",
-                    textColor = Color.parseColor("#0F172A"),
-                    strokeHex = "#E2E8F0",
+                    text = promptText,
+                    bgHex = "#18181B",
+                    textColor = Color.parseColor("#E4E4E7"),
+                    strokeHex = "#27272A",
                     cornerDp = 12
                 ).apply {
-                    textSize = 13f
+                    textSize = 14f
+                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                     gravity = Gravity.START or Gravity.CENTER_VERTICAL
                     minHeight = dp(48)
                     minimumHeight = dp(48)
@@ -1184,14 +1106,12 @@ class MainActivity : Activity() {
                         }
                     }
                 }
-                emptyCard.addView(pill, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                emptyContainer.addView(pill, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                     topMargin = dp(8)
                 })
             }
 
-            chatBubbleContainer.addView(emptyCard, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                topMargin = dp(12)
-            })
+            chatBubbleContainer.addView(emptyContainer, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
             return
         }
 
@@ -1204,14 +1124,14 @@ class MainActivity : Activity() {
                         setPadding(0, dp(4), 0, dp(4))
                         val tv = TextView(this@MainActivity).apply {
                             text = msg.text
-                            textSize = 15f
-                            setLineSpacing(0f, 1.28f)
-                            setTextColor(Color.WHITE)
-                            background = roundRectBg("#2563EB", "#1D4ED8", dp(16).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-                            setPadding(dp(16), dp(12), dp(16), dp(12))
+                            textSize = 14f
+                            setLineSpacing(0f, 1.3f)
+                            setTextColor(Color.parseColor("#F4F4F5"))
+                            background = roundRectBg("#27272A", "#27272A", dp(16).toFloat(), strokePx = 0)
+                            setPadding(dp(14), dp(10), dp(14), dp(10))
                         }
                         addView(tv, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                            leftMargin = dp(48)
+                            leftMargin = dp(56)
                         })
                     }
                 }
@@ -1222,40 +1142,96 @@ class MainActivity : Activity() {
                         setPadding(0, dp(4), 0, dp(4))
                         val card = LinearLayout(this@MainActivity).apply {
                             orientation = LinearLayout.VERTICAL
-                            background = roundRectBg("#FFFFFF", "#E2E8F0", dp(16).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-                            setPadding(dp(16), dp(12), dp(16), dp(12))
+                            background = roundRectBg("#18181B", "#27272A", dp(16).toFloat(), strokePx = dp(1).coerceAtLeast(1))
+                            setPadding(dp(14), dp(12), dp(14), dp(12))
                         }
-                        val hRow = LinearLayout(this@MainActivity).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            gravity = Gravity.CENTER_VERTICAL
-                        }
-                        val dot = View(this@MainActivity).apply {
-                            background = GradientDrawable().apply {
-                                shape = GradientDrawable.OVAL
-                                setColor(Color.parseColor("#10B981"))
+
+                        val isNoteMsg = msg.text.startsWith("已記下筆記：") ||
+                            msg.text.startsWith("最近的筆記：") ||
+                            msg.text.startsWith("目前還沒有任何已記錄的筆記")
+                        val isPermPrompt = msg.metadataHeader == "PERMISSION_PROMPT" && !msg.executableCommand.isNullOrBlank()
+
+                        if (isNoteMsg) {
+                            val notes = com.example.newandroidapp.action.SystemCapabilityHub.getNotesSnapshot(this@MainActivity)
+                            if (notes.isEmpty()) {
+                                val emptyNoteTv = TextView(this@MainActivity).apply {
+                                    text = "目前沒有筆記。"
+                                    textSize = 14f
+                                    setTextColor(Color.parseColor("#A1A1AA"))
+                                }
+                                card.addView(emptyNoteTv)
+                            } else {
+                                val headerTitle = if (msg.text.startsWith("已記下筆記：")) {
+                                    msg.text.substringBefore("（").replace("筆記：", "")
+                                } else {
+                                    "筆記"
+                                }
+                                val titleTv = TextView(this@MainActivity).apply {
+                                    text = headerTitle
+                                    textSize = 12f
+                                    setTextColor(Color.parseColor("#A1A1AA"))
+                                    setPadding(0, 0, 0, dp(6))
+                                }
+                                card.addView(titleTv)
+
+                                for ((idx, note) in notes.withIndex()) {
+                                    if (idx > 0) {
+                                        card.addView(View(this@MainActivity).apply {
+                                            setBackgroundColor(Color.parseColor("#27272A"))
+                                        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1).coerceAtLeast(1)))
+                                    }
+                                    val row = LinearLayout(this@MainActivity).apply {
+                                        orientation = LinearLayout.HORIZONTAL
+                                        gravity = Gravity.CENTER_VERTICAL
+                                        setPadding(0, dp(8), 0, dp(8))
+                                    }
+                                    val contentTv = TextView(this@MainActivity).apply {
+                                        text = note.content
+                                        textSize = 14f
+                                        setTextColor(Color.parseColor("#F4F4F5"))
+                                    }
+                                    val timeTv = TextView(this@MainActivity).apply {
+                                        text = note.formattedTime
+                                        textSize = 12f
+                                        setTextColor(Color.parseColor("#71717A"))
+                                        setPadding(dp(8), 0, dp(8), 0)
+                                    }
+                                    val delBtn = createStyledButton(
+                                        text = "刪除",
+                                        bgHex = "#18181B",
+                                        textColor = Color.parseColor("#71717A"),
+                                        strokeHex = "#18181B",
+                                        cornerDp = 6
+                                    ).apply {
+                                        textSize = 12f
+                                        typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                                        minWidth = 0
+                                        minimumWidth = 0
+                                        minHeight = 0
+                                        minimumHeight = 0
+                                        setPadding(dp(6), dp(4), dp(6), dp(4))
+                                        setOnClickListener {
+                                            com.example.newandroidapp.action.SystemCapabilityHub.deleteNoteByTimestamp(note.timestampMs, this@MainActivity)
+                                            renderChatBubbles(ConversationManager.getMessages())
+                                        }
+                                    }
+                                    row.addView(contentTv, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                                    row.addView(timeTv)
+                                    row.addView(delBtn)
+                                    card.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+                                }
                             }
+                        } else {
+                            val bodyTv = TextView(this@MainActivity).apply {
+                                text = msg.text
+                                textSize = 14f
+                                setTextColor(Color.parseColor("#F4F4F5"))
+                                setLineSpacing(0f, 1.32f)
+                            }
+                            card.addView(bodyTv)
                         }
-                        hRow.addView(dot, LinearLayout.LayoutParams(dp(6), dp(6)))
-                        val tagText = msg.metadataHeader ?: if (msg.isProactiveReport) "主動回報" else "AI 助手"
-                        val tagTv = TextView(this@MainActivity).apply {
-                            text = "$tagText · ${msg.formattedTime}"
-                            textSize = 11f
-                            setTextColor(Color.parseColor("#64748B"))
-                            setPadding(dp(8), 0, 0, 0)
-                        }
-                        hRow.addView(tagTv, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-                        card.addView(hRow)
 
-                        val bodyTv = TextView(this@MainActivity).apply {
-                            text = msg.text
-                            textSize = 15f
-                            setTextColor(Color.parseColor("#0F172A"))
-                            setLineSpacing(0f, 1.32f)
-                            setPadding(0, dp(8), 0, 0)
-                        }
-                        card.addView(bodyTv)
-
-                        // 若有候選清單，直接渲染可一鍵點擊執行的極簡膠囊按鈕
+                        // 若有候選清單，渲染極簡可點擊項目
                         if (msg.candidates.isNotEmpty()) {
                             val candCol = LinearLayout(this@MainActivity).apply {
                                 orientation = LinearLayout.VERTICAL
@@ -1264,12 +1240,13 @@ class MainActivity : Activity() {
                             for (cand in msg.candidates.take(5)) {
                                 val candBtn = createStyledButton(
                                     text = "執行第 ${cand.index} 項：${cand.label}",
-                                    bgHex = "#F8FAFC",
-                                    textColor = Color.parseColor("#2563EB"),
-                                    strokeHex = "#CBD5E1",
-                                    cornerDp = 12
+                                    bgHex = "#27272A",
+                                    textColor = Color.parseColor("#F4F4F5"),
+                                    strokeHex = "#3F3F46",
+                                    cornerDp = 10
                                 ).apply {
                                     textSize = 13f
+                                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                                     minHeight = dp(40)
                                     minimumHeight = dp(40)
                                     setPadding(dp(12), dp(8), dp(12), dp(8))
@@ -1284,21 +1261,42 @@ class MainActivity : Activity() {
                             card.addView(candCol)
                         }
 
-                        // 若此 AI 回覆帶有可執行指令（例如使用者按了「發送」先對話確認），提供內嵌「執行」鍵
+                        // 權限說明氣泡（「允許」單一按鈕）或可執行指令按鈕
                         val execCmd = msg.executableCommand?.trim().orEmpty()
-                        if (execCmd.isNotEmpty()) {
-                            val inlineExecRow = LinearLayout(this@MainActivity).apply {
-                                orientation = LinearLayout.HORIZONTAL
-                                gravity = Gravity.START
-                                setPadding(0, dp(12), 0, 0)
+                        if (isPermPrompt) {
+                            val allowBtn = createStyledButton(
+                                text = "允許",
+                                bgHex = "#F4F4F5",
+                                textColor = Color.parseColor("#09090B"),
+                                strokeHex = "#F4F4F5",
+                                cornerDp = 10
+                            ).apply {
+                                textSize = 13f
+                                minHeight = dp(40)
+                                minimumHeight = dp(40)
+                                setPadding(dp(12), dp(8), dp(12), dp(8))
+                                setOnClickListener {
+                                    val missing = com.example.newandroidapp.action.SystemCapabilityHub.getMissingRuntimePermissions(execCmd, this@MainActivity)
+                                    if (missing.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                                        pendingCapabilityPermissionGoal = execCmd
+                                        pendingCapabilityIsAutonomousMode = false
+                                        requestPermissions(missing.toTypedArray(), 1003)
+                                    } else {
+                                        completeChatSendReply(execCmd)
+                                    }
+                                }
                             }
-                            val btnTitle = if (execCmd == "確認執行") "確認執行高風險操作" else "執行：$execCmd"
+                            card.addView(allowBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                                topMargin = dp(10)
+                            })
+                        } else if (execCmd.isNotEmpty()) {
+                            val btnTitle = if (execCmd == "確認執行") "確認執行" else "執行：$execCmd"
                             val inlineExecBtn = createStyledButton(
                                 text = if (btnTitle.length > 22) btnTitle.take(22) + "..." else btnTitle,
-                                bgHex = "#EFF6FF",
-                                textColor = Color.parseColor("#2563EB"),
-                                strokeHex = "#93C5FD",
-                                cornerDp = 12
+                                bgHex = "#F4F4F5",
+                                textColor = Color.parseColor("#09090B"),
+                                strokeHex = "#F4F4F5",
+                                cornerDp = 10
                             ).apply {
                                 textSize = 13f
                                 minWidth = 0
@@ -1310,25 +1308,33 @@ class MainActivity : Activity() {
                                     handleAutonomousAppOpenAndRun(execCmd)
                                 }
                             }
-                            inlineExecRow.addView(inlineExecBtn)
-                            card.addView(inlineExecRow)
+                            card.addView(inlineExecBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                                topMargin = dp(10)
+                            })
                         }
 
-                        addView(card, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                        // 隱私小標：敏感回覆僅低調顯示「不留存紀錄」
+                        if (msg.isSensitive && !isPermPrompt) {
+                            val privTv = TextView(this@MainActivity).apply {
+                                text = "不留存紀錄"
+                                textSize = 11f
+                                setTextColor(Color.parseColor("#71717A"))
+                                setPadding(0, dp(6), 0, 0)
+                            }
+                            card.addView(privTv)
+                        }
+
+                        val cardWidth = if (isNoteMsg || isPermPrompt) {
+                            (resources.displayMetrics.widthPixels * 0.84f).toInt()
+                        } else {
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        }
+                        addView(card, LinearLayout.LayoutParams(cardWidth, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                             rightMargin = dp(32)
                         })
                     }
                 }
             }
-            bubble.alpha = 0f
-            bubble.translationY = dp(4).toFloat()
-            bubble.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(200L)
-                .setInterpolator(m3DecelerateInterpolator)
-                .withLayer()
-                .start()
             chatBubbleContainer.addView(bubble)
         }
         rootScrollView?.post {
@@ -1459,14 +1465,23 @@ class MainActivity : Activity() {
     }
 
     private fun updateVoiceAndTtsButtonState() {
-        if (VoiceCommandAndTtsManager.isListening) {
-            voiceInputBtn.text = "聆聽中"
-            voiceInputBtn.setTextColor(Color.WHITE)
-            voiceInputBtn.background = roundRectBg("#2563EB", "#1D4ED8", dp(12).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-        } else {
-            voiceInputBtn.text = "語音"
-            voiceInputBtn.setTextColor(Color.parseColor("#334155"))
-            voiceInputBtn.background = roundRectBg("#FFFFFF", "#CBD5E1", dp(12).toFloat(), strokePx = dp(1).coerceAtLeast(1))
+        val hasInputText = goalInputEt.text?.toString()?.trim()?.isNotEmpty() == true
+        when {
+            VoiceCommandAndTtsManager.isListening -> {
+                voiceInputBtn.text = "聆聽中"
+                voiceInputBtn.setTextColor(Color.parseColor("#09090B"))
+                voiceInputBtn.background = roundRectBg("#F4F4F5", "#F4F4F5", dp(12).toFloat(), strokePx = 0)
+            }
+            hasInputText -> {
+                voiceInputBtn.text = "送出"
+                voiceInputBtn.setTextColor(Color.parseColor("#09090B"))
+                voiceInputBtn.background = roundRectBg("#F4F4F5", "#F4F4F5", dp(12).toFloat(), strokePx = 0)
+            }
+            else -> {
+                voiceInputBtn.text = "語音"
+                voiceInputBtn.setTextColor(Color.parseColor("#F4F4F5"))
+                voiceInputBtn.background = roundRectBg("#27272A", "#27272A", dp(12).toFloat(), strokePx = 0)
+            }
         }
 
         if (VoiceCommandAndTtsManager.isTtsEnabled) {
@@ -1655,15 +1670,41 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun isDirectPhoneControlGoal(text: String): Boolean {
+        val clean = text.trim()
+        if (clean.isEmpty()) return false
+        if (com.example.newandroidapp.action.SystemCapabilityHub.parseRequest(clean) != null) {
+            return false
+        }
+        if (com.example.newandroidapp.vision.ScreenTextCapture.isCaptureRequest(clean)) {
+            return false
+        }
+        if (SmartDailyAssistantHelper.isScreenReadingCommand(clean)) return true
+        if (com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(clean) != null) return true
+        return Regex("^(?:幫我|請|替我)?(?:去|到|打開|開啟|啟動|執行|點選|點擊|滑動|往下滑|往上滑)\\s*\\S+.*").containsMatchIn(clean)
+    }
+
+    private fun handleUnifiedUserSubmit() {
+        val text = goalInputEt.text?.toString()?.trim().orEmpty()
+        if (text.isEmpty()) {
+            handleVoiceCommandClick()
+            return
+        }
+        if (isDirectPhoneControlGoal(text)) {
+            handleAutonomousAppOpenAndRun()
+        } else {
+            handleChatSendOnly()
+        }
+    }
+
     /**
-     * 極簡 Gemini / ChatGPT 純對話模式（「發送」按鈕）：
+     * 極簡純對話模式：
      * 100% 保證在對話串流給出自然繁體中文回覆，絕不盲目在畫面上捲動或點擊。
      * 若訊息包含可執行的手機操作指令，會在 AI 氣泡內嵌「執行」鍵供使用者按需觸發。
      */
     private fun handleChatSendOnly() {
         val text = goalInputEt.text?.toString()?.trim().orEmpty()
         if (text.isEmpty()) {
-            Toast.makeText(this, "請先輸入想與 AI 對話的訊息", Toast.LENGTH_SHORT).show()
             return
         }
         ConversationManager.appendUserMessage(text)
@@ -1684,9 +1725,18 @@ class MainActivity : Activity() {
 
         val missingPerms = com.example.newandroidapp.action.SystemCapabilityHub.getMissingRuntimePermissions(text, this)
         if (missingPerms.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            pendingCapabilityPermissionGoal = text
-            pendingCapabilityIsAutonomousMode = false
-            requestPermissions(missingPerms.toTypedArray(), 1003)
+            val permName = when {
+                missingPerms.contains(android.Manifest.permission.READ_CONTACTS) -> "通訊錄"
+                missingPerms.contains(android.Manifest.permission.READ_CALENDAR) -> "行事曆"
+                else -> "位置"
+            }
+            ConversationManager.appendAiMessage(
+                text = "查詢「$text」需要${permName}權限",
+                metadataHeader = "PERMISSION_PROMPT",
+                isProactive = false,
+                executableCommand = text,
+                isSensitive = true
+            )
             return
         }
 
@@ -1911,20 +1961,14 @@ class MainActivity : Activity() {
 
     private fun updateServiceButtonState() {
         val svc = VisionAccessibilityService.instance
-        if (svc != null) {
-            if (svc.isFloatingHudShown()) {
-                serviceStatusBtn.text = "關閉懸浮球"
-                serviceStatusBtn.setTextColor(Color.parseColor("#047857"))
-                serviceStatusBtn.background = roundRectBg("#ECFDF5", "#A7F3D0", dp(12).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-            } else {
-                serviceStatusBtn.text = "開啟懸浮球"
-                serviceStatusBtn.setTextColor(Color.parseColor("#2563EB"))
-                serviceStatusBtn.background = roundRectBg("#EFF6FF", "#BFDBFE", dp(12).toFloat(), strokePx = dp(1).coerceAtLeast(1))
-            }
+        if (svc != null && svc.isFloatingHudShown()) {
+            serviceStatusBtn.text = "關閉懸浮球"
+            serviceStatusBtn.setTextColor(Color.parseColor("#E4E4E7"))
+            serviceStatusBtn.background = roundRectBg("#09090B", "#09090B", dp(8).toFloat(), strokePx = 0)
         } else {
-            serviceStatusBtn.text = "開啟懸浮球"
-            serviceStatusBtn.setTextColor(Color.parseColor("#2563EB"))
-            serviceStatusBtn.background = roundRectBg("#EFF6FF", "#BFDBFE", dp(12).toFloat(), strokePx = dp(1).coerceAtLeast(1))
+            serviceStatusBtn.text = "懸浮球"
+            serviceStatusBtn.setTextColor(Color.parseColor("#71717A"))
+            serviceStatusBtn.background = roundRectBg("#09090B", "#09090B", dp(8).toFloat(), strokePx = 0)
         }
 
         val whitelisted = KeepAliveHelper.isIgnoringBatteryOptimizations(this)

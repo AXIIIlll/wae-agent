@@ -1,4 +1,4 @@
-﻿package com.example.newandroidapp.ai
+package com.example.newandroidapp.ai
 
 import android.content.Context
 import android.graphics.Point
@@ -211,9 +211,13 @@ object AndroidNativeAiEngine {
         }
 
         // 5. 問候、自我介紹、感謝與日常對話
+        if (q.contains("你可以做什麼") || q.contains("你能做什麼") || q.contains("你會做什麼") ||
+            q.contains("可以幫我做什麼") || q.contains("能幫我做什麼") || q.contains("怎麼用") || q.contains("功能")
+        ) {
+            return Pair("能控App、記筆記、查行程與通知。", null)
+        }
         if (lower == "你好" || lower == "您好" || lower == "嗨" || lower == "哈囉" || lower == "hello" || lower == "hi" ||
-            q.contains("你是誰") || q.contains("自我介紹") || q.contains("你能做什麼") || q.contains("可以幫我做什麼") ||
-            q.contains("怎麼用") || q.contains("功能")
+            q.contains("你是誰") || q.contains("自我介紹")
         ) {
             return Pair("我是你手機幫手，有事快說。", null)
         }
