@@ -282,13 +282,26 @@ object LocalKnowledgeAndReasoningEngine {
                 }
             }
             if (nativeCmd is com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.NativeSystemCommand.UnifiedCapabilityCommand) {
-                when (val req = nativeCmd.request) {
+                val req = nativeCmd.request
+                if (context != null) {
+                    val svc = com.example.newandroidapp.vision.VisionAccessibilityService.instance
+                    val res = com.example.newandroidapp.action.SystemCapabilityHub.execute(req, context, svc)
+                    return ConversationalReasoningResult(
+                        replyText = res.summaryText,
+                        plannedExecutableCommand = null
+                    )
+                }
+                when (req) {
                     is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.QuickNoteSave -> {
-                        val res = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect(req.content, context)
+                        val res = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect(req.content, null)
                         return ConversationalReasoningResult(replyText = res.summaryText, plannedExecutableCommand = null)
                     }
                     is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.QuickNoteQuery -> {
-                        val res = com.example.newandroidapp.action.SystemCapabilityHub.queryNotesDirect(req.keyword, context)
+                        val res = com.example.newandroidapp.action.SystemCapabilityHub.queryNotesDirect(req.keyword, null)
+                        return ConversationalReasoningResult(replyText = res.summaryText, plannedExecutableCommand = null)
+                    }
+                    is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.NotificationQuery -> {
+                        val res = com.example.newandroidapp.action.SystemCapabilityHub.queryNotificationsDirect(req.onlyMissedOrRecent)
                         return ConversationalReasoningResult(replyText = res.summaryText, plannedExecutableCommand = null)
                     }
                     else -> {}

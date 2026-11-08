@@ -328,6 +328,15 @@ class ScreenTextCaptureTest {
         val normalNote = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect("下午三點買牛奶")
         assertTrue(normalNote.succeeded)
 
+        // 驗證「記下買牛奶」（無冒號無空白）在對話引擎中直接寫入筆記，不會誤判為上網查詢
+        val (chatReply, execCmd) = com.example.newandroidapp.ai.AndroidNativeAiEngine.generateConversationalReply(
+            userText = "記下買牛奶",
+            report = null,
+            context = null
+        )
+        assertTrue(chatReply.contains("買牛奶"))
+        assertNull(execCmd)
+
         // 驗證加密絕不使用 Base64 明文編碼，且具備真實 AES-GCM 加解密能力
         val encrypted = com.example.newandroidapp.action.SystemCapabilityHub.encryptNotesPayload("1700000000|下午三點買牛奶")
         assertTrue(encrypted != null && (encrypted.startsWith("ENC1:") || encrypted.startsWith("ENC2:")))

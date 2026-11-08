@@ -365,23 +365,23 @@ object SystemCapabilityHub {
 
         // 查詢筆記：「我剛記了什麼」、「查詢筆記」、「我的筆記有什麼」、「查看備忘錄」
         if (lower.contains("我剛記了什麼") || lower.contains("剛剛記了什麼") ||
+            lower.contains("剛記了什麼") || lower.contains("記了什麼") ||
             lower == "查詢筆記" || lower == "查看筆記" || lower == "查看備忘錄" ||
             lower == "我的筆記" || lower == "我的備忘錄" || lower.contains("筆記有什麼") ||
-            lower.contains("備忘錄有什麼")
+            lower.contains("備忘錄有什麼") || lower.contains("看筆記") || lower.contains("查筆記") && clean.length <= 5
         ) {
             return CapabilityRequest.QuickNoteQuery()
         }
-        val searchNoteMatch = Regex("^(?:搜尋筆記|找筆記|查筆記)\\s+(.+)$").find(clean)
+        val searchNoteMatch = Regex("^(?:搜尋筆記|找筆記|查筆記)\\s*[:：]?\\s*(.+)$").find(clean)
         if (searchNoteMatch != null) {
             return CapabilityRequest.QuickNoteQuery(keyword = searchNoteMatch.groupValues[1].trim())
         }
 
-        // 新增筆記：「記下：明天交報告」、「筆記：買牛奶」、「備忘：下午三點開會」、「幫我記下明天要買牛奶」
-        val explicitSaveMatch = Regex("^(?:幫我|請)?(?:記下|筆記|備忘|快速筆記)\\s*[:：]\\s*(.+)$").find(clean)
-            ?: Regex("^(?:幫我|請)?(?:記下|記一下|記錄一下)\\s+(.+)$").find(clean)
+        // 新增筆記：「記下買牛奶」、「記下：明天交報告」、「筆記：買牛奶」、「備忘下午三點開會」、「幫我記下明天要買牛奶」
+        val explicitSaveMatch = Regex("^(?:幫我|請)?(?:記下來|記下|記一下|記錄一下|筆記|備忘|快速筆記)\\s*[:：]?\\s*(.+)$").find(clean)
         if (explicitSaveMatch != null) {
             val noteBody = explicitSaveMatch.groupValues[1].trim()
-            if (noteBody.isNotEmpty()) {
+            if (noteBody.isNotEmpty() && !noteBody.startsWith("有什麼") && !noteBody.startsWith("裡有什麼")) {
                 return CapabilityRequest.QuickNoteSave(content = noteBody)
             }
         }
@@ -962,9 +962,10 @@ object SystemCapabilityHub {
         }
 
         val isCalendarQuery = lower.contains("有什麼行程") || lower.contains("有哪些行程") ||
-            lower == "查詢行事曆" || lower == "查看行事曆" || lower == "查看日曆" ||
-            lower == "查詢日曆" || lower.contains("今天的行程") || lower.contains("明天的行程") ||
-            lower.contains("後天的行程")
+            lower.contains("查詢行事曆") || lower.contains("查看行事曆") || lower.contains("查看日曆") ||
+            lower.contains("查詢日曆") || lower.contains("今天的行程") || lower.contains("明天的行程") ||
+            lower.contains("後天的行程") || lower.contains("今天行程") || lower.contains("明天行程") ||
+            lower.contains("後天行程") || lower.contains("查詢行程") || lower.contains("查行程")
         if (!isCalendarQuery) return null
 
         val (dayOffset, dayLabel) = when {
@@ -1067,8 +1068,8 @@ object SystemCapabilityHub {
     // =========================================================================
 
     private fun parseLocationQueryRequest(lower: String): CapabilityRequest.LocationQuery? {
-        if (lower == "我現在在哪" || lower == "我現在在哪裡" || lower == "目前位置在哪" ||
-            lower == "查詢目前位置" || lower == "我的位置在哪"
+        if (lower.contains("我現在在哪") || lower.contains("目前位置") ||
+            lower.contains("我的位置在哪") || lower.contains("現在位置在哪")
         ) {
             return CapabilityRequest.LocationQuery
         }
