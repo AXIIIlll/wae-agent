@@ -1,4 +1,4 @@
-package com.example.newandroidapp.ai
+﻿package com.example.newandroidapp.ai
 
 import com.example.newandroidapp.chat.ConversationManager
 import com.example.newandroidapp.stability.InAppWorkingMemory
@@ -327,6 +327,21 @@ object CognitiveReasoningEngine {
             }
         }
 
+        // 序數／隨機挑選只應落在「真正的內容項目」上，不能落在篩選分頁（全部／AI 模式）、停用控制項等 UI 控制元件。
+        // 1) 若畫面上有被分類為內容卡片的節點，只在內容卡片中挑選；
+        // 2) 若目標是「網站／網頁／連結」且有帶網址的項目，優先只在帶網址的項目中挑選。
+        val contentRoleCandidates = distinctRowCandidates.filter {
+            it.predictedFunctionRole == "CONTENT_CARD_ITEM" && !it.inlineStatePrefix.contains("[停用]")
+        }
+        val urlPattern = Regex("(?i)(https?://|www\\.)")
+        val goalWantsWebsite = combinedGoal.contains("網站") || combinedGoal.contains("網頁") || combinedGoal.contains("連結")
+        val urlCandidates = contentRoleCandidates.filter { urlPattern.containsMatchIn(it.label) }
+        val pickableCandidates: List<Stage2ConvergedNode> = when {
+            goalWantsWebsite && urlCandidates.isNotEmpty() -> urlCandidates
+            contentRoleCandidates.isNotEmpty() -> contentRoleCandidates
+            else -> distinctRowCandidates.filter { !it.inlineStatePrefix.contains("[停用]") }
+        }
+
         val hasUnsubmittedSearchIntent = (
             com.example.newandroidapp.stability.InAppOperationPlanner.hasExplicitSearchOrInputIntent(userGoal) ||
                 com.example.newandroidapp.stability.InAppOperationPlanner.hasExplicitSearchOrInputIntent(activeSubGoalPhrase)
@@ -347,15 +362,15 @@ object CognitiveReasoningEngine {
                 combinedGoal.contains("random")
             )
 
-        if (wantsRandomPick && distinctRowCandidates.isNotEmpty()) {
-            val pickIdx = kotlin.random.Random.nextInt(distinctRowCandidates.size)
-            val chosen = distinctRowCandidates[pickIdx]
+        if (wantsRandomPick && pickableCandidates.isNotEmpty()) {
+            val pickIdx = kotlin.random.Random.nextInt(pickableCandidates.size)
+            val chosen = pickableCandidates[pickIdx]
             return CognitiveDiagnosis(
                 screenState = screenState,
                 overrideTargetNode = chosen,
                 overrideActionType = AiActionType.TAP,
                 overrideConfidence = 0.96f,
-                reasoningTraceNote = "[決策層:隨機列表挑選] 已排除頂部搜尋列與導覽列，從 ${distinctRowCandidates.size} 個列表項目中隨機鎖定第 ${pickIdx + 1} 項 -> #${chosen.shortMarkId}「${chosen.label.take(24)}」"
+                reasoningTraceNote = "[決策層:隨機列表挑選] 已排除頂部搜尋列與導覽列，從 ${pickableCandidates.size} 個列表項目中隨機鎖定第 ${pickIdx + 1} 項 -> #${chosen.shortMarkId}「${chosen.label.take(24)}」"
             )
         }
 
@@ -372,9 +387,9 @@ object CognitiveReasoningEngine {
             }
         } else null
 
-        if (ordinalPick != null && distinctRowCandidates.isNotEmpty()) {
-            val targetIdx = ordinalPick.first.coerceAtMost(distinctRowCandidates.size - 1)
-            val chosen = distinctRowCandidates[targetIdx]
+        if (ordinalPick != null && pickableCandidates.isNotEmpty()) {
+            val targetIdx = ordinalPick.first.coerceAtMost(pickableCandidates.size - 1)
+            val chosen = pickableCandidates[targetIdx]
             return CognitiveDiagnosis(
                 screenState = screenState,
                 overrideTargetNode = chosen,
@@ -547,3 +562,4 @@ object CognitiveReasoningEngine {
         return clean.takeLast(2)
     }
 }
+

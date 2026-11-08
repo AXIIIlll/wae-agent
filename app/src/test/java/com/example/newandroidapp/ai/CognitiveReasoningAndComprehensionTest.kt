@@ -1,4 +1,4 @@
-package com.example.newandroidapp.ai
+﻿package com.example.newandroidapp.ai
 
 import android.graphics.Point
 import android.graphics.Rect
@@ -408,4 +408,50 @@ class CognitiveReasoningAndComprehensionTest {
         assertEquals(1, decision.targetMarkId)
         assertEquals("在這裡搜尋", decision.targetNode?.label)
     }
-}
+
+    @Test
+    fun testFirstWebsitePick_skipsFilterTabsAndPicksFirstUrlResultCard() {
+        val goal = "打開 Chrome 搜尋台灣高鐵時刻表，點開第一個網站"
+        InAppOperationPlanner.resetForNewGoal(goal)
+        com.example.newandroidapp.stability.InAppWorkingMemory.recordTextTypedAndSubmitted("台灣高鐵時刻表", "INP|搜尋")
+
+        fun node(id: Int, label: String, role: String, pxY: Int, prefix: String = ""): Stage2ConvergedNode {
+            val gy = pxY * 999 / 2340
+            return Stage2ConvergedNode(
+                nodeId = "chrome_$id",
+                shortMarkId = id,
+                className = "android.widget.Button",
+                shortTypeTag = "BTN",
+                label = label,
+                inlineStatePrefix = prefix,
+                rawOriginalBounds = rect(60, pxY - 40, 1020, pxY + 40),
+                convergedBounds = rect(60, pxY - 40, 1020, pxY + 40),
+                finalTapPx = pt(540, pxY),
+                gridTapPoint = pt(500, gy),
+                visibleRatio = 1.0f,
+                wasHotspotConverged = false,
+                absorbedTextIds = emptyList(),
+                sourceType = NodeSourceType.UI_TREE,
+                predictedFunctionRole = role,
+                functionRoleConfidence = 0.9f
+            )
+        }
+
+        val report = makeReport(
+            listOf(
+                node(13, "AI 模式", "GENERIC_ACTION_BUTTON", 616),
+                node(14, "全部", "FILTER_SORT_CHIP", 620, "[停用]"),
+                node(18, "進一步瞭解這項結果", "GENERIC_ACTION_BUTTON", 901),
+                node(19, "台灣高鐵 https://www.thsrc.com.tw https://www.thsrc.com.tw 台灣高鐵", "CONTENT_CARD_ITEM", 930),
+                node(23, "台北高鐵時刻表", "CONTENT_CARD_ITEM", 1520)
+            )
+        )
+        val eval = InAppOperationPlanner.evaluateInAppStateOverrideOrAdjustScores(
+            report = report,
+            userGoal = goal,
+            currentSubGoal = "點開第一個網站"
+        )
+        assertEquals(AiActionType.TAP, eval.overrideActionType)
+        assertEquals(19, eval.overrideTargetNode?.shortMarkId)
+    }}
+
