@@ -359,17 +359,19 @@ object SystemCapabilityHub {
     // =========================================================================
 
     private fun parseQuickNoteRequest(clean: String, lower: String): CapabilityRequest? {
-        if (lower == "清空筆記" || lower == "刪除所有筆記" || lower == "清空備忘錄" || lower == "清除筆記") {
+        if (lower == "清空筆記" || lower == "刪除所有筆記" || lower == "清空備忘錄" || lower == "清除筆記" ||
+            Regex("^(?:幫我|請)?(?:清空|清除|刪掉|刪除)(?:所有|全部)?(?:筆記|備忘錄|備忘)$").containsMatchIn(clean)
+        ) {
             return CapabilityRequest.QuickNoteClear
         }
 
-        // 查詢筆記：「我剛記了什麼」、「查詢筆記」、「我的筆記有什麼」、「查看備忘錄」
-        if (lower.contains("我剛記了什麼") || lower.contains("剛剛記了什麼") ||
-            lower.contains("剛記了什麼") || lower.contains("記了什麼") ||
-            lower == "查詢筆記" || lower == "查看筆記" || lower == "查看備忘錄" ||
-            lower == "我的筆記" || lower == "我的備忘錄" || lower.contains("筆記有什麼") ||
-            lower.contains("備忘錄有什麼") || lower.contains("看筆記") || lower.contains("查筆記") && clean.length <= 5
-        ) {
+        // 查詢筆記：「我剛剛記下了什麼」、「我剛記了什麼」、「查詢筆記」、「我的筆記有什麼」、「查看備忘錄」
+        val isNoteQuery = Regex("(?:記下|記過|記錄|記|寫下)(?:了|過)?(?:什麼|哪些|啥)").containsMatchIn(clean) ||
+            Regex("(?:查詢|查看|看|讀|念|打開|列出|顯示)(?:一下)?(?:我的|所有|全部|剛剛的|最近的)?(?:筆記|備忘錄|備忘)").containsMatchIn(clean) ||
+            Regex("(?:筆記|備忘錄|備忘)(?:裡|裡面|上)?(?:有什麼|有哪些|寫什麼|寫了什麼|內容)").containsMatchIn(clean) ||
+            lower == "我的筆記" || lower == "我的備忘錄" || lower == "筆記" || lower == "備忘錄" ||
+            (lower.contains("查筆記") && clean.length <= 5)
+        if (isNoteQuery) {
             return CapabilityRequest.QuickNoteQuery()
         }
         val searchNoteMatch = Regex("^(?:搜尋筆記|找筆記|查筆記)\\s*[:：]?\\s*(.+)$").find(clean)
@@ -378,10 +380,13 @@ object SystemCapabilityHub {
         }
 
         // 新增筆記：「記下買牛奶」、「記下：明天交報告」、「筆記：買牛奶」、「備忘下午三點開會」、「幫我記下明天要買牛奶」
-        val explicitSaveMatch = Regex("^(?:幫我|請)?(?:記下來|記下|記一下|記錄一下|筆記|備忘|快速筆記)\\s*[:：]?\\s*(.+)$").find(clean)
+        val explicitSaveMatch = Regex("^(?:幫我|請|替我)?(?:記下來|記下|記一下|記錄一下|記錄|筆記|備忘錄|備忘|快速筆記)\\s*[:：]?\\s*(.+)$").find(clean)
         if (explicitSaveMatch != null) {
             val noteBody = explicitSaveMatch.groupValues[1].trim()
-            if (noteBody.isNotEmpty() && !noteBody.startsWith("有什麼") && !noteBody.startsWith("裡有什麼")) {
+            if (noteBody.isNotEmpty() && noteBody != "本" &&
+                !noteBody.startsWith("有什麼") && !noteBody.startsWith("裡有什麼") &&
+                !noteBody.startsWith("了什麼") && !noteBody.startsWith("什麼")
+            ) {
                 return CapabilityRequest.QuickNoteSave(content = noteBody)
             }
         }
@@ -599,16 +604,19 @@ object SystemCapabilityHub {
             return null
         }
 
-        val isMissedQuery = lower.contains("誰傳訊息給我") || lower.contains("有誰找我") ||
-            lower.contains("睡覺時有誰找我") || lower.contains("剛剛誰找我") ||
-            lower.contains("有沒有人找我") || lower.contains("未讀訊息")
+        val isMissedQuery = lower.contains("誰傳訊息給我") || lower.contains("誰發訊息給我") ||
+            lower.contains("有誰找我") || lower.contains("睡覺時有誰找我") ||
+            lower.contains("剛剛誰找我") || lower.contains("有沒有人找我") ||
+            lower.contains("未讀訊息")
         if (isMissedQuery) {
             return CapabilityRequest.NotificationQuery(onlyMissedOrRecent = true)
         }
 
         val isGeneralNotifQuery = lower.contains("未讀通知") || lower.contains("有什麼通知") ||
+            lower.contains("有哪些通知") || lower.contains("有沒有通知") ||
             lower.contains("最近的通知") || lower.contains("剛剛的通知") ||
-            lower == "查看通知" || lower == "查詢通知" || lower == "念出通知" || lower == "朗讀通知"
+            lower.contains("查看通知") || lower.contains("查詢通知") ||
+            lower == "看通知" || lower == "念出通知" || lower == "朗讀通知" || lower == "讀通知"
         if (isGeneralNotifQuery) {
             return CapabilityRequest.NotificationQuery(onlyMissedOrRecent = false)
         }
@@ -647,10 +655,10 @@ object SystemCapabilityHub {
     // =========================================================================
 
     private fun parseClipboardRequest(clean: String, lower: String): CapabilityRequest? {
-        if (lower.contains("我剛複製了什麼") || lower.contains("剛剛複製了什麼") ||
+        if (Regex("(?:複製|拷貝)(?:了|過)?(?:什麼|哪些|啥)").containsMatchIn(clean) ||
             lower.contains("剪貼簿裡有什麼") || lower.contains("剪貼簿有什麼") ||
             lower.contains("剪貼簿內容") || lower.contains("讀取剪貼簿") ||
-            lower.contains("查看剪貼簿") || lower.contains("查詢剪貼簿")
+            lower.contains("查看剪貼簿") || lower.contains("查詢剪貼簿") || lower.contains("看剪貼簿")
         ) {
             return CapabilityRequest.ClipboardRead
         }
@@ -854,17 +862,19 @@ object SystemCapabilityHub {
         // 若包含純電話數字，交由既有 DialPhoneCommand 處理
         if (Regex("\\d{3,}").containsMatchIn(clean)) return null
 
-        // 1. 「王小明的電話幾號」、「查媽媽的電話號碼」
-        val queryPhoneMatch = Regex("^(?:幫我)?(?:查詢|查一下|查)?\\s*(.+?)\\s*的(?:電話號碼|電話|手機號碼|號碼)(?:是幾號|幾號|是多少|多少)?[？?]?$").find(clean)
+        // 1. 「王小明的電話幾號」、「查媽媽的電話號碼」、「查王小明電話」
+        val queryPhoneMatch = Regex("^(?:請問|幫我|請)?(?:查詢|查一下|查看|查)?\\s*(.+?)\\s*(?:的)?(?:電話號碼|電話|手機號碼|號碼)(?:是幾號|幾號|是多少|多少)?[？?]?$").find(clean)
         if (queryPhoneMatch != null) {
             val name = queryPhoneMatch.groupValues[1].trim()
-            if (name.isNotEmpty() && name.length <= 12) {
+            if (name.isNotEmpty() && name.length <= 12 &&
+                name != "查" && name != "查詢" && name != "查看" && !name.contains("設定")
+            ) {
                 return CapabilityRequest.ContactLookup(personName = name, dialImmediately = false)
             }
         }
 
         // 2. 「打電話給媽媽」、「打給王小明」
-        val dialNameMatch = Regex("^(?:幫我)?(?:打電話給|撥電話給|打給)\\s*(.+)$").find(clean)
+        val dialNameMatch = Regex("^(?:幫我|請)?(?:打電話給|撥電話給|打給|撥給)\\s*(.+)$").find(clean)
         if (dialNameMatch != null) {
             val name = dialNameMatch.groupValues[1].trim()
             if (name.isNotEmpty() && name.length <= 12 && !name.contains("設定")) {
@@ -962,10 +972,12 @@ object SystemCapabilityHub {
         }
 
         val isCalendarQuery = lower.contains("有什麼行程") || lower.contains("有哪些行程") ||
-            lower.contains("查詢行事曆") || lower.contains("查看行事曆") || lower.contains("查看日曆") ||
+            lower.contains("有沒有行程") || lower.contains("查詢行事曆") ||
+            lower.contains("查看行事曆") || lower.contains("查看日曆") ||
             lower.contains("查詢日曆") || lower.contains("今天的行程") || lower.contains("明天的行程") ||
             lower.contains("後天的行程") || lower.contains("今天行程") || lower.contains("明天行程") ||
-            lower.contains("後天行程") || lower.contains("查詢行程") || lower.contains("查行程")
+            lower.contains("後天行程") || lower.contains("查詢行程") || lower.contains("查看行程") ||
+            lower.contains("查行程") || lower.contains("看行程")
         if (!isCalendarQuery) return null
 
         val (dayOffset, dayLabel) = when {
@@ -1068,8 +1080,9 @@ object SystemCapabilityHub {
     // =========================================================================
 
     private fun parseLocationQueryRequest(lower: String): CapabilityRequest.LocationQuery? {
-        if (lower.contains("我現在在哪") || lower.contains("目前位置") ||
-            lower.contains("我的位置在哪") || lower.contains("現在位置在哪")
+        if (Regex("(?:我|現在|目前)(?:人)?在(?:哪裡|哪兒|哪|什麼地方)").containsMatchIn(lower) ||
+            lower.contains("目前位置") || lower.contains("我的位置") ||
+            lower.contains("現在位置") || lower.contains("目前定位") || lower.contains("現在定位")
         ) {
             return CapabilityRequest.LocationQuery
         }

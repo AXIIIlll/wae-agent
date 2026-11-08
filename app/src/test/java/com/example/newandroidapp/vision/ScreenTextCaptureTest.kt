@@ -337,6 +337,23 @@ class ScreenTextCaptureTest {
         assertTrue(chatReply.contains("買牛奶"))
         assertNull(execCmd)
 
+        // 驗證「我剛剛記下了什麼」在對話引擎中直接讀取筆記，不會誤判為上網查詢
+        val (queryReply, queryCmd) = com.example.newandroidapp.ai.AndroidNativeAiEngine.generateConversationalReply(
+            userText = "我剛剛記下了什麼",
+            report = null,
+            context = null
+        )
+        assertTrue("Expected note content but got: $queryReply", queryReply.contains("買牛奶"))
+        assertFalse(queryReply.contains("上網查"))
+        assertNull(queryCmd)
+
+        // 驗證各種口語化本機能力查詢皆被 SystemCapabilityHub 正確攔截
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.parseRequest("剛才記下什麼") is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.QuickNoteQuery)
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.parseRequest("查王小明電話") is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.ContactLookup)
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.parseRequest("明天有什麼行程") is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.CalendarQuery)
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.parseRequest("我現在人在哪裡") is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.LocationQuery)
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.parseRequest("剛剛有哪些通知") is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.NotificationQuery)
+
         // 驗證加密絕不使用 Base64 明文編碼，且具備真實 AES-GCM 加解密能力
         val encrypted = com.example.newandroidapp.action.SystemCapabilityHub.encryptNotesPayload("1700000000|下午三點買牛奶")
         assertTrue(encrypted != null && (encrypted.startsWith("ENC1:") || encrypted.startsWith("ENC2:")))
