@@ -1,4 +1,4 @@
-package com.example.newandroidapp.ai
+﻿package com.example.newandroidapp.ai
 
 import android.content.Context
 import android.graphics.Point
@@ -32,6 +32,12 @@ object AndroidNativeAiEngine {
         val complaint = HumanColloquialPersonaEngine.detectComplaintOrEmotionalChat(q, ctx)
         if (complaint != null) {
             return complaint.spokenAndDisplayText
+        }
+
+        // 0.5 擷取螢幕上的文字（完整內容；敏感畫面一律拒絕）
+        if (com.example.newandroidapp.vision.ScreenTextCapture.isCaptureRequest(q)) {
+            val captured = com.example.newandroidapp.vision.ScreenTextCapture.capture(report)
+            return com.example.newandroidapp.vision.ScreenTextCapture.toReplyText(captured)
         }
 
         // 1. Math calculation (Zero-Tap)
@@ -181,6 +187,15 @@ object AndroidNativeAiEngine {
             val lastTask = (turnCtx.lastSearchQuery ?: turnCtx.lastAiPrompt).orEmpty().take(6)
             val reply = if (lastTask.isNotBlank()) "剛幫你弄完「$lastTask」。" else "現在閒著等你下令。"
             return Pair(HumanColloquialPersonaEngine.enforceConciseLength(reply), null)
+        }
+
+        // 3.5 擷取螢幕上的文字（完整內容，不套用短句長度限制；敏感畫面一律拒絕）
+        if (com.example.newandroidapp.vision.ScreenTextCapture.isCaptureRequest(q)) {
+            if (report == null) {
+                return Pair("先開懸浮球我才看得到畫面。", null)
+            }
+            val captured = com.example.newandroidapp.vision.ScreenTextCapture.capture(report)
+            return Pair(com.example.newandroidapp.vision.ScreenTextCapture.toReplyText(captured), null)
         }
 
         // 4. 畫面重點與螢幕內容詢問
@@ -805,3 +820,4 @@ object AndroidNativeAiEngine {
         return extracted
     }
 }
+
