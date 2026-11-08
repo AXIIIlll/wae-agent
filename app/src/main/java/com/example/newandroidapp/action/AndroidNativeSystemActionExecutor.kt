@@ -165,6 +165,10 @@ object AndroidNativeSystemActionExecutor {
             val phoneNumber: String,
             val body: String = ""
         ) : NativeSystemCommand()
+
+        data class UnifiedCapabilityCommand(
+            val request: SystemCapabilityHub.CapabilityRequest
+        ) : NativeSystemCommand()
     }
 
     data class ExecutionResult(
@@ -239,6 +243,11 @@ object AndroidNativeSystemActionExecutor {
         // 12. 解析系統設定子頁直達（如「打開 Wi-Fi 設定」、「打開藍牙設定」）
         parseSettingsSubpageCommand(lower)?.let { return it }
 
+        // 13. 解析統一系統能力中樞（快速筆記、通知收件匣、剪貼簿、空間與RAM、勿擾、聯絡人、行事曆查詢、定位、照片與下載）
+        SystemCapabilityHub.parseRequest(clean)?.let {
+            return NativeSystemCommand.UnifiedCapabilityCommand(it)
+        }
+
         return null
     }
 
@@ -277,6 +286,15 @@ object AndroidNativeSystemActionExecutor {
             is NativeSystemCommand.AddCalendarEventCommand -> executeAddCalendarEventCommand(cmd, context)
             is NativeSystemCommand.DialPhoneCommand -> executeDialPhoneCommand(cmd, context)
             is NativeSystemCommand.ComposeSmsCommand -> executeComposeSmsCommand(cmd, context)
+            is NativeSystemCommand.UnifiedCapabilityCommand -> {
+                val res = SystemCapabilityHub.execute(cmd.request, context, accessibilityService)
+                ExecutionResult(
+                    handled = true,
+                    succeeded = res.succeeded,
+                    summaryText = res.summaryText,
+                    command = cmd
+                )
+            }
         }
     }
 

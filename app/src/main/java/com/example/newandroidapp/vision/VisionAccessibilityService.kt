@@ -431,6 +431,9 @@ class VisionAccessibilityService : AccessibilityService() {
         }
         val evType = event.eventType
         val pkg = event.packageName?.toString()
+        if (evType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
+            com.example.newandroidapp.action.SystemCapabilityHub.onAccessibilityNotificationEvent(this, pkg, event)
+        }
         // 【系統通知橫幅防禦】忽略 com.android.systemui 與通知事件 (TYPE_NOTIFICATION_STATE_CHANGED) 篡改前景 App Package
         val isForeignNotificationEvent = evType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED ||
             pkg == "com.android.systemui" ||

@@ -234,4 +234,71 @@ class AndroidNativeSystemActionExecutorTest {
         assertNull(AndroidNativeSystemActionExecutor.parseCommand("打開 YouTube 搜尋 周杰倫"))
         assertNull(AndroidNativeSystemActionExecutor.parseCommand("打開時鐘 點擊 鬧鐘 新增"))
     }
+
+    @Test
+    fun `test SystemCapabilityHub unified 10 capabilities parsing and execution`() {
+        SystemCapabilityHub.clearNotesForTest()
+        SystemCapabilityHub.clearNotificationsForTest()
+
+        // 1. Quick Notes save & query
+        val noteSaveCmd = AndroidNativeSystemActionExecutor.parseCommand("記下：明天下午三點交報告")
+            as? AndroidNativeSystemActionExecutor.NativeSystemCommand.UnifiedCapabilityCommand
+        assertNotNull(noteSaveCmd)
+        val saveReq = noteSaveCmd!!.request as? SystemCapabilityHub.CapabilityRequest.QuickNoteSave
+        assertNotNull(saveReq)
+        assertEquals("明天下午三點交報告", saveReq!!.content)
+
+        val (saveReply, _) = AndroidNativeAiEngine.generateConversationalReply("記下：明天下午三點交報告", null)
+        assertTrue(saveReply.contains("明天下午三點交報告"))
+
+        val (queryReply, _) = AndroidNativeAiEngine.generateConversationalReply("我剛記了什麼", null)
+        assertTrue(queryReply.contains("明天下午三點交報告"))
+
+        // 2. Notification inbox & sensitive OTP redaction
+        SystemCapabilityHub.recordNotificationInternal("jp.naver.line.android", "LINE", "媽媽", "今晚回家吃飯嗎")
+        SystemCapabilityHub.recordNotificationInternal("com.google.android.apps.messaging", "訊息", "銀行", "您的動態驗證碼為 839201")
+        val notifReq = SystemCapabilityHub.parseRequest("剛剛誰傳訊息給我")
+            as? SystemCapabilityHub.CapabilityRequest.NotificationQuery
+        assertNotNull(notifReq)
+        assertTrue(notifReq!!.onlyMissedOrRecent)
+
+        // 3. Clipboard read & write
+        assertTrue(SystemCapabilityHub.parseRequest("我剛複製了什麼") is SystemCapabilityHub.CapabilityRequest.ClipboardRead)
+        val clipWrite = SystemCapabilityHub.parseRequest("複製：台北市信義區信義路五段7號")
+            as? SystemCapabilityHub.CapabilityRequest.ClipboardWrite
+        assertNotNull(clipWrite)
+        assertEquals("台北市信義區信義路五段7號", clipWrite!!.textToCopy)
+
+        // 4. Storage & RAM query
+        assertTrue(SystemCapabilityHub.parseRequest("手機還剩多少空間") is SystemCapabilityHub.CapabilityRequest.StorageAndRamQuery)
+
+        // 5. DND & Connectivity panel
+        val dndOn = SystemCapabilityHub.parseRequest("開啟勿擾模式") as? SystemCapabilityHub.CapabilityRequest.DndControl
+        assertNotNull(dndOn)
+        assertTrue(dndOn!!.enableDnd)
+
+        // 6. Contact lookup & dial by name
+        val dialMom = SystemCapabilityHub.parseRequest("打電話給媽媽") as? SystemCapabilityHub.CapabilityRequest.ContactLookup
+        assertNotNull(dialMom)
+        assertEquals("媽媽", dialMom!!.personName)
+        assertTrue(dialMom.dialImmediately)
+
+        val lookupPhone = SystemCapabilityHub.parseRequest("王小明的電話幾號") as? SystemCapabilityHub.CapabilityRequest.ContactLookup
+        assertNotNull(lookupPhone)
+        assertEquals("王小明", lookupPhone!!.personName)
+        assertFalse(lookupPhone.dialImmediately)
+
+        // 7. Calendar agenda query
+        val calTomorrow = SystemCapabilityHub.parseRequest("明天有什麼行程") as? SystemCapabilityHub.CapabilityRequest.CalendarQuery
+        assertNotNull(calTomorrow)
+        assertEquals(1, calTomorrow!!.dayOffset)
+
+        // 8. Location query
+        assertTrue(SystemCapabilityHub.parseRequest("我現在在哪") is SystemCapabilityHub.CapabilityRequest.LocationQuery)
+
+        // 9. Media & Downloads query
+        val dlQuery = SystemCapabilityHub.parseRequest("打開下載資料夾") as? SystemCapabilityHub.CapabilityRequest.MediaAndDownloadsQuery
+        assertNotNull(dlQuery)
+        assertEquals("DOWNLOADS", dlQuery!!.targetType)
+    }
 }

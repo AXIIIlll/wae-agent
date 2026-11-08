@@ -269,7 +269,7 @@ object LocalKnowledgeAndReasoningEngine {
             return dailyChat
         }
 
-        // 3.5 若屬於 Android 原生系統指令或本機電量/音量狀態查詢（避免被誤判為需要上網查的疑問句）
+        // 3.5 若屬於 Android 原生系統指令或本機電量/音量/筆記/通知狀態查詢（避免被誤判為需要上網查的疑問句）
         val nativeCmd = com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(q)
         if (nativeCmd != null) {
             if (nativeCmd is com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.NativeSystemCommand.SystemStatusQueryCommand && context != null) {
@@ -279,6 +279,19 @@ object LocalKnowledgeAndReasoningEngine {
                         replyText = HumanColloquialPersonaEngine.enforceConciseLength(execRes.summaryText),
                         plannedExecutableCommand = q
                     )
+                }
+            }
+            if (nativeCmd is com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.NativeSystemCommand.UnifiedCapabilityCommand) {
+                when (val req = nativeCmd.request) {
+                    is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.QuickNoteSave -> {
+                        val res = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect(req.content, context)
+                        return ConversationalReasoningResult(replyText = res.summaryText, plannedExecutableCommand = null)
+                    }
+                    is com.example.newandroidapp.action.SystemCapabilityHub.CapabilityRequest.QuickNoteQuery -> {
+                        val res = com.example.newandroidapp.action.SystemCapabilityHub.queryNotesDirect(req.keyword, context)
+                        return ConversationalReasoningResult(replyText = res.summaryText, plannedExecutableCommand = null)
+                    }
+                    else -> {}
                 }
             }
             return null
