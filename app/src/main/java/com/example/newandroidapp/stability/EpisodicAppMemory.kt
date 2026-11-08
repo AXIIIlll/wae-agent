@@ -1628,19 +1628,20 @@ object EpisodicAppMemory {
         paths.removeAll { p ->
             p.steps.any { st -> st.targetAnchor.isExpired || st.targetAnchor.confidenceWeight <= 0f }
         }
+        val pathComparator = compareBy<GraphTransitionPath> { it.successCount }
+            .thenBy { it.lastUpdatedMs }
         while (paths.size >= maxCapacity && paths.isNotEmpty()) {
             var lowestIdx = 0
-            var lowestKey = paths[0].successCount.toLong() * 1_000_000_000L + (paths[0].lastUpdatedMs / 1000L)
             for (i in 1 until paths.size) {
-                val key = paths[i].successCount.toLong() * 1_000_000_000L + (paths[i].lastUpdatedMs / 1000L)
-                if (key < lowestKey) {
-                    lowestKey = key
+                if (pathComparator.compare(paths[i], paths[lowestIdx]) < 0) {
                     lowestIdx = i
                 }
             }
             paths.removeAt(lowestIdx)
         }
     }
+
+    private const val NEW_PROFILE_GRACE_WINDOW_MS = 10 * 60_000L
 
     private fun getOrCreateProfile(pkg: String, appLabel: String): AppEpisodicProfile {
         val existing = profiles[pkg]
@@ -1651,7 +1652,10 @@ object EpisodicAppMemory {
             return existing
         }
         if (profiles.size >= MAX_PROFILES_GLOBAL) {
-            val victimKey = profiles.entries.minWithOrNull(
+            val nowMs = System.currentTimeMillis()
+            val matureEntries = profiles.entries.filter { (nowMs - it.value.lastUpdatedMs) >= NEW_PROFILE_GRACE_WINDOW_MS }
+            val candidatePool = if (matureEntries.isNotEmpty()) matureEntries else profiles.entries.toList()
+            val victimKey = candidatePool.minWithOrNull(
                 compareBy<Map.Entry<String, AppEpisodicProfile>> { it.value.totalSuccessCount }
                     .thenBy { it.value.lastUpdatedMs }
             )?.key

@@ -259,5 +259,39 @@ class ScreenTextCaptureTest {
         assertEquals(1, list.size)
         assertEquals("搜尋", list.first().label)
     }
+
+    @Test
+    fun `evictLowestValuePathIfNeeded compares successCount before timestamp without overflow`() {
+        val validAnchor = com.example.newandroidapp.stability.EpisodicAppMemory.LearnedNodeAnchor(
+            label = "確定",
+            shortTypeTag = "BTN",
+            gridX = 500,
+            gridY = 500,
+            intentKey = "CONFIRM"
+        )
+        val step = com.example.newandroidapp.stability.EpisodicAppMemory.GraphTransitionStep("fp1", validAnchor, "fp2")
+        val olderHighSuccess = com.example.newandroidapp.stability.EpisodicAppMemory.GraphTransitionPath(
+            pathId = "high_success_older",
+            goalIntent = "搜尋",
+            startScreenFp = "fp1",
+            targetScreenFp = "fp2",
+            steps = listOf(step),
+            successCount = 15,
+            lastUpdatedMs = 1_700_000_000_000L
+        )
+        val newerLowSuccess = com.example.newandroidapp.stability.EpisodicAppMemory.GraphTransitionPath(
+            pathId = "low_success_newer",
+            goalIntent = "單次",
+            startScreenFp = "fp1",
+            targetScreenFp = "fp3",
+            steps = listOf(step),
+            successCount = 1,
+            lastUpdatedMs = 1_800_000_000_000L
+        )
+        val paths = mutableListOf(olderHighSuccess, newerLowSuccess)
+        com.example.newandroidapp.stability.EpisodicAppMemory.evictLowestValuePathIfNeeded(paths, maxCapacity = 2)
+        assertEquals(1, paths.size)
+        assertEquals("high_success_older", paths.first().pathId)
+    }
 }
 

@@ -95,8 +95,8 @@ object InAppWorkingMemory {
     private val typedQueries = ConcurrentHashMap.newKeySet<String>()
     private val submittedQueries = ConcurrentHashMap.newKeySet<String>()
     private val dismissedBlockerCounts = ConcurrentHashMap<String, Int>()
-    private val clickedElementsByScreen = ConcurrentHashMap<String, MutableSet<String>>()
-    private val globalClickedSignatures = ConcurrentHashMap<String, Int>()
+    private val clickedElementsByScreen = LinkedHashMap<String, MutableSet<String>>()
+    private val globalClickedSignatures = LinkedHashMap<String, Int>()
 
     // =========================================================================
     // 【硬體級動手權限閘門 (MotorPermissionGate)】
@@ -299,7 +299,7 @@ object InAppWorkingMemory {
             lastTappedSearchEntryCandidate = candidate
         }
         if (sig.isNotBlank()) {
-            globalClickedSignatures[sig] = (globalClickedSignatures[sig] ?: 0) + 1
+            incrementGlobalSignatureLru(sig)
         }
         currentStage = InAppOperationStage.STAGE_A_EXPAND_SEARCH
     }
@@ -311,7 +311,7 @@ object InAppWorkingMemory {
             typedQueries.add(norm)
         }
         if (sig.isNotBlank()) {
-            globalClickedSignatures[sig] = (globalClickedSignatures[sig] ?: 0) + 1
+            incrementGlobalSignatureLru(sig)
         }
         currentStage = InAppOperationStage.STAGE_B_INPUT_AND_SUBMIT
     }
@@ -324,7 +324,7 @@ object InAppWorkingMemory {
             submittedQueries.add(norm)
         }
         if (sig.isNotBlank()) {
-            globalClickedSignatures[sig] = (globalClickedSignatures[sig] ?: 0) + 1
+            incrementGlobalSignatureLru(sig)
         }
         currentStage = InAppOperationStage.STAGE_C_SELECT_RESULT
     }
@@ -417,23 +417,29 @@ object InAppWorkingMemory {
     }
 
     @Synchronized
+    private fun incrementGlobalSignatureLru(sig: String) {
+        val prevCount = globalClickedSignatures.remove(sig) ?: 0
+        while (globalClickedSignatures.size >= MAX_SIGNATURES_IN_WORKING_MEMORY) {
+            val oldestSig = globalClickedSignatures.keys.firstOrNull() ?: break
+            globalClickedSignatures.remove(oldestSig)
+        }
+        globalClickedSignatures[sig] = prevCount + 1
+    }
+
+    @Synchronized
     fun recordElementClicked(sig: String, screenHash: String = "default") {
         val key = screenHash.ifBlank { "default" }
-        if (!clickedElementsByScreen.containsKey(key) && clickedElementsByScreen.size >= MAX_SCREENS_IN_WORKING_MEMORY) {
-            val firstScreenKey = clickedElementsByScreen.keys().asSequence().firstOrNull()
-            if (firstScreenKey != null) {
-                clickedElementsByScreen.remove(firstScreenKey)
+        val existingSet = clickedElementsByScreen.remove(key)
+        if (existingSet == null) {
+            while (clickedElementsByScreen.size >= MAX_SCREENS_IN_WORKING_MEMORY) {
+                val oldestScreenKey = clickedElementsByScreen.keys.firstOrNull() ?: break
+                clickedElementsByScreen.remove(oldestScreenKey)
             }
         }
-        val set = clickedElementsByScreen.getOrPut(key) { ConcurrentHashMap.newKeySet() }
+        val set = existingSet ?: LinkedHashSet()
         set.add(sig)
-        if (!globalClickedSignatures.containsKey(sig) && globalClickedSignatures.size >= MAX_SIGNATURES_IN_WORKING_MEMORY) {
-            val lowestSig = globalClickedSignatures.entries.minByOrNull { it.value }?.key
-            if (lowestSig != null) {
-                globalClickedSignatures.remove(lowestSig)
-            }
-        }
-        globalClickedSignatures[sig] = (globalClickedSignatures[sig] ?: 0) + 1
+        clickedElementsByScreen[key] = set
+        incrementGlobalSignatureLru(sig)
     }
 
     /**
@@ -446,11 +452,14 @@ object InAppWorkingMemory {
         val sig = buildCandidateSignature(candidate)
         clickedElementsByScreen[key]?.remove(sig)
         val cur = globalClickedSignatures[sig] ?: 0
-        if (cur > 0) {
+        if (cur > 1) {
             globalClickedSignatures[sig] = cur - 1
+        } else if (cur == 1) {
+            globalClickedSignatures.remove(sig)
         }
     }
 
+    @Synchronized
     fun wasCandidateClickedOnScreen(candidate: Stage2ConvergedNode, screenHash: String): Boolean {
         val key = screenHash.ifBlank { "default" }
         val sig = buildCandidateSignature(candidate)
@@ -459,6 +468,7 @@ object InAppWorkingMemory {
         return onScreen || globalCount >= 2
     }
 
+    @Synchronized
     fun getCandidateClickCount(candidate: Stage2ConvergedNode): Int {
         val sig = buildCandidateSignature(candidate)
         return globalClickedSignatures[sig] ?: 0

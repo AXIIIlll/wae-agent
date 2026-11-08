@@ -109,8 +109,12 @@ object SystemCapabilityHub {
     private val inMemoryNotes = CopyOnWriteArrayList<QuickNoteEntry>()
     private var prefsLoaded = false
 
-    private val SENSITIVE_NOTIFICATION_KEYWORDS = listOf(
-        "驗證碼", "認證碼", "動態密碼", "交易密碼", "安全碼", "otp", "verification code", "passcode", "security code"
+    private val SENSITIVE_CJK_KEYWORDS = listOf(
+        "驗證碼", "認證碼", "動態密碼", "交易密碼", "安全碼", "一次性密碼"
+    )
+    private val SENSITIVE_ASCII_WORD_REGEX = Regex(
+        "\\b(?:otp|passcode|verification\\s+code|security\\s+code|auth\\s+code)\\b",
+        RegexOption.IGNORE_CASE
     )
 
     // =========================================================================
@@ -166,7 +170,8 @@ object SystemCapabilityHub {
         timestampMs: Long = System.currentTimeMillis()
     ) {
         val combinedLower = "$title $rawContent".lowercase()
-        val isSensitive = SENSITIVE_NOTIFICATION_KEYWORDS.any { combinedLower.contains(it) }
+        val isSensitive = SENSITIVE_CJK_KEYWORDS.any { combinedLower.contains(it) } ||
+            SENSITIVE_ASCII_WORD_REGEX.containsMatchIn(combinedLower)
 
         val safeTitle = if (isSensitive) "敏感通知" else title.ifEmpty { appLabel }
         val safeContent = if (isSensitive) "[包含驗證碼或敏感資訊，已自動隱藏]" else rawContent
