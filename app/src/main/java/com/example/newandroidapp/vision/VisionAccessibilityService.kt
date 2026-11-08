@@ -347,7 +347,33 @@ class VisionAccessibilityService : AccessibilityService() {
             if (!isHudAttached) return
             val now = SystemClock.elapsedRealtime()
             if (now - lastRealTimePassElapsedMs >= 450L && !isAutoLoopRunning && !isBenchmarkRunning) {
-                runRealTimeVisionStreamTick()
+                if (LiveScreenCompanionEngine.shouldTriggerPeriodicOcrSample(
+                        foregroundPackage = latestForegroundPackage,
+                        report = latestLiveReport,
+                        elapsedSinceLastScreenshotMs = now - lastScreenshotElapsedMs
+                    )
+                ) {
+                    captureLiveScreenAndRunPipeline(
+                        forcePixelVisionCapture = true,
+                        hideHudDuringScreenshot = false
+                    ) { rep ->
+                        val companionReaction = LiveScreenCompanionEngine.onLiveScreenReport(
+                            foregroundPackage = latestForegroundPackage,
+                            appLabel = latestForegroundAppLabel,
+                            report = rep
+                        )
+                        if (companionReaction != null) {
+                            triggerOrbEmotionAndToast(
+                                animId = companionReaction.orbAnimId,
+                                message = companionReaction.bubbleText,
+                                animDurationMs = 2800L,
+                                toastDurationMs = companionReaction.displayDurationMs
+                            )
+                        }
+                    }
+                } else {
+                    runRealTimeVisionStreamTick()
+                }
             }
             mainHandler.postDelayed(this, 500L)
         }
@@ -552,6 +578,21 @@ class VisionAccessibilityService : AccessibilityService() {
                         arOverlayView?.report = report
                         arOverlayView?.visibility = View.VISIBLE
                         arOverlayView?.invalidate()
+                    }
+                    if (LiveScreenCompanionEngine.isCompanionModeActive && !isAutoLoopRunning && !isBenchmarkRunning) {
+                        val companionReaction = LiveScreenCompanionEngine.onLiveScreenReport(
+                            foregroundPackage = latestForegroundPackage,
+                            appLabel = latestForegroundAppLabel,
+                            report = report
+                        )
+                        if (companionReaction != null) {
+                            triggerOrbEmotionAndToast(
+                                animId = companionReaction.orbAnimId,
+                                message = companionReaction.bubbleText,
+                                animDurationMs = 2800L,
+                                toastDurationMs = companionReaction.displayDurationMs
+                            )
+                        }
                     }
                 }
             } catch (t: Throwable) {
@@ -1166,6 +1207,23 @@ class VisionAccessibilityService : AccessibilityService() {
             Toast.makeText(this, "請先輸入要讓 AI 執行的指令", Toast.LENGTH_SHORT).show()
             return
         }
+        // 【實時陪看模式】若指令為「陪看影片 / 即時看畫面」或「停止陪看」
+        if (LiveScreenCompanionEngine.isStopCompanionCommand(rawCleanGoal)) {
+            stopCompanionModeFromUser()
+            com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+                text = "已經幫你結束陪看模式，有需要隨時再叫我！",
+                metadataHeader = "陪看模式 · 已結束"
+            )
+            return
+        }
+        if (LiveScreenCompanionEngine.isStartCompanionCommand(rawCleanGoal)) {
+            startCompanionModeFromUser()
+            com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+                text = "陪看模式已開啟！去滑短影片或看任何畫面，我會在懸浮球旁邊用文字陪你聊。",
+                metadataHeader = "即時陪看 · 已啟動"
+            )
+            return
+        }
         // 【功能 4：畫面重點智慧朗讀】若指令為「讀畫面 / 唸這頁 / 朗讀」，直接擷取當前畫面重點並語音朗讀
         if (SmartDailyAssistantHelper.isScreenReadingCommand(rawCleanGoal)) {
             setHudFocusable(false)
@@ -1634,7 +1692,7 @@ class VisionAccessibilityService : AccessibilityService() {
             val bar = orbMicroToastBar
             mainHandler.removeCallbacks(hideOrbMicroToastRunnable)
 
-            tv.text = if (cleanMsg.length > 36) cleanMsg.take(36) + "…" else cleanMsg
+            tv.text = if (cleanMsg.length > 58) cleanMsg.take(58) + "…" else cleanMsg
             bar?.background = GradientDrawable().apply {
                 setColor(accentColor)
                 cornerRadius = dp(2).toFloat()
@@ -1667,7 +1725,7 @@ class VisionAccessibilityService : AccessibilityService() {
                 .withLayer()
                 .start()
 
-            mainHandler.postDelayed(hideOrbMicroToastRunnable, durationMs.coerceIn(900L, 5000L))
+            mainHandler.postDelayed(hideOrbMicroToastRunnable, durationMs.coerceIn(900L, 6500L))
         }
     }
 
@@ -1692,6 +1750,48 @@ class VisionAccessibilityService : AccessibilityService() {
             if (!message.isNullOrBlank()) {
                 showOrbMicroToast(message, accent, toastDurationMs)
             }
+        }
+    }
+
+    /**
+     * 【實時畫面陪伴引擎 (Live Screen Companion Mode)】：啟動陪看影片 / 實時畫面陪伴
+     * 自動收合懸浮膠囊為圓形懸浮球，並在圓形懸浮球旁以純文字微氣泡即時吐出看片感想與情緒色彩。
+     */
+    fun startCompanionModeFromUser() {
+        mainHandler.post {
+            if (isAutoLoopRunning) {
+                stopAutonomousLoop("切換至陪看影片模式")
+            }
+            if (!isHudAttached) {
+                toggleFloatingHud(true)
+            }
+            hudExpandedPanel?.visibility = View.GONE
+            floatingOrbView?.visibility = View.VISIBLE
+
+            val reaction = LiveScreenCompanionEngine.startCompanionMode()
+            updateAutoRunButtonUi()
+            triggerOrbEmotionAndToast(
+                animId = reaction.orbAnimId,
+                message = reaction.bubbleText,
+                animDurationMs = 2800L,
+                toastDurationMs = reaction.displayDurationMs
+            )
+        }
+    }
+
+    /**
+     * 【實時畫面陪伴引擎 (Live Screen Companion Mode)】：停止陪看影片模式
+     */
+    fun stopCompanionModeFromUser() {
+        mainHandler.post {
+            val reaction = LiveScreenCompanionEngine.stopCompanionMode()
+            updateAutoRunButtonUi()
+            triggerOrbEmotionAndToast(
+                animId = reaction.orbAnimId,
+                message = reaction.bubbleText,
+                animDurationMs = 2000L,
+                toastDurationMs = reaction.displayDurationMs
+            )
         }
     }
 
@@ -3376,6 +3476,28 @@ class VisionAccessibilityService : AccessibilityService() {
                 if (goal.isNotEmpty()) {
                     com.example.newandroidapp.chat.ConversationManager.appendUserMessage(goal)
                     cmdInputEt.setText("")
+                    if (LiveScreenCompanionEngine.isStopCompanionCommand(goal)) {
+                        com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+                            text = "好喔，已經幫你關閉陪看影片模式！",
+                            metadataHeader = "AI 陪看助手"
+                        )
+                        expandedCard.visibility = View.GONE
+                        orbTv.visibility = View.VISIBLE
+                        snapOrbToNearestEdge()
+                        stopCompanionModeFromUser()
+                        return
+                    }
+                    if (LiveScreenCompanionEngine.isStartCompanionCommand(goal)) {
+                        com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+                            text = "已開啟「陪看影片」實時陪伴模式！現在你可以直接打開抖音、Reels 或 Shorts，我會在圓形懸浮球旁即時吐出文字感想陪你看（輸入「停止陪看」即可關閉）。",
+                            metadataHeader = "AI 陪看助手"
+                        )
+                        expandedCard.visibility = View.GONE
+                        orbTv.visibility = View.VISIBLE
+                        snapOrbToNearestEdge()
+                        startCompanionModeFromUser()
+                        return
+                    }
                     if (SmartDailyAssistantHelper.isScreenReadingCommand(goal)) {
                         expandedCard.visibility = View.GONE
                         orbTv.visibility = View.VISIBLE
@@ -3849,9 +3971,9 @@ class VisionAccessibilityService : AccessibilityService() {
                 text = ""
                 textSize = 12.5f
                 setTextColor(Color.parseColor("#F4F4F5"))
-                maxLines = 2
+                maxLines = 3
                 ellipsize = android.text.TextUtils.TruncateAt.END
-                maxWidth = dp(220)
+                maxWidth = dp(248)
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             orbMicroToastTv = microTv
@@ -4757,6 +4879,7 @@ class VisionAccessibilityService : AccessibilityService() {
 
     fun captureLiveScreenAndRunPipeline(
         forcePixelVisionCapture: Boolean = false,
+        hideHudDuringScreenshot: Boolean = true,
         onComplete: (VisionPipelineReport) -> Unit
     ) {
         val (sw, sh) = getLiveScreenSizePx()
@@ -4844,8 +4967,10 @@ class VisionAccessibilityService : AccessibilityService() {
 
                 // 僅當無障礙節點樹不足（例如純自繪 Canvas / 遊戲畫面）時，才啟動硬體截圖 + OCR 補盲
                 mainHandler.post {
-                    floatingRoot?.visibility = View.INVISIBLE
-                    arOverlayView?.visibility = View.INVISIBLE
+                    if (hideHudDuringScreenshot) {
+                        floatingRoot?.visibility = View.INVISIBLE
+                        arOverlayView?.visibility = View.INVISIBLE
+                    }
                     mainHandler.postDelayed({
                         val freshWinList = runCatching { windows }.getOrDefault(emptyList())
                         val freshRoot = runCatching { rootInActiveWindow }.getOrNull()

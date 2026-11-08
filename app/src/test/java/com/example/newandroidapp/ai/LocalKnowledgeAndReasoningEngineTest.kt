@@ -1,4 +1,4 @@
-﻿package com.example.newandroidapp.ai
+package com.example.newandroidapp.ai
 
 import com.example.newandroidapp.stability.BackwardChainingPlanner
 import com.example.newandroidapp.stability.TerminalVerb
@@ -368,5 +368,50 @@ class LocalKnowledgeAndReasoningEngineTest {
         assertTrue(!planner.isUnexpectedExternalAppHijack("com.android.settings.intelligence", "com.android.settings"))
         assertTrue(!planner.isUnexpectedExternalAppHijack("com.android.settings", "com.android.settings"))
         assertTrue(planner.isUnexpectedExternalAppHijack("com.some.ad.app", "com.android.settings"))
-    }}
+    }
+
+    @Test
+    fun `test dual-brain temperature split handles mood chat and everyday strawberry knowledge with search button`() {
+        ConversationalChatEngine.clearRecentReplyMemory()
+
+        // 1. 問「你現在心情如何」必須走 Temperature=0.72f 聊天腦自然回覆，絕不回傳「這要上網查，按執行幫你搜。」
+        val (moodReply, moodCmd) = AndroidNativeAiEngine.generateConversationalReply("你現在心情如何", null)
+        assertTrue("心情對話不應回傳僵化搜尋提示: $moodReply", moodReply != "這要上網查，按執行幫你搜。")
+        assertTrue(moodReply.isNotBlank())
+        assertNull(moodCmd)
+
+        // 2. 驗證 Temperature=0.72f 具備多樣性且不會連續重複同一句
+        val sampledReplies = mutableSetOf<String>()
+        repeat(6) {
+            val (r, _) = AndroidNativeAiEngine.generateConversationalReply("你現在心情如何", null)
+            sampledReplies.add(r)
+        }
+        assertTrue("Temperature=0.72f 應產生多樣化自然回覆", sampledReplies.size >= 2)
+
+        // 3. 問「什麼是草莓」必須直接在氣泡內回答草莓是什麼，且下方附上打開瀏覽器搜尋草莓的執行指令
+        val (strawberryReply, strawberryCmd) = AndroidNativeAiEngine.generateConversationalReply("什麼是草莓", null)
+        assertTrue("草莓回答必須包含草莓與特徵說明: $strawberryReply", strawberryReply.contains("草莓") && strawberryReply.contains("水果"))
+        assertEquals("打開 Chrome 搜尋 草莓", strawberryCmd)
+    }
+
+    @Test
+    fun `test LiveScreenCompanionEngine start stop and video topic reaction`() {
+        assertTrue(com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand("陪看影片"))
+        assertTrue(com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand("陪我看短影片"))
+        assertTrue(com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStopCompanionCommand("停止陪看"))
+
+        val (startReply, startCmd) = AndroidNativeAiEngine.generateConversationalReply("陪看影片", null)
+        assertTrue(startReply.contains("陪看影片"))
+        assertEquals("陪看影片", startCmd)
+
+        val startReaction = com.example.newandroidapp.vision.LiveScreenCompanionEngine.startCompanionMode()
+        assertTrue(com.example.newandroidapp.vision.LiveScreenCompanionEngine.isCompanionModeActive)
+        assertTrue(startReaction.bubbleText.isNotBlank())
+
+        val stopReaction = com.example.newandroidapp.vision.LiveScreenCompanionEngine.stopCompanionMode()
+        assertTrue(!com.example.newandroidapp.vision.LiveScreenCompanionEngine.isCompanionModeActive)
+        assertTrue(stopReaction.bubbleText.isNotBlank())
+    }
+}
+
 

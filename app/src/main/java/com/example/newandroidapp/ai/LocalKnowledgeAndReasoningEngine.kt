@@ -269,6 +269,30 @@ object LocalKnowledgeAndReasoningEngine {
             return dailyChat
         }
 
+        // 3.2 陪看影片 / 即時畫面陪聊模式指令
+        if (com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand(q)) {
+            return ConversationalReasoningResult(
+                replyText = "好喔，陪看影片模式已就緒！點下方執行或直接去滑短影片，我會在懸浮球旁邊用文字陪你聊。",
+                plannedExecutableCommand = "陪看影片"
+            )
+        }
+        if (com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStopCompanionCommand(q)) {
+            return ConversationalReasoningResult(
+                replyText = "已經幫你結束陪看模式，有需要隨時再叫我！",
+                plannedExecutableCommand = null
+            )
+        }
+
+        // 3.3 【第二腦：Temperature = 0.72f 自然聊天與日常萬物常識腦】
+        // 處理「你現在心情如何」、「你在幹嘛」等自然對話，以及「什麼是草莓」等日常萬物問答（先回答、下附搜尋按鈕）
+        val chatBrainRes = ConversationalChatEngine.evaluateConversationalOrKnowledgeTurn(q, context)
+        if (chatBrainRes != null) {
+            return ConversationalReasoningResult(
+                replyText = chatBrainRes.replyText,
+                plannedExecutableCommand = chatBrainRes.suggestedExecutableCommand
+            )
+        }
+
         // 3.5 若屬於 Android 原生系統指令或本機電量/音量/筆記/通知狀態查詢（避免被誤判為需要上網查的疑問句）
         val nativeCmd = com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(q)
         if (nativeCmd != null) {
@@ -348,9 +372,11 @@ object LocalKnowledgeAndReasoningEngine {
             }
         }
 
-        // 5. 若屬於疑問句或查詢意圖，但不在本機離線百科內：
+        // 5. 若屬於客觀知識疑問句或查詢意圖（排除對 AI 或自身狀態的日常對話問句），但不在本機離線百科內：
         //    誠實告知需要上網查，並「預先規劃好完整的 Chrome/Google 搜尋指令」！
-        if (!isExplicitAppControl && extraction.isQuestionOrLookup && extraction.cleanTopic.isNotEmpty()) {
+        val isPersonalChatQuestion = (q.startsWith("你") || q.startsWith("妳") || q.startsWith("我")) &&
+            !q.startsWith("誰是") && !q.startsWith("什麼是") && !q.endsWith("是什麼") && !q.endsWith("是誰")
+        if (!isExplicitAppControl && !isPersonalChatQuestion && extraction.isQuestionOrLookup && extraction.cleanTopic.isNotEmpty()) {
             val plannedCmd = if (extraction.isLocationLookup) {
                 "打開 Google 地圖 搜尋 ${extraction.cleanTopic}"
             } else {
@@ -381,8 +407,11 @@ object LocalKnowledgeAndReasoningEngine {
         val clean = rawGoal.trim()
         if (clean.isEmpty()) return clean
 
-        // 0. 若屬於 Android 原生系統指令（調整音量、設定鬧鐘/計時器、手電筒、全域動作、系統設定子頁直達），直接原句保留交由 AndroidNativeSystemActionExecutor 瞬間執行
-        if (com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(clean) != null) {
+        // 0. 若屬於 Android 原生系統指令（調整音量、設定鬧鐘/計時器、手電筒、全域動作、系統設定子頁直達）或陪看影片指令，直接原句保留
+        if (com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(clean) != null ||
+            com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand(clean) ||
+            com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStopCompanionCommand(clean)
+        ) {
             return clean
         }
 

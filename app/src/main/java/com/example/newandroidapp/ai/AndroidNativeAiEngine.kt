@@ -256,11 +256,12 @@ object AndroidNativeAiEngine {
             )
         }
 
-        // 9. 其他開放式名詞或未知查詢：預先規劃好「打開 Chrome 搜尋 <關鍵字>」
-        return Pair(
-            HumanColloquialPersonaEngine.enforceConciseLength("這要上網查，按執行幫你搜。"),
-            fullyPlannedCmd
+        // 9. 其他開放式對話或未知查詢：交由【第二腦：Temperature = 0.72f 聊天與查詢分流器】自然回應
+        val fallbackChat = ConversationalChatEngine.generateOpenEndedChatOrLookupFallback(
+            userText = q,
+            plannedExecutableCommand = fullyPlannedCmd
         )
+        return Pair(fallbackChat.replyText, fallbackChat.suggestedExecutableCommand)
     }
 
     fun checkCandidateFollowUp(goal: String): Int? {

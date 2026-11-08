@@ -1088,7 +1088,8 @@ class MainActivity : Activity() {
             val quickPrompts = listOf(
                 "記下買牛奶" to false,
                 "去 YouTube 查詢周杰倫" to true,
-                "你可以做什麼" to false
+                "你可以做什麼" to false,
+                "陪看影片" to true
             )
             for ((promptText, autoExecute) in quickPrompts) {
                 val pill = createStyledButton(
@@ -1728,6 +1729,11 @@ class MainActivity : Activity() {
             return false
         }
         if (SmartDailyAssistantHelper.isScreenReadingCommand(clean)) return true
+        if (com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand(clean) ||
+            com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStopCompanionCommand(clean)
+        ) {
+            return true
+        }
         if (com.example.newandroidapp.action.AndroidNativeSystemActionExecutor.parseCommand(clean) != null) return true
         return Regex("^(?:幫我|請|替我)?(?:去|到|打開|開啟|啟動|執行|點選|點擊|滑動|往下滑|往上滑)\\s*\\S+.*").containsMatchIn(clean)
     }
@@ -1870,6 +1876,33 @@ class MainActivity : Activity() {
         VisionAccessibilityService.selectedAiMode = currentAiMode
 
         val svc = VisionAccessibilityService.instance
+        if (com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStopCompanionCommand(goal)) {
+            svc?.stopCompanionModeFromUser() ?: com.example.newandroidapp.vision.LiveScreenCompanionEngine.stopCompanionMode()
+            val stopMsg = "已經幫你結束陪看模式，有需要隨時再叫我！"
+            aiDecisionTv.text = stopMsg
+            ConversationManager.appendAiMessage(text = stopMsg, metadataHeader = "陪看模式 · 已結束")
+            return
+        }
+        if (com.example.newandroidapp.vision.LiveScreenCompanionEngine.isStartCompanionCommand(goal)) {
+            if (svc != null) {
+                svc.startCompanionModeFromUser()
+                updateServiceButtonState()
+                val startMsg = "陪看模式已開啟！現在去滑短影片（Shorts / Reels / TikTok）或瀏覽任何畫面，我會在圓形懸浮球旁跳出文字氣泡即時陪你聊（純文字不發聲）。想結束時說「停止陪看」即可。"
+                aiDecisionTv.text = startMsg
+                ConversationManager.appendAiMessage(text = startMsg, metadataHeader = "即時陪看 · 已啟動")
+            } else {
+                com.example.newandroidapp.vision.LiveScreenCompanionEngine.startCompanionMode()
+                val needHudMsg = "已準備好開啟陪看模式！請先允許並開啟側邊懸浮球，就能在看影片時即時跳出文字氣泡陪聊。"
+                aiDecisionTv.text = needHudMsg
+                ConversationManager.appendAiMessage(
+                    text = needHudMsg,
+                    metadataHeader = "需要開啟懸浮球",
+                    executableCommand = "陪看影片"
+                )
+                handleLiveServiceAction()
+            }
+            return
+        }
         if (SmartDailyAssistantHelper.isScreenReadingCommand(goal)) {
             if (svc != null) {
                 svc.readCurrentScreenSummaryAloud { summary ->
