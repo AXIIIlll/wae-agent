@@ -76,6 +76,11 @@ object ConversationManager {
         }
     }
 
+    /**
+     * 取得允許持久化至本地磁碟的對話紀錄（嚴格排除畫面文字、通知、剪貼簿等 `isSensitive = true` 的隱私訊息）
+     */
+    internal fun getPersistableMessages(): List<ChatMessage> = getMessages().filter { !it.isSensitive }
+
     fun getTurnContext(): ConversationTurnContext {
         return turnContext
     }
@@ -113,7 +118,8 @@ object ConversationManager {
         metadataHeader: String? = null,
         isProactive: Boolean = false,
         candidates: List<ScreenCandidateItem> = emptyList(),
-        executableCommand: String? = null
+        executableCommand: String? = null,
+        isSensitive: Boolean = false
     ): ChatMessage {
         val cleanText = text.trim()
         val message = ChatMessage(
@@ -124,7 +130,8 @@ object ConversationManager {
             metadataHeader = metadataHeader,
             isProactiveReport = isProactive,
             candidates = candidates,
-            executableCommand = executableCommand
+            executableCommand = executableCommand,
+            isSensitive = isSensitive
         )
         addMessageInternal(message)
         return message
@@ -362,7 +369,8 @@ object ConversationManager {
             ioExecutor.execute {
                 try {
                     while (savePending.getAndSet(false)) {
-                        val currentMsgs = getMessages()
+                        // 私人內容（畫面文字、通知、剪貼簿等）絕不寫入磁碟
+                        val currentMsgs = getPersistableMessages()
                         val currentCtx = getTurnContext()
                         val dir = appContext?.filesDir ?: ctx.filesDir
                         synchronized(fileLock) {
@@ -580,3 +588,4 @@ object ConversationManager {
         )
     }
 }
+

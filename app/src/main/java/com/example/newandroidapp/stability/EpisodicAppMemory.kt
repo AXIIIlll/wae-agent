@@ -30,6 +30,7 @@ import kotlin.math.sqrt
 object EpisodicAppMemory {
 
     private const val MEMORY_FILE_NAME = "learned_app_episodic_memory.json"
+    private const val MAX_PROFILES_GLOBAL = 64
     private const val MAX_ANCHORS_PER_APP = 32
     private const val MAX_TRAPS_PER_APP = 64
     private const val MAX_PATHS_PER_APP = 24
@@ -621,9 +622,7 @@ object EpisodicAppMemory {
                     newHealCount = if (moved) existing.selfHealCount + 1 else existing.selfHealCount
                 )
             } else {
-                if (prof.verifiedSearchEntries.size >= MAX_ANCHORS_PER_APP) {
-                    prof.verifiedSearchEntries.removeAt(0)
-                }
+                evictLowestValueAnchorIfNeeded(prof.verifiedSearchEntries, MAX_ANCHORS_PER_APP)
                 prof.verifiedSearchEntries.add(freshAnchor)
             }
         }
@@ -699,9 +698,7 @@ object EpisodicAppMemory {
                     healTransitionPathAnchors(prof, effectiveIntent, freshAnchor)
                 }
             } else {
-                if (prof.verifiedTargetClicks.size >= MAX_ANCHORS_PER_APP) {
-                    prof.verifiedTargetClicks.removeAt(0)
-                }
+                evictLowestValueAnchorIfNeeded(prof.verifiedTargetClicks, MAX_ANCHORS_PER_APP)
                 prof.verifiedTargetClicks.add(freshAnchor)
             }
         }
@@ -1056,9 +1053,7 @@ object EpisodicAppMemory {
             existing.successCount++
             existing.lastUpdatedMs = System.currentTimeMillis()
         } else {
-            while (prof.cachedTransitionPaths.size >= MAX_PATHS_PER_APP) {
-                prof.cachedTransitionPaths.removeAt(0)
-            }
+            evictLowestValuePathIfNeeded(prof.cachedTransitionPaths, MAX_PATHS_PER_APP)
             val pathId = "path_${pkg.substringAfterLast('.')}_${startFp.take(8)}_to_${targetFp.take(8)}_${System.currentTimeMillis() % 10000}"
             prof.cachedTransitionPaths.add(
                 GraphTransitionPath(
@@ -1591,6 +1586,62 @@ object EpisodicAppMemory {
         return if (denom > 1e-6f) (dot / denom).coerceIn(-1f, 1f) else 0f
     }
 
+    /**
+     * 【中層記憶價值感知淘汰 (Value-Aware Eviction)】
+     * 當單一 App 錨點容量達到上限時：
+     * 1. 優先清除所有已標記過期 (`isExpired == true` 或 `confidenceWeight <= 0f`) 的無效殘留錨點；
+     * 2. 若清除過期項目後仍滿載，則根據綜合價值分數 (`confidenceWeight * 100 + successCount * 10 + selfHealCount * 2`)
+     *    淘汰價值最低的錨點，徹底避免傳統 FIFO 誤刪高頻成功的核心按鈕記憶。
+     */
+    internal fun evictLowestValueAnchorIfNeeded(
+        anchors: MutableList<LearnedNodeAnchor>,
+        maxCapacity: Int = MAX_ANCHORS_PER_APP
+    ) {
+        if (anchors.size < maxCapacity) return
+        anchors.removeAll { it.isExpired || it.confidenceWeight <= 0f }
+        while (anchors.size >= maxCapacity && anchors.isNotEmpty()) {
+            var lowestIdx = 0
+            var lowestScore = computeAnchorValueScore(anchors[0])
+            for (i in 1 until anchors.size) {
+                val score = computeAnchorValueScore(anchors[i])
+                if (score < lowestScore) {
+                    lowestScore = score
+                    lowestIdx = i
+                }
+            }
+            anchors.removeAt(lowestIdx)
+        }
+    }
+
+    internal fun computeAnchorValueScore(anchor: LearnedNodeAnchor): Float {
+        if (anchor.isExpired || anchor.confidenceWeight <= 0f) return -1f
+        return anchor.confidenceWeight * 100f +
+            anchor.successCount.coerceAtMost(50) * 10f +
+            anchor.selfHealCount.coerceAtMost(20) * 2f
+    }
+
+    internal fun evictLowestValuePathIfNeeded(
+        paths: MutableList<GraphTransitionPath>,
+        maxCapacity: Int = MAX_PATHS_PER_APP
+    ) {
+        if (paths.size < maxCapacity) return
+        paths.removeAll { p ->
+            p.steps.any { st -> st.targetAnchor.isExpired || st.targetAnchor.confidenceWeight <= 0f }
+        }
+        while (paths.size >= maxCapacity && paths.isNotEmpty()) {
+            var lowestIdx = 0
+            var lowestKey = paths[0].successCount.toLong() * 1_000_000_000L + (paths[0].lastUpdatedMs / 1000L)
+            for (i in 1 until paths.size) {
+                val key = paths[i].successCount.toLong() * 1_000_000_000L + (paths[i].lastUpdatedMs / 1000L)
+                if (key < lowestKey) {
+                    lowestKey = key
+                    lowestIdx = i
+                }
+            }
+            paths.removeAt(lowestIdx)
+        }
+    }
+
     private fun getOrCreateProfile(pkg: String, appLabel: String): AppEpisodicProfile {
         val existing = profiles[pkg]
         if (existing != null) {
@@ -1598,6 +1649,15 @@ object EpisodicAppMemory {
                 existing.appLabel = appLabel
             }
             return existing
+        }
+        if (profiles.size >= MAX_PROFILES_GLOBAL) {
+            val victimKey = profiles.entries.minWithOrNull(
+                compareBy<Map.Entry<String, AppEpisodicProfile>> { it.value.totalSuccessCount }
+                    .thenBy { it.value.lastUpdatedMs }
+            )?.key
+            if (victimKey != null) {
+                profiles.remove(victimKey)
+            }
         }
         val created = AppEpisodicProfile(
             packageName = pkg,

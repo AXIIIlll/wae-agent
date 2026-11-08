@@ -48,6 +48,9 @@ enum class InAppOperationStage(val displayLabel: String) {
 object InAppWorkingMemory {
 
     private const val MAX_AUTO_BACKTRACKS_PER_TASK = 3
+    private const val MAX_BREADCRUMBS_WINDOW = 12
+    private const val MAX_SCREENS_IN_WORKING_MEMORY = 24
+    private const val MAX_SIGNATURES_IN_WORKING_MEMORY = 128
 
     @Volatile
     private var activeGoal: String = ""
@@ -236,7 +239,7 @@ object InAppWorkingMemory {
         if (top != null && top.fromScreenFp == fromScreenFp && top.clickedNode.nodeId == clickedNode.nodeId) {
             return
         }
-        if (navigationStack.size >= 12) {
+        if (navigationStack.size >= MAX_BREADCRUMBS_WINDOW) {
             navigationStack.removeFirst()
         }
         currentSubPageScrollCount = 0
@@ -416,8 +419,20 @@ object InAppWorkingMemory {
     @Synchronized
     fun recordElementClicked(sig: String, screenHash: String = "default") {
         val key = screenHash.ifBlank { "default" }
+        if (!clickedElementsByScreen.containsKey(key) && clickedElementsByScreen.size >= MAX_SCREENS_IN_WORKING_MEMORY) {
+            val firstScreenKey = clickedElementsByScreen.keys().asSequence().firstOrNull()
+            if (firstScreenKey != null) {
+                clickedElementsByScreen.remove(firstScreenKey)
+            }
+        }
         val set = clickedElementsByScreen.getOrPut(key) { ConcurrentHashMap.newKeySet() }
         set.add(sig)
+        if (!globalClickedSignatures.containsKey(sig) && globalClickedSignatures.size >= MAX_SIGNATURES_IN_WORKING_MEMORY) {
+            val lowestSig = globalClickedSignatures.entries.minByOrNull { it.value }?.key
+            if (lowestSig != null) {
+                globalClickedSignatures.remove(lowestSig)
+            }
+        }
         globalClickedSignatures[sig] = (globalClickedSignatures[sig] ?: 0) + 1
     }
 

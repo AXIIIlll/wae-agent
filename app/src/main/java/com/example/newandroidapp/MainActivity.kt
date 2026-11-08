@@ -1,4 +1,4 @@
-package com.example.newandroidapp
+﻿package com.example.newandroidapp
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -1642,17 +1642,20 @@ class MainActivity : Activity() {
             context = applicationContext
         )
 
+        // 回覆含私人內容（畫面文字、通知、剪貼簿等）時，只顯示不落地
+        val replyIsSensitive = com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery(text)
         ConversationManager.appendAiMessage(
             text = replyText,
             metadataHeader = "AI 助手",
             isProactive = false,
-            executableCommand = execCmd
+            executableCommand = execCmd,
+            isSensitive = replyIsSensitive
         )
 
         ConversationManager.updateTurnContext(
             turnCtx.copy(
-                lastSearchQuery = execCmd ?: turnCtx.lastSearchQuery,
-                lastAiPrompt = replyText,
+                lastSearchQuery = if (replyIsSensitive) turnCtx.lastSearchQuery else (execCmd ?: turnCtx.lastSearchQuery),
+                lastAiPrompt = if (replyIsSensitive) turnCtx.lastAiPrompt else replyText,
                 timestamp = System.currentTimeMillis()
             )
         )
@@ -1701,14 +1704,14 @@ class MainActivity : Activity() {
             if (svc != null) {
                 svc.readCurrentScreenSummaryAloud { summary ->
                     aiDecisionTv.text = summary
-                    ConversationManager.appendAiMessage(text = summary, metadataHeader = "畫面朗讀")
+                    ConversationManager.appendAiMessage(text = summary, metadataHeader = "畫面朗讀", isSensitive = true)
                 }
             } else {
                 val rep = latestReport
                 if (rep != null) {
                     val (displaySummary, spokenSummary) = SmartDailyAssistantHelper.buildSmartScreenSummary("AI 助手", rep)
                     aiDecisionTv.text = displaySummary
-                    ConversationManager.appendAiMessage(text = displaySummary, metadataHeader = "畫面朗讀")
+                    ConversationManager.appendAiMessage(text = displaySummary, metadataHeader = "畫面朗讀", isSensitive = true)
                     VoiceCommandAndTtsManager.speakForced(this, spokenSummary, flush = true)
                 } else {
                     val msg = "目前尚未開啟無障礙視覺服務，請先點擊右上角「開啟懸浮球」啟用服務以朗讀跨 App 畫面。"
@@ -1729,7 +1732,8 @@ class MainActivity : Activity() {
             aiDecisionTv.text = nativeSysRes.summaryText
             ConversationManager.appendAiMessage(
                 text = nativeSysRes.summaryText,
-                metadataHeader = if (nativeSysRes.succeeded) "原生系統指令 · 已完成" else "原生系統指令 · 提示"
+                metadataHeader = if (nativeSysRes.succeeded) "原生系統指令 · 已完成" else "原生系統指令 · 提示",
+                isSensitive = com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery(goal)
             )
             VoiceCommandAndTtsManager.speak(this, nativeSysRes.summaryText, flush = true)
             return
@@ -2090,3 +2094,4 @@ class MainActivity : Activity() {
         }
     }
 }
+

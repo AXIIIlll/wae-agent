@@ -1,4 +1,4 @@
-package com.example.newandroidapp.vision
+﻿package com.example.newandroidapp.vision
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
@@ -1158,7 +1158,8 @@ class VisionAccessibilityService : AccessibilityService() {
             hudOutputText?.text = nativeSysRes.summaryText
             com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
                 text = nativeSysRes.summaryText,
-                metadataHeader = if (nativeSysRes.succeeded) "原生系統指令 · 已完成" else "原生系統指令 · 提示"
+                metadataHeader = if (nativeSysRes.succeeded) "原生系統指令 · 已完成" else "原生系統指令 · 提示",
+                isSensitive = com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery(rawCleanGoal)
             )
             VoiceCommandAndTtsManager.speak(this, nativeSysRes.summaryText, flush = true)
             Toast.makeText(this, nativeSysRes.summaryText, Toast.LENGTH_SHORT).show()
@@ -2655,7 +2656,8 @@ class VisionAccessibilityService : AccessibilityService() {
                         val finalChatMsg = "已為您擷取畫面資訊並寫入剪貼簿：$extractedFinal"
                         com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
                             text = finalChatMsg,
-                            metadataHeader = "EXTRACT_TO_MEMORY · 擷取完成"
+                            metadataHeader = "EXTRACT_TO_MEMORY · 擷取完成",
+                            isSensitive = true
                         )
                         VoiceCommandAndTtsManager.speak(this@VisionAccessibilityService, finalChatMsg, flush = true)
                         runCatching {
@@ -3179,7 +3181,8 @@ class VisionAccessibilityService : AccessibilityService() {
                         readCurrentScreenSummaryAloud { summary ->
                             com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
                                 text = summary,
-                                metadataHeader = "畫面朗讀"
+                                metadataHeader = "畫面朗讀",
+                                isSensitive = true
                             )
                         }
                     } else {
@@ -4664,3 +4667,5 @@ class VisionAccessibilityService : AccessibilityService() {
         }
     }
 }
+
+

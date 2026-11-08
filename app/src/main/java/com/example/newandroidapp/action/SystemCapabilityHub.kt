@@ -246,6 +246,26 @@ object SystemCapabilityHub {
         return null
     }
 
+    /** 這個請求的回覆是否會回顯私人內容（通知、剪貼簿、筆記、聯絡人、行程、位置）。 */
+    fun isPrivateContentRequest(request: CapabilityRequest): Boolean = when (request) {
+        is CapabilityRequest.NotificationQuery,
+        CapabilityRequest.ClipboardRead,
+        is CapabilityRequest.ClipboardWrite,
+        is CapabilityRequest.QuickNoteSave,
+        is CapabilityRequest.QuickNoteQuery,
+        is CapabilityRequest.ContactLookup,
+        is CapabilityRequest.CalendarQuery,
+        CapabilityRequest.LocationQuery -> true
+        else -> false
+    }
+
+    /** 使用者這句話的回覆是否會包含私人內容（含螢幕文字擷取），這類回覆不可寫入磁碟。 */
+    fun isPrivateContentQuery(goal: String): Boolean {
+        if (ScreenTextCapture.isCaptureRequest(goal)) return true
+        val req = parseRequest(goal) ?: return false
+        return isPrivateContentRequest(req)
+    }
+
     fun execute(
         request: CapabilityRequest,
         context: Context,
@@ -455,7 +475,8 @@ object SystemCapabilityHub {
     private fun parseClipboardRequest(clean: String, lower: String): CapabilityRequest? {
         if (lower.contains("我剛複製了什麼") || lower.contains("剛剛複製了什麼") ||
             lower.contains("剪貼簿裡有什麼") || lower.contains("剪貼簿有什麼") ||
-            lower == "讀取剪貼簿" || lower == "查看剪貼簿" || lower == "查詢剪貼簿"
+            lower.contains("剪貼簿內容") || lower.contains("讀取剪貼簿") ||
+            lower.contains("查看剪貼簿") || lower.contains("查詢剪貼簿")
         ) {
             return CapabilityRequest.ClipboardRead
         }
@@ -979,3 +1000,4 @@ object SystemCapabilityHub {
         )
     }
 }
+

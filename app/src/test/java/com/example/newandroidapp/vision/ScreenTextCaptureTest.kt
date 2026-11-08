@@ -1,4 +1,4 @@
-﻿package com.example.newandroidapp.vision
+package com.example.newandroidapp.vision
 
 import android.graphics.Point
 import android.graphics.Rect
@@ -186,6 +186,78 @@ class ScreenTextCaptureTest {
         val reply = ScreenTextCapture.toReplyText(long, maxChars = 100)
         assertTrue(reply.length < 200)
         assertTrue(reply.contains("已截斷"))
+    }
+
+    @Test
+    fun `sensitive messages stay in memory but are excluded from disk persistence`() {
+        com.example.newandroidapp.chat.ConversationManager.clearConversation()
+        com.example.newandroidapp.chat.ConversationManager.appendUserMessage(
+            text = "幫我讀一下畫面文字"
+        )
+        com.example.newandroidapp.chat.ConversationManager.appendAiMessage(
+            text = "私密畫面文字與驗證碼 9527",
+            isSensitive = true
+        )
+        val inMemory = com.example.newandroidapp.chat.ConversationManager.getMessages()
+        val persistable = com.example.newandroidapp.chat.ConversationManager.getPersistableMessages()
+        assertEquals(2, inMemory.size)
+        assertEquals(1, persistable.size)
+        assertFalse(persistable.any { it.text.contains("9527") })
+        com.example.newandroidapp.chat.ConversationManager.clearConversation()
+    }
+
+    @Test
+    fun `SystemCapabilityHub accurately flags private content queries`() {
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery("擷取螢幕文字"))
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery("剛剛有什麼通知"))
+        assertTrue(com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery("讀取剪貼簿內容"))
+        assertFalse(com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery("現在剩多少電量"))
+        assertFalse(com.example.newandroidapp.action.SystemCapabilityHub.isPrivateContentQuery("打開勿擾模式"))
+    }
+
+    @Test
+    fun `EpisodicAppMemory value aware eviction removes expired and low value anchors before high hit anchors`() {
+        val highValueOldest = com.example.newandroidapp.stability.EpisodicAppMemory.LearnedNodeAnchor(
+            label = "搜尋",
+            shortTypeTag = "BTN",
+            gridX = 900,
+            gridY = 100,
+            intentKey = "SEARCH_ENTRY",
+            successCount = 12,
+            confidenceWeight = 1.0f,
+            isExpired = false
+        )
+        val expiredMiddle = com.example.newandroidapp.stability.EpisodicAppMemory.LearnedNodeAnchor(
+            label = "舊按鈕",
+            shortTypeTag = "BTN",
+            gridX = 500,
+            gridY = 500,
+            intentKey = "OLD_BTN",
+            successCount = 5,
+            confidenceWeight = 0.0f,
+            isExpired = true
+        )
+        val lowValueSingleHit = com.example.newandroidapp.stability.EpisodicAppMemory.LearnedNodeAnchor(
+            label = "偶爾點一次",
+            shortTypeTag = "BTN",
+            gridX = 200,
+            gridY = 300,
+            intentKey = "LOW_HIT",
+            successCount = 1,
+            confidenceWeight = 0.8f,
+            isExpired = false
+        )
+        val list = mutableListOf(highValueOldest, expiredMiddle, lowValueSingleHit)
+        // First eviction to capacity 3 -> purges expiredMiddle, size becomes 2
+        com.example.newandroidapp.stability.EpisodicAppMemory.evictLowestValueAnchorIfNeeded(list, maxCapacity = 3)
+        assertEquals(2, list.size)
+        assertTrue(list.contains(highValueOldest))
+        assertFalse(list.contains(expiredMiddle))
+
+        // Next eviction to capacity 2 (making room for 1 new item) -> evicts lowValueSingleHit, preserves highValueOldest!
+        com.example.newandroidapp.stability.EpisodicAppMemory.evictLowestValueAnchorIfNeeded(list, maxCapacity = 2)
+        assertEquals(1, list.size)
+        assertEquals("搜尋", list.first().label)
     }
 }
 

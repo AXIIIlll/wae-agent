@@ -1,4 +1,4 @@
-package com.example.newandroidapp.chat
+﻿package com.example.newandroidapp.chat
 
 import android.graphics.Rect
 import java.text.SimpleDateFormat
@@ -50,8 +50,11 @@ data class ChatMessage(
     val metadataHeader: String? = null,
     val isProactiveReport: Boolean = false,
     val candidates: List<ScreenCandidateItem> = emptyList(),
-    val executableCommand: String? = null
+    val executableCommand: String? = null,
+    /** 含畫面文字、通知、剪貼簿、聯絡人等私人內容：只在本次執行期間顯示，不寫入磁碟。 */
+    val isSensitive: Boolean = false
 ) {
     val formattedTime: String
         get() = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
 }
+
