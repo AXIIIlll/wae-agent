@@ -656,6 +656,28 @@ object AndroidNativeSystemActionExecutor {
                 )
             }
 
+            val writeSettingsLaunched = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                runCatching {
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                        Uri.parse("package:${context.packageName}")
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                    true
+                }.getOrDefault(false)
+            } else false
+
+            if (writeSettingsLaunched) {
+                return ExecutionResult(
+                    handled = true,
+                    succeeded = true,
+                    summaryText = "已開啟「修改系統設定」授權頁面，開啟開關後即可直接由 AI 精準控制螢幕亮度百分比（目標 $targetPct%）",
+                    command = cmd
+                )
+            }
+
             val displayLaunched = runCatching {
                 val intent = Intent(Settings.ACTION_DISPLAY_SETTINGS).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

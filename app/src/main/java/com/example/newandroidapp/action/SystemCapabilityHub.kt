@@ -266,6 +266,35 @@ object SystemCapabilityHub {
         return isPrivateContentRequest(req)
     }
 
+    /**
+     * 檢查該語句對應之本地能力是否需要先向使用者請求 Android 執行階段權限
+     * （`READ_CONTACTS`、`READ_CALENDAR`、`ACCESS_COARSE_LOCATION` / `ACCESS_FINE_LOCATION`）。
+     */
+    fun getMissingRuntimePermissions(goal: String, context: Context): List<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return emptyList()
+        val req = parseRequest(goal) ?: return emptyList()
+        return when (req) {
+            is CapabilityRequest.ContactLookup -> {
+                if (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    listOf(Manifest.permission.READ_CONTACTS)
+                } else emptyList()
+            }
+            is CapabilityRequest.CalendarQuery -> {
+                if (context.checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                    listOf(Manifest.permission.READ_CALENDAR)
+                } else emptyList()
+            }
+            CapabilityRequest.LocationQuery -> {
+                val hasCoarse = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                val hasFine = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                if (!hasCoarse && !hasFine) {
+                    listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+                } else emptyList()
+            }
+            else -> emptyList()
+        }
+    }
+
     fun execute(
         request: CapabilityRequest,
         context: Context,
@@ -848,7 +877,11 @@ object SystemCapabilityHub {
 
         return CapabilityResult(
             succeeded = opened,
-            summaryText = if (opened) "已直接開啟系統日曆查看「${req.dayLabel}」的行程" else "無法開啟系統日曆",
+            summaryText = if (!hasCalendarPerm) {
+                if (opened) "尚未授予讀取行事曆權限，已先為您開啟系統日曆查看「${req.dayLabel}」的行程" else "尚未授予讀取行事曆權限，請於系統設定允許日曆權限以直接查詢行程"
+            } else {
+                if (opened) "已直接開啟系統日曆查看「${req.dayLabel}」的行程" else "無法開啟系統日曆"
+            },
             request = req
         )
     }
@@ -940,9 +973,10 @@ object SystemCapabilityHub {
         }.getOrDefault(false)
 
         val statusDesc = if (isGpsOn) "系統定位已開啟" else "系統定位目前關閉"
+        val permHint = if (!hasLocPerm) "（尚未授予應用程式定位權限）" else ""
         return CapabilityResult(
             succeeded = mapOpened || isGpsOn,
-            summaryText = "$statusDesc，已為您打開地圖定位目前位置",
+            summaryText = "$statusDesc$permHint，已為您打開地圖定位目前位置",
             request = CapabilityRequest.LocationQuery
         )
     }

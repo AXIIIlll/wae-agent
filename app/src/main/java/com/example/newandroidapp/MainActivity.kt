@@ -1,4 +1,4 @@
-﻿package com.example.newandroidapp
+package com.example.newandroidapp
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -1333,6 +1333,9 @@ class MainActivity : Activity() {
         uiHandler.removeCallbacks(uiRefreshTicker)
     }
 
+    private var pendingCapabilityPermissionGoal: String? = null
+    private var pendingCapabilityIsAutonomousMode: Boolean = false
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -1346,6 +1349,21 @@ class MainActivity : Activity() {
                 startVoiceListeningSession()
             } else {
                 Toast.makeText(this, "未取得麥克風權限，無法使用語音下令", Toast.LENGTH_SHORT).show()
+            }
+        } else if (requestCode == 1003) {
+            val resumeGoal = pendingCapabilityPermissionGoal
+            val isAuto = pendingCapabilityIsAutonomousMode
+            pendingCapabilityPermissionGoal = null
+            if (!resumeGoal.isNullOrBlank()) {
+                val anyGranted = grantResults.any { it == android.content.pm.PackageManager.PERMISSION_GRANTED }
+                if (!anyGranted) {
+                    Toast.makeText(this, "未授予權限，將改用系統備援畫面開啟", Toast.LENGTH_SHORT).show()
+                }
+                if (isAuto) {
+                    resumeAutonomousRunAfterPermission(resumeGoal)
+                } else {
+                    completeChatSendReply(resumeGoal)
+                }
             }
         }
     }
@@ -1635,6 +1653,19 @@ class MainActivity : Activity() {
             }
         }
 
+        val missingPerms = com.example.newandroidapp.action.SystemCapabilityHub.getMissingRuntimePermissions(text, this)
+        if (missingPerms.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            pendingCapabilityPermissionGoal = text
+            pendingCapabilityIsAutonomousMode = false
+            requestPermissions(missingPerms.toTypedArray(), 1003)
+            return
+        }
+
+        completeChatSendReply(text)
+    }
+
+    private fun completeChatSendReply(text: String) {
+        val turnCtx = ConversationManager.getTurnContext()
         val liveRep = VisionAccessibilityService.latestLiveReport ?: latestReport
         val (replyText, execCmd) = AndroidNativeAiEngine.generateConversationalReply(
             userText = text,
@@ -1696,6 +1727,18 @@ class MainActivity : Activity() {
             goalInputEt.setText("")
         }
 
+        val missingPerms = com.example.newandroidapp.action.SystemCapabilityHub.getMissingRuntimePermissions(goal, this)
+        if (missingPerms.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            pendingCapabilityPermissionGoal = goal
+            pendingCapabilityIsAutonomousMode = true
+            requestPermissions(missingPerms.toTypedArray(), 1003)
+            return
+        }
+
+        resumeAutonomousRunAfterPermission(goal)
+    }
+
+    private fun resumeAutonomousRunAfterPermission(goal: String) {
         VisionAccessibilityService.activeGoalForHud = goal
         VisionAccessibilityService.selectedAiMode = currentAiMode
 
