@@ -38,10 +38,28 @@ object ScreenTextCapture {
 
     private data class Piece(val text: String, val top: Int, val left: Int)
 
-    /** 最近一次成功擷取的結果，供後續功能取用；遇到敏感畫面時會被清空。 */
+    private const val CAPTURE_TTL_MS = 5 * 60_000L
+
     @Volatile
-    var lastCapture: Result.Captured? = null
-        private set
+    private var lastCaptureInternal: Result.Captured? = null
+
+    @Volatile
+    private var lastCaptureTimestampMs: Long = 0L
+
+    /** 最近一次成功擷取的結果（超過 5 分鐘自動過期清空；遇到敏感畫面時亦立即清空）。 */
+    var lastCapture: Result.Captured?
+        get() {
+            val cur = lastCaptureInternal ?: return null
+            if (System.currentTimeMillis() - lastCaptureTimestampMs > CAPTURE_TTL_MS) {
+                lastCaptureInternal = null
+                return null
+            }
+            return cur
+        }
+        private set(value) {
+            lastCaptureInternal = value
+            lastCaptureTimestampMs = if (value != null) System.currentTimeMillis() else 0L
+        }
 
     fun capture(report: VisionPipelineReport?): Result {
         if (report == null) {

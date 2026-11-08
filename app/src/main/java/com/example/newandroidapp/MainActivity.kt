@@ -74,7 +74,9 @@ import java.util.concurrent.Executors
  */
 class MainActivity : Activity() {
 
-    private val worker = Executors.newSingleThreadExecutor()
+    private val worker = Executors.newFixedThreadPool(3) { r ->
+        Thread(r, "main-ui-worker").apply { isDaemon = true }
+    }
     private val uiHandler = Handler(Looper.getMainLooper())
 
     // [LottieFiles / motion-design-skill] & [heydamir/unslop Pass 9] 克制流暢的 M3 貝茲曲線與微彈簧插值器

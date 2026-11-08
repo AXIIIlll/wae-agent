@@ -90,13 +90,16 @@ object InAppWorkingMemory {
     @Volatile
     var lastTappedSearchEntryCandidate: Stage2ConvergedNode? = null
 
-    val navigationStack: ArrayDeque<NavBreadcrumb> = ArrayDeque()
+    private val navigationStackInternal: ArrayDeque<NavBreadcrumb> = ArrayDeque()
+
+    val navigationStack: List<NavBreadcrumb>
+        @Synchronized get() = navigationStackInternal.toList()
 
     private val typedQueries = ConcurrentHashMap.newKeySet<String>()
     private val submittedQueries = ConcurrentHashMap.newKeySet<String>()
     private val dismissedBlockerCounts = ConcurrentHashMap<String, Int>()
-    private val clickedElementsByScreen = LinkedHashMap<String, MutableSet<String>>()
-    private val globalClickedSignatures = LinkedHashMap<String, Int>()
+    private val clickedElementsByScreen = java.util.Collections.synchronizedMap(LinkedHashMap<String, MutableSet<String>>())
+    private val globalClickedSignatures = java.util.Collections.synchronizedMap(LinkedHashMap<String, Int>())
 
     // =========================================================================
     // 【硬體級動手權限閘門 (MotorPermissionGate)】
@@ -149,7 +152,7 @@ object InAppWorkingMemory {
         hasAttemptedHorizontalSwipeOnSubPage = false
         autoBacktrackCount = 0
         lastTappedSearchEntryCandidate = null
-        navigationStack.clear()
+        navigationStackInternal.clear()
         typedQueries.clear()
         submittedQueries.clear()
         dismissedBlockerCounts.clear()
@@ -202,7 +205,7 @@ object InAppWorkingMemory {
             hasAttemptedReverseScrollUpOnSubPage = false
             hasAttemptedHorizontalSwipeOnSubPage = false
             lastTappedSearchEntryCandidate = null
-            navigationStack.clear()
+            navigationStackInternal.clear()
         }
         currentStage = InAppOperationStage.IN_APP_NAVIGATION
     }
@@ -224,7 +227,7 @@ object InAppWorkingMemory {
         hasAttemptedHorizontalSwipeOnSubPage = false
         autoBacktrackCount = 0
         lastTappedSearchEntryCandidate = null
-        navigationStack.clear()
+        navigationStackInternal.clear()
     }
 
     @Synchronized
@@ -235,17 +238,17 @@ object InAppWorkingMemory {
         stage: InAppOperationStage = currentStage
     ) {
         // 避免同一個畫面與同一個元件重複推入頂部
-        val top = navigationStack.lastOrNull()
+        val top = navigationStackInternal.lastOrNull()
         if (top != null && top.fromScreenFp == fromScreenFp && top.clickedNode.nodeId == clickedNode.nodeId) {
             return
         }
-        if (navigationStack.size >= MAX_BREADCRUMBS_WINDOW) {
-            navigationStack.removeFirst()
+        if (navigationStackInternal.size >= MAX_BREADCRUMBS_WINDOW) {
+            navigationStackInternal.removeFirst()
         }
         currentSubPageScrollCount = 0
         hasAttemptedReverseScrollUpOnSubPage = false
         hasAttemptedHorizontalSwipeOnSubPage = false
-        navigationStack.addLast(
+        navigationStackInternal.addLast(
             NavBreadcrumb(
                 fromScreenFp = fromScreenFp,
                 clickedNode = clickedNode,
@@ -257,24 +260,24 @@ object InAppWorkingMemory {
 
     @Synchronized
     fun canAutoBacktrack(): Boolean {
-        return navigationStack.isNotEmpty() && autoBacktrackCount < MAX_AUTO_BACKTRACKS_PER_TASK
+        return navigationStackInternal.isNotEmpty() && autoBacktrackCount < MAX_AUTO_BACKTRACKS_PER_TASK
     }
 
     @Synchronized
     fun peekBreadcrumb(): NavBreadcrumb? {
-        return navigationStack.lastOrNull()
+        return navigationStackInternal.lastOrNull()
     }
 
     @Synchronized
     fun popBreadcrumbForBacktrack(): NavBreadcrumb? {
-        if (navigationStack.isEmpty() || autoBacktrackCount >= MAX_AUTO_BACKTRACKS_PER_TASK) {
+        if (navigationStackInternal.isEmpty() || autoBacktrackCount >= MAX_AUTO_BACKTRACKS_PER_TASK) {
             return null
         }
         autoBacktrackCount++
         currentSubPageScrollCount = 0
         hasAttemptedReverseScrollUpOnSubPage = false
         hasAttemptedHorizontalSwipeOnSubPage = false
-        val popped = navigationStack.removeLast()
+        val popped = navigationStackInternal.removeLast()
         // 將導致走錯路的元件於來源畫面標記為已點擊（重罰 -100f），退回上一頁後絕不再點它，直接改試期望值第 2 名的候選！
         recordElementClicked(popped.clickedNode, popped.fromScreenFp)
         return popped

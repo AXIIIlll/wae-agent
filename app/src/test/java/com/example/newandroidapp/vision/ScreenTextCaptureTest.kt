@@ -293,5 +293,26 @@ class ScreenTextCaptureTest {
         assertEquals(1, paths.size)
         assertEquals("high_success_older", paths.first().pathId)
     }
+
+    @Test
+    fun `notifications from banking apps and numeric codes are redacted and notes block credentials`() {
+        com.example.newandroidapp.action.SystemCapabilityHub.clearNotificationsForTest()
+        com.example.newandroidapp.action.SystemCapabilityHub.recordNotificationInternal(
+            packageName = "com.cathaybk.mymobibank",
+            appLabel = "國泰世華",
+            title = "帳戶通知",
+            rawContent = "您的帳戶剛剛轉出 5000 元"
+        )
+        val notifReply = com.example.newandroidapp.action.SystemCapabilityHub.queryNotificationsDirect().summaryText
+        assertFalse(notifReply.contains("5000"))
+        assertTrue(notifReply.contains("已自動隱藏"))
+
+        com.example.newandroidapp.action.SystemCapabilityHub.clearNotesForTest()
+        val blockedNote = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect("我的網銀密碼是 123456")
+        assertFalse(blockedNote.succeeded)
+        val normalNote = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect("下午三點買牛奶")
+        assertTrue(normalNote.succeeded)
+        com.example.newandroidapp.action.SystemCapabilityHub.clearNotesForTest()
+    }
 }
 

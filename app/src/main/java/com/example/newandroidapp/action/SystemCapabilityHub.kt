@@ -109,11 +109,26 @@ object SystemCapabilityHub {
     private val inMemoryNotes = CopyOnWriteArrayList<QuickNoteEntry>()
     private var prefsLoaded = false
 
+    private const val NOTIFICATION_TTL_MS = 30 * 60_000L
+    private const val NOTE_TTL_MS = 7 * 24 * 60 * 60 * 1000L
+    private const val KEYSTORE_ALIAS_NOTES = "ai_capability_notes_aes_key"
+
     private val SENSITIVE_CJK_KEYWORDS = listOf(
-        "驗證碼", "認證碼", "動態密碼", "交易密碼", "安全碼", "一次性密碼"
+        "驗證碼", "認證碼", "動態密碼", "交易密碼", "安全碼", "一次性密碼", "刷卡", "轉帳", "入帳", "扣款", "帳戶餘額"
     )
     private val SENSITIVE_ASCII_WORD_REGEX = Regex(
-        "\\b(?:otp|passcode|verification\\s+code|security\\s+code|auth\\s+code)\\b",
+        "\\b(?:otp|passcode|verification\\s+code|security\\s+code|auth\\s+code|2fa|mfa|pin\\s+code)\\b",
+        RegexOption.IGNORE_CASE
+    )
+    private val NUMERIC_OTP_CODE_REGEX = Regex("(?<!\\d)\\d{4,8}(?!\\d)")
+    private val SENSITIVE_PACKAGE_KEYWORDS = listOf(
+        "bank", "pay", "wallet", "finance", "authenticator", "authy",
+        "1password", "bitwarden", "keepass", "dashlane", "cathay", "ctbc",
+        "esun", "taishin", "fubon", "megabank", "sinopac", "firstbank",
+        "hncb", "landbank", "jkos", "ipass", "icash", "twpay"
+    )
+    private val SENSITIVE_NOTE_BLOCK_REGEX = Regex(
+        "(?:密碼|驗證碼|認證碼|安全碼|信用卡號|卡號|助記詞|私鑰|\\b(?:password|passcode|otp|cvv|seed\\s+phrase|private\\s+key)\\b)",
         RegexOption.IGNORE_CASE
     )
 
@@ -169,12 +184,18 @@ object SystemCapabilityHub {
         rawContent: String,
         timestampMs: Long = System.currentTimeMillis()
     ) {
+        pruneExpiredNotifications(timestampMs)
+        val pkgLower = packageName.lowercase()
         val combinedLower = "$title $rawContent".lowercase()
-        val isSensitive = SENSITIVE_CJK_KEYWORDS.any { combinedLower.contains(it) } ||
-            SENSITIVE_ASCII_WORD_REGEX.containsMatchIn(combinedLower)
+        val isSensitivePkg = SENSITIVE_PACKAGE_KEYWORDS.any { pkgLower.contains(it) }
+        val hasNumericCode = NUMERIC_OTP_CODE_REGEX.containsMatchIn(rawContent)
+        val isSensitive = isSensitivePkg ||
+            SENSITIVE_CJK_KEYWORDS.any { combinedLower.contains(it) } ||
+            SENSITIVE_ASCII_WORD_REGEX.containsMatchIn(combinedLower) ||
+            hasNumericCode
 
         val safeTitle = if (isSensitive) "敏感通知" else title.ifEmpty { appLabel }
-        val safeContent = if (isSensitive) "[包含驗證碼或敏感資訊，已自動隱藏]" else rawContent
+        val safeContent = if (isSensitive) "[包含驗證碼、金融或敏感資訊，已自動隱藏]" else rawContent
 
         // 避免短時間完全相同的重複通知洗版
         val duplicate = recentNotifications.firstOrNull()
@@ -201,6 +222,10 @@ object SystemCapabilityHub {
         while (recentNotifications.size > MAX_NOTIFICATIONS) {
             recentNotifications.removeAt(recentNotifications.size - 1)
         }
+    }
+
+    private fun pruneExpiredNotifications(nowMs: Long = System.currentTimeMillis()) {
+        recentNotifications.removeAll { (nowMs - it.timestampMs) > NOTIFICATION_TTL_MS }
     }
 
     internal fun clearNotificationsForTest() {
@@ -356,19 +381,81 @@ object SystemCapabilityHub {
         return null
     }
 
+    private fun pruneExpiredNotes(nowMs: Long = System.currentTimeMillis()) {
+        inMemoryNotes.removeAll { (nowMs - it.timestampMs) > NOTE_TTL_MS }
+    }
+
+    private fun encryptNotesPayload(plainText: String): String {
+        if (plainText.isEmpty()) return ""
+        return runCatching {
+            val ks = java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            val secretKey = if (ks.containsAlias(KEYSTORE_ALIAS_NOTES)) {
+                (ks.getEntry(KEYSTORE_ALIAS_NOTES, null) as java.security.KeyStore.SecretKeyEntry).secretKey
+            } else {
+                val keyGen = javax.crypto.KeyGenerator.getInstance(
+                    android.security.keystore.KeyProperties.KEY_ALGORITHM_AES,
+                    "AndroidKeyStore"
+                )
+                val spec = android.security.keystore.KeyGenParameterSpec.Builder(
+                    KEYSTORE_ALIAS_NOTES,
+                    android.security.keystore.KeyProperties.PURPOSE_ENCRYPT or
+                        android.security.keystore.KeyProperties.PURPOSE_DECRYPT
+                )
+                    .setBlockModes(android.security.keystore.KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .build()
+                keyGen.init(spec)
+                keyGen.generateKey()
+            }
+            val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, secretKey)
+            val ivB64 = java.util.Base64.getEncoder().encodeToString(cipher.iv)
+            val ctB64 = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(plainText.toByteArray(Charsets.UTF_8)))
+            "ENC1:$ivB64:$ctB64"
+        }.getOrElse {
+            "B64:" + java.util.Base64.getEncoder().encodeToString(plainText.toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    private fun decryptNotesPayload(stored: String): String {
+        if (stored.isBlank()) return ""
+        return runCatching {
+            when {
+                stored.startsWith("ENC1:") -> {
+                    val parts = stored.split(":", limit = 3)
+                    if (parts.size < 3) return ""
+                    val iv = java.util.Base64.getDecoder().decode(parts[1])
+                    val ct = java.util.Base64.getDecoder().decode(parts[2])
+                    val ks = java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+                    val entry = ks.getEntry(KEYSTORE_ALIAS_NOTES, null) as? java.security.KeyStore.SecretKeyEntry
+                        ?: return ""
+                    val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+                    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, entry.secretKey, javax.crypto.spec.GCMParameterSpec(128, iv))
+                    String(cipher.doFinal(ct), Charsets.UTF_8)
+                }
+                stored.startsWith("B64:") -> {
+                    String(java.util.Base64.getDecoder().decode(stored.removePrefix("B64:")), Charsets.UTF_8)
+                }
+                else -> stored
+            }
+        }.getOrDefault("")
+    }
+
     private fun ensureNotesLoaded(context: Context?) {
         if (prefsLoaded || context == null) return
         runCatching {
             val prefs = context.getSharedPreferences(PREFS_NOTES, Context.MODE_PRIVATE)
-            val raw = prefs.getString(KEY_NOTES_LIST, null).orEmpty()
+            val stored = prefs.getString(KEY_NOTES_LIST, null).orEmpty()
+            val raw = decryptNotesPayload(stored)
             if (raw.isNotBlank()) {
+                val nowMs = System.currentTimeMillis()
                 val parsed = raw.split("\n---\n").mapNotNull { block ->
                     val sep = block.indexOf('|')
                     if (sep <= 0) null
                     else {
-                        val ts = block.substring(0, sep).toLongOrNull() ?: System.currentTimeMillis()
+                        val ts = block.substring(0, sep).toLongOrNull() ?: nowMs
                         val text = block.substring(sep + 1).trim()
-                        if (text.isNotEmpty()) QuickNoteEntry(text, ts) else null
+                        if (text.isNotEmpty() && (nowMs - ts) <= NOTE_TTL_MS) QuickNoteEntry(text, ts) else null
                     }
                 }
                 if (inMemoryNotes.isEmpty()) {
@@ -382,22 +469,32 @@ object SystemCapabilityHub {
     private fun persistNotes(context: Context?) {
         if (context == null) return
         runCatching {
+            pruneExpiredNotes()
             val prefs = context.getSharedPreferences(PREFS_NOTES, Context.MODE_PRIVATE)
             val serialized = inMemoryNotes.take(MAX_NOTES).joinToString("\n---\n") { "${it.timestampMs}|${it.content}" }
-            prefs.edit().putString(KEY_NOTES_LIST, serialized).apply()
+            val encrypted = encryptNotesPayload(serialized)
+            prefs.edit().putString(KEY_NOTES_LIST, encrypted).apply()
         }
     }
 
     internal fun saveNoteDirect(content: String, context: Context? = null): CapabilityResult {
         ensureNotesLoaded(context)
+        pruneExpiredNotes()
         val trimmed = content.trim()
+        val req = CapabilityRequest.QuickNoteSave(trimmed)
+        if (SENSITIVE_NOTE_BLOCK_REGEX.containsMatchIn(trimmed)) {
+            return CapabilityResult(
+                succeeded = false,
+                summaryText = "為保護您的隱私與資安，快速筆記禁止儲存密碼、驗證碼、金融卡號或私鑰。",
+                request = req
+            )
+        }
         val entry = QuickNoteEntry(content = trimmed, timestampMs = System.currentTimeMillis())
         inMemoryNotes.add(0, entry)
         while (inMemoryNotes.size > MAX_NOTES) {
             inMemoryNotes.removeAt(inMemoryNotes.size - 1)
         }
         persistNotes(context)
-        val req = CapabilityRequest.QuickNoteSave(trimmed)
         return CapabilityResult(
             succeeded = true,
             summaryText = "已記下筆記：「$trimmed」（目前共 ${inMemoryNotes.size} 則筆記）",
@@ -411,6 +508,7 @@ object SystemCapabilityHub {
 
     internal fun queryNotesDirect(keyword: String = "", context: Context? = null): CapabilityResult {
         ensureNotesLoaded(context)
+        pruneExpiredNotes()
         val req = CapabilityRequest.QuickNoteQuery(keyword)
         if (inMemoryNotes.isEmpty()) {
             return CapabilityResult(
@@ -481,7 +579,12 @@ object SystemCapabilityHub {
         return null
     }
 
+    internal fun queryNotificationsDirect(onlyMissedOrRecent: Boolean = false): CapabilityResult {
+        return executeNotificationQuery(CapabilityRequest.NotificationQuery(onlyMissedOrRecent = onlyMissedOrRecent))
+    }
+
     private fun executeNotificationQuery(req: CapabilityRequest.NotificationQuery): CapabilityResult {
+        pruneExpiredNotifications()
         if (recentNotifications.isEmpty()) {
             return CapabilityResult(
                 succeeded = true,
