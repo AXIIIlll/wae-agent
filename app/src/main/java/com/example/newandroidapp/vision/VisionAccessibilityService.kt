@@ -346,7 +346,11 @@ class VisionAccessibilityService : AccessibilityService() {
         override fun run() {
             if (!isHudAttached) return
             val now = SystemClock.elapsedRealtime()
-            if (now - lastRealTimePassElapsedMs >= 450L && !isAutoLoopRunning && !isBenchmarkRunning) {
+            val isCompanionActive = LiveScreenCompanionEngine.isCompanionModeActive
+            val isPanelExpanded = hudExpandedPanel?.visibility == View.VISIBLE
+            val isActiveWatching = isCompanionActive || isPanelExpanded || isArOverlayShown
+
+            if (isActiveWatching && now - lastRealTimePassElapsedMs >= 450L && !isAutoLoopRunning && !isBenchmarkRunning) {
                 if (LiveScreenCompanionEngine.shouldTriggerPeriodicOcrSample(
                         foregroundPackage = latestForegroundPackage,
                         report = latestLiveReport,
@@ -375,7 +379,10 @@ class VisionAccessibilityService : AccessibilityService() {
                     runRealTimeVisionStreamTick()
                 }
             }
-            mainHandler.postDelayed(this, 500L)
+            // 【階段四：平時待機零耗電降頻 (Idle Heartbeat Backoff)】
+            // 陪看模式或展開面板時維持 650ms 高敏銳感知；一般待機僅收合為圓球時降頻至 4500ms，大幅降低發熱與耗電
+            val nextIntervalMs = if (isActiveWatching) 650L else 4500L
+            mainHandler.postDelayed(this, nextIntervalMs)
         }
     }
 
@@ -5126,6 +5133,22 @@ class VisionAccessibilityService : AccessibilityService() {
                 }
             }
         }
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
+            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
+        ) {
+            com.example.newandroidapp.ai.OpenSourceAiDatabaseManager.releaseMemoryOnTrim()
+            CrashGuardManager.checkMemoryPressureAndGc()
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        com.example.newandroidapp.ai.OpenSourceAiDatabaseManager.releaseMemoryOnTrim()
+        CrashGuardManager.checkMemoryPressureAndGc()
     }
 }
 

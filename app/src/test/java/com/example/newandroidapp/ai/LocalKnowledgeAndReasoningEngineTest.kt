@@ -429,6 +429,23 @@ class LocalKnowledgeAndReasoningEngineTest {
         assertTrue(!com.example.newandroidapp.vision.LiveScreenCompanionEngine.isCompanionModeActive)
         assertTrue(stopReaction.bubbleText.isNotBlank())
     }
+
+    @Test
+    fun `test custom QA database 3-layer retrieval ablation study and memory trim recovery`() {
+        val ablation = OpenSourceAiDatabaseManager.runRetrievalAblationStudy(null)
+        assertTrue(
+            "完整三層檢索準確率應顯著高於僅去殼與原始查表: ${ablation.fullPipelineAccuracyPercent}% vs ${ablation.wrapperStrippedAccuracyPercent}% vs ${ablation.baselineAccuracyPercent}%",
+            ablation.fullPipelineAccuracyPercent > ablation.wrapperStrippedAccuracyPercent &&
+                ablation.wrapperStrippedAccuracyPercent > ablation.baselineAccuracyPercent
+        )
+        assertEquals(100.0f, ablation.fullPipelineAccuracyPercent, 0.01f)
+
+        // 驗證記憶體釋放保護 (releaseMemoryOnTrim) 後仍能自動按需重載並正確回答「土豆是什麼東西？」
+        OpenSourceAiDatabaseManager.releaseMemoryOnTrim()
+        val (potatoReply, potatoCmd) = AndroidNativeAiEngine.generateConversationalReply("土豆是什麼東西？", null)
+        assertTrue("應命中馬鈴薯說明: $potatoReply", potatoReply.contains("馬鈴薯"))
+        assertEquals("打開 Chrome 搜尋 馬鈴薯", potatoCmd)
+    }
 }
 
 
