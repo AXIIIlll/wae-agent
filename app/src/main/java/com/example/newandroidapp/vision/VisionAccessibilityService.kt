@@ -1514,136 +1514,12 @@ class VisionAccessibilityService : AccessibilityService() {
         }
     }
 
-    /**
-     * Grok Bot 風格雙眼圓形 AI 懸浮球（100% Canvas 原生幾何繪製，零 Emoji）
-     * 具備深色圓形機身、內層面罩與兩顆靈動膠囊小眼睛，支援自然眨眼與語音/執行狀態切換。
-     */
-    private inner class GrokBotOrbView(context: Context) : TextView(context) {
-        var isBusyState: Boolean = false
-            set(value) {
-                if (field != value) {
-                    field = value
-                    invalidate()
-                }
-            }
-
-        var isVoiceListeningState: Boolean = false
-            set(value) {
-                if (field != value) {
-                    field = value
-                    invalidate()
-                }
-            }
-
-        private var isBlinking: Boolean = false
-
-        private val outerFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-            color = Color.parseColor("#18181B")
-        }
-        private val outerStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-        }
-        private val visorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-            color = Color.parseColor("#09090B")
-        }
-        private val eyePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-            color = Color.parseColor("#F4F4F5")
-        }
-        private val tmpRect = RectF()
-
-        private val blinkOpenRunnable = Runnable {
-            isBlinking = false
-            invalidate()
-        }
-
-        private val blinkLoopRunnable = object : Runnable {
-            override fun run() {
-                if (!isAttachedToWindow || visibility != View.VISIBLE) return
-                isBlinking = true
-                invalidate()
-                mainHandler.postDelayed(blinkOpenRunnable, 130L)
-                mainHandler.postDelayed(this, 3800L)
-            }
-        }
-
-        override fun onAttachedToWindow() {
-            super.onAttachedToWindow()
-            mainHandler.removeCallbacks(blinkLoopRunnable)
-            mainHandler.postDelayed(blinkLoopRunnable, 2600L)
-        }
-
-        override fun onDetachedFromWindow() {
-            mainHandler.removeCallbacks(blinkLoopRunnable)
-            mainHandler.removeCallbacks(blinkOpenRunnable)
-            super.onDetachedFromWindow()
-        }
-
-        override fun onDraw(canvas: Canvas) {
-            val w = width.toFloat()
-            val h = height.toFloat()
-            if (w <= 0f || h <= 0f) {
-                super.onDraw(canvas)
-                return
-            }
-            val cx = w * 0.5f
-            val cy = h * 0.5f
-            val strokeW = (resources.displayMetrics.density * 2f).coerceAtLeast(3f)
-            val radius = (minOf(w, h) * 0.5f) - strokeW * 0.6f
-
-            // 1. 外層深色圓形機身
-            canvas.drawCircle(cx, cy, radius, outerFillPaint)
-
-            // 2. 狀態外框環（閒置 #3F3F46、執行中 #F4F4F5、語音聆聽 #3B82F6）
-            outerStrokePaint.strokeWidth = strokeW
-            outerStrokePaint.color = when {
-                isVoiceListeningState -> Color.parseColor("#3B82F6")
-                isBusyState -> Color.parseColor("#F4F4F5")
-                else -> Color.parseColor("#3F3F46")
-            }
-            canvas.drawCircle(cx, cy, radius, outerStrokePaint)
-
-            // 3. 內層深邃面罩區
-            val visorW = w * 0.68f
-            val visorH = h * 0.48f
-            tmpRect.set(cx - visorW * 0.5f, cy - visorH * 0.5f, cx + visorW * 0.5f, cy + visorH * 0.5f)
-            canvas.drawRoundRect(tmpRect, visorH * 0.5f, visorH * 0.5f, visorPaint)
-
-            // 4. 兩顆 Grok Bot 小眼睛（垂直膠囊型，眨眼時收縮為細橫線）
-            eyePaint.color = if (isVoiceListeningState) Color.parseColor("#60A5FA") else Color.parseColor("#F4F4F5")
-            val eyeW = (w * 0.115f).coerceAtLeast(5f)
-            val fullEyeH = (h * 0.24f).coerceAtLeast(10f)
-            val eyeH = if (isBlinking) (h * 0.045f).coerceAtLeast(2.5f) else fullEyeH
-            val eyeOffsetX = w * 0.14f
-            val eyeCorner = eyeW * 0.5f
-
-            // 左眼
-            tmpRect.set(
-                cx - eyeOffsetX - eyeW * 0.5f,
-                cy - eyeH * 0.5f,
-                cx - eyeOffsetX + eyeW * 0.5f,
-                cy + eyeH * 0.5f
-            )
-            canvas.drawRoundRect(tmpRect, eyeCorner, eyeCorner, eyePaint)
-
-            // 右眼
-            tmpRect.set(
-                cx + eyeOffsetX - eyeW * 0.5f,
-                cy - eyeH * 0.5f,
-                cx + eyeOffsetX + eyeW * 0.5f,
-                cy + eyeH * 0.5f
-            )
-            canvas.drawRoundRect(tmpRect, eyeCorner, eyeCorner, eyePaint)
-        }
-    }
-
     private fun updateAutoRunButtonUi() {
         val busy = isAutoLoopRunning || isBenchmarkRunning
         (floatingOrbView as? GrokBotOrbView)?.apply {
             isBusyState = busy
             isVoiceListeningState = VoiceCommandAndTtsManager.isListening
+            isHandoverState = isHandoverPaused
         }
         autoRunStatusBtn?.apply {
             val pillRadius = (height.takeIf { it > 0 } ?: dp(40)) / 2f
@@ -3256,12 +3132,16 @@ class VisionAccessibilityService : AccessibilityService() {
                 val targetX = if (lp.x + orbSizePx / 2 < liveW / 2) leftEdgeX else rightEdgeX
                 lp.y = lp.y.coerceIn(edgeMargin, (liveH - orbSizePx - edgeMargin).coerceAtLeast(edgeMargin))
                 HudPersistentStateManager.saveOrbPosition(this@VisionAccessibilityService, targetX, lp.y)
+                orbTv.dragVelocityGazeX = 0f
+                orbTv.dragVelocityGazeY = 0f
                 val startSnapX = lp.x
                 if (startSnapX == targetX) {
                     runCatching { wm.updateViewLayout(root, lp) }
                     scheduleOrbIdleFade()
                     return
                 }
+                val snapAnimId = if (targetX == leftEdgeX) 78 else 79
+                orbTv.triggerAnimation(snapAnimId, 950L)
                 android.animation.ValueAnimator.ofInt(startSnapX, targetX).apply {
                     duration = 200L
                     interpolator = android.view.animation.DecelerateInterpolator()
@@ -3465,6 +3345,7 @@ class VisionAccessibilityService : AccessibilityService() {
                             orbTv.scaleY = 0.85f
                             orbTv.alpha = 1f
                             orbTv.visibility = View.VISIBLE
+                            orbTv.triggerAnimation(82, 1200L)
                             orbTv.animate()
                                 .scaleX(1f)
                                 .scaleY(1f)
@@ -3546,6 +3427,7 @@ class VisionAccessibilityService : AccessibilityService() {
                         moved = false
                         longPressVoiceTriggered = false
                         if (view === orbTv) {
+                            orbTv.triggerAnimation(74, 450L)
                             orbTv.animate().scaleX(0.92f).scaleY(0.92f).setDuration(85L).withLayer().start()
                             mainHandler.removeCallbacks(longPressOrbVoiceRunnable)
                             mainHandler.postDelayed(longPressOrbVoiceRunnable, 360L)
@@ -3564,12 +3446,18 @@ class VisionAccessibilityService : AccessibilityService() {
                             val maxY = (liveH - orbSizePx).coerceAtLeast(0)
                             lp.x = (startX + dx.toInt()).coerceIn(0, maxX)
                             lp.y = (startY + dy.toInt()).coerceIn(0, maxY)
+                            if (orbTv.visibility == View.VISIBLE) {
+                                orbTv.dragVelocityGazeX = (dx / dp(80).toFloat()).coerceIn(-0.55f, 0.55f)
+                                orbTv.dragVelocityGazeY = (dy / dp(80).toFloat()).coerceIn(-0.55f, 0.55f)
+                            }
                             runCatching { wm.updateViewLayout(root, lp) }
                         }
                         true
                     }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                         mainHandler.removeCallbacks(longPressOrbVoiceRunnable)
+                        orbTv.dragVelocityGazeX = 0f
+                        orbTv.dragVelocityGazeY = 0f
                         if (view === orbTv && !longPressVoiceTriggered) {
                             orbTv.animate().scaleX(1f).scaleY(1f).setDuration(180L).withLayer().start()
                         }
