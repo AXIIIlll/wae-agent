@@ -303,8 +303,23 @@ class ScreenTextCaptureTest {
             title = "帳戶通知",
             rawContent = "您的帳戶剛剛轉出 5000 元"
         )
+        com.example.newandroidapp.action.SystemCapabilityHub.recordNotificationInternal(
+            packageName = "com.linecorp.linelite",
+            appLabel = "LINE",
+            title = "小明",
+            rawContent = "今天聚餐 1830 集合喔"
+        )
+        com.example.newandroidapp.action.SystemCapabilityHub.recordNotificationInternal(
+            packageName = "com.google.android.apps.messaging",
+            appLabel = "訊息",
+            title = "系統簡訊",
+            rawContent = "您的登入驗證碼為 482910，請勿提供他人"
+        )
         val notifReply = com.example.newandroidapp.action.SystemCapabilityHub.queryNotificationsDirect().summaryText
+        // 銀行通知與驗證碼簡訊被遮罩，但一般聊天「1830 集合」保留！
         assertFalse(notifReply.contains("5000"))
+        assertFalse(notifReply.contains("482910"))
+        assertTrue(notifReply.contains("1830 集合"))
         assertTrue(notifReply.contains("已自動隱藏"))
 
         com.example.newandroidapp.action.SystemCapabilityHub.clearNotesForTest()
@@ -312,6 +327,12 @@ class ScreenTextCaptureTest {
         assertFalse(blockedNote.succeeded)
         val normalNote = com.example.newandroidapp.action.SystemCapabilityHub.saveNoteDirect("下午三點買牛奶")
         assertTrue(normalNote.succeeded)
+
+        // 驗證加密絕不使用 Base64 明文編碼，且具備真實 AES-GCM 加解密能力
+        val encrypted = com.example.newandroidapp.action.SystemCapabilityHub.encryptNotesPayload("1700000000|下午三點買牛奶")
+        assertTrue(encrypted != null && (encrypted.startsWith("ENC1:") || encrypted.startsWith("ENC2:")))
+        assertFalse(encrypted!!.contains("買牛奶"))
+        assertEquals("1700000000|下午三點買牛奶", com.example.newandroidapp.action.SystemCapabilityHub.decryptNotesPayload(encrypted))
         com.example.newandroidapp.action.SystemCapabilityHub.clearNotesForTest()
     }
 }

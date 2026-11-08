@@ -121,16 +121,22 @@ object SystemCapabilityHub {
         RegexOption.IGNORE_CASE
     )
     private val NUMERIC_OTP_CODE_REGEX = Regex("(?<!\\d)\\d{4,8}(?!\\d)")
-    private val SENSITIVE_PACKAGE_KEYWORDS = listOf(
-        "bank", "pay", "wallet", "finance", "authenticator", "authy",
-        "1password", "bitwarden", "keepass", "dashlane", "cathay", "ctbc",
-        "esun", "taishin", "fubon", "megabank", "sinopac", "firstbank",
-        "hncb", "landbank", "jkos", "ipass", "icash", "twpay"
+    private val NUMERIC_CODE_CONTEXT_REGEX = Regex(
+        "(?:碼|驗證|認證|登入|動態|交易|授權|安全|\\b(?:code|otp|pin|verify|verification|login|auth|passcode|token)\\b)",
+        RegexOption.IGNORE_CASE
+    )
+    private val SENSITIVE_PACKAGE_REGEX = Regex(
+        "(?:^|[._])(?:bank|mymobibank|cathay|cathaybk|ctbc|esun|taishin|fubon|megabank|sinopac|firstbank|hncb|landbank|jkos|ipass|icash|twpay|wallet|gpay|samsungpay|linepay|pxpay|authenticator|authy|1password|bitwarden|keepass|dashlane)(?:[._0-9]|$)",
+        RegexOption.IGNORE_CASE
     )
     private val SENSITIVE_NOTE_BLOCK_REGEX = Regex(
         "(?:密碼|驗證碼|認證碼|安全碼|信用卡號|卡號|助記詞|私鑰|\\b(?:password|passcode|otp|cvv|seed\\s+phrase|private\\s+key)\\b)",
         RegexOption.IGNORE_CASE
     )
+
+    private val jvmFallbackAesKey: javax.crypto.SecretKey by lazy {
+        javax.crypto.KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
+    }
 
     // =========================================================================
     // 無障礙通知事件流收集（零額外權限，自動過濾敏感驗證碼）
@@ -187,12 +193,13 @@ object SystemCapabilityHub {
         pruneExpiredNotifications(timestampMs)
         val pkgLower = packageName.lowercase()
         val combinedLower = "$title $rawContent".lowercase()
-        val isSensitivePkg = SENSITIVE_PACKAGE_KEYWORDS.any { pkgLower.contains(it) }
-        val hasNumericCode = NUMERIC_OTP_CODE_REGEX.containsMatchIn(rawContent)
+        val isSensitivePkg = SENSITIVE_PACKAGE_REGEX.containsMatchIn(pkgLower)
+        val hasContextualNumericOtp = NUMERIC_OTP_CODE_REGEX.containsMatchIn(rawContent) &&
+            NUMERIC_CODE_CONTEXT_REGEX.containsMatchIn(combinedLower)
         val isSensitive = isSensitivePkg ||
             SENSITIVE_CJK_KEYWORDS.any { combinedLower.contains(it) } ||
             SENSITIVE_ASCII_WORD_REGEX.containsMatchIn(combinedLower) ||
-            hasNumericCode
+            hasContextualNumericOtp
 
         val safeTitle = if (isSensitive) "敏感通知" else title.ifEmpty { appLabel }
         val safeContent = if (isSensitive) "[包含驗證碼、金融或敏感資訊，已自動隱藏]" else rawContent
@@ -385,9 +392,10 @@ object SystemCapabilityHub {
         inMemoryNotes.removeAll { (nowMs - it.timestampMs) > NOTE_TTL_MS }
     }
 
-    private fun encryptNotesPayload(plainText: String): String {
+    internal fun encryptNotesPayload(plainText: String): String? {
         if (plainText.isEmpty()) return ""
-        return runCatching {
+        // 優先使用硬體級 AndroidKeyStore AES-GCM
+        val hardwareEncrypted = runCatching {
             val ks = java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
             val secretKey = if (ks.containsAlias(KEYSTORE_ALIAS_NOTES)) {
                 (ks.getEntry(KEYSTORE_ALIAS_NOTES, null) as java.security.KeyStore.SecretKeyEntry).secretKey
@@ -412,12 +420,20 @@ object SystemCapabilityHub {
             val ivB64 = java.util.Base64.getEncoder().encodeToString(cipher.iv)
             val ctB64 = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(plainText.toByteArray(Charsets.UTF_8)))
             "ENC1:$ivB64:$ctB64"
-        }.getOrElse {
-            "B64:" + java.util.Base64.getEncoder().encodeToString(plainText.toByteArray(Charsets.UTF_8))
-        }
+        }.getOrNull()
+        if (hardwareEncrypted != null) return hardwareEncrypted
+
+        // Host JVM 測試環境無 AndroidKeyStore 時，仍強制使用標準 JCA 256-bit AES/GCM/NoPadding，絕不退化為明文或 Base64
+        return runCatching {
+            val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, jvmFallbackAesKey)
+            val ivB64 = java.util.Base64.getEncoder().encodeToString(cipher.iv)
+            val ctB64 = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(plainText.toByteArray(Charsets.UTF_8)))
+            "ENC2:$ivB64:$ctB64"
+        }.getOrNull()
     }
 
-    private fun decryptNotesPayload(stored: String): String {
+    internal fun decryptNotesPayload(stored: String): String {
         if (stored.isBlank()) return ""
         return runCatching {
             when {
@@ -433,10 +449,16 @@ object SystemCapabilityHub {
                     cipher.init(javax.crypto.Cipher.DECRYPT_MODE, entry.secretKey, javax.crypto.spec.GCMParameterSpec(128, iv))
                     String(cipher.doFinal(ct), Charsets.UTF_8)
                 }
-                stored.startsWith("B64:") -> {
-                    String(java.util.Base64.getDecoder().decode(stored.removePrefix("B64:")), Charsets.UTF_8)
+                stored.startsWith("ENC2:") -> {
+                    val parts = stored.split(":", limit = 3)
+                    if (parts.size < 3) return ""
+                    val iv = java.util.Base64.getDecoder().decode(parts[1])
+                    val ct = java.util.Base64.getDecoder().decode(parts[2])
+                    val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+                    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, jvmFallbackAesKey, javax.crypto.spec.GCMParameterSpec(128, iv))
+                    String(cipher.doFinal(ct), Charsets.UTF_8)
                 }
-                else -> stored
+                else -> ""
             }
         }.getOrDefault("")
     }
@@ -466,15 +488,23 @@ object SystemCapabilityHub {
         }
     }
 
-    private fun persistNotes(context: Context?) {
-        if (context == null) return
-        runCatching {
+    private fun persistNotes(context: Context?): Boolean {
+        if (context == null) return true
+        return runCatching {
             pruneExpiredNotes()
             val prefs = context.getSharedPreferences(PREFS_NOTES, Context.MODE_PRIVATE)
+            if (inMemoryNotes.isEmpty()) {
+                prefs.edit().remove(KEY_NOTES_LIST).apply()
+                return true
+            }
             val serialized = inMemoryNotes.take(MAX_NOTES).joinToString("\n---\n") { "${it.timestampMs}|${it.content}" }
-            val encrypted = encryptNotesPayload(serialized)
+            val encrypted = encryptNotesPayload(serialized) ?: return false
+            runCatching {
+                android.util.Log.i("AiFlight", "NotesEncrypted scheme=${encrypted.substringBefore(':')} count=${inMemoryNotes.size}")
+            }
             prefs.edit().putString(KEY_NOTES_LIST, encrypted).apply()
-        }
+            true
+        }.getOrDefault(false)
     }
 
     internal fun saveNoteDirect(content: String, context: Context? = null): CapabilityResult {
@@ -494,7 +524,14 @@ object SystemCapabilityHub {
         while (inMemoryNotes.size > MAX_NOTES) {
             inMemoryNotes.removeAt(inMemoryNotes.size - 1)
         }
-        persistNotes(context)
+        if (!persistNotes(context)) {
+            inMemoryNotes.remove(entry)
+            return CapabilityResult(
+                succeeded = false,
+                summaryText = "筆記加密儲存失敗，為確保資安已取消寫入。",
+                request = req
+            )
+        }
         return CapabilityResult(
             succeeded = true,
             summaryText = "已記下筆記：「$trimmed」（目前共 ${inMemoryNotes.size} 則筆記）",

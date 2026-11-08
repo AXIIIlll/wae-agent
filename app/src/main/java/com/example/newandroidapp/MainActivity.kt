@@ -77,7 +77,34 @@ class MainActivity : Activity() {
     private val worker = Executors.newFixedThreadPool(3) { r ->
         Thread(r, "main-ui-worker").apply { isDaemon = true }
     }
+    private val workerWatchdog = Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "main-ui-worker-watchdog").apply { isDaemon = true }
+    }
     private val uiHandler = Handler(Looper.getMainLooper())
+
+    private fun submitWorkerWithTimeout(
+        timeoutMs: Long = 10_000L,
+        onTimeoutUi: (() -> Unit)? = null,
+        task: () -> Unit
+    ) {
+        val future = worker.submit {
+            try {
+                task()
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            } catch (t: Throwable) {
+                android.util.Log.w("MainActivity", "Background worker error: ${t.message}")
+            }
+        }
+        workerWatchdog.schedule({
+            if (!future.isDone) {
+                future.cancel(true)
+                if (onTimeoutUi != null) {
+                    uiHandler.post(onTimeoutUi)
+                }
+            }
+        }, timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+    }
 
     // [LottieFiles / motion-design-skill] & [heydamir/unslop Pass 9] 克制流暢的 M3 貝茲曲線與微彈簧插值器
     private val m3DecelerateInterpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1.0f)
@@ -796,7 +823,7 @@ class MainActivity : Activity() {
             textSize = 11f
             setPadding(dp(12), dp(8), dp(12), dp(8))
             setOnClickListener {
-                worker.execute {
+                submitWorkerWithTimeout(timeoutMs = 8_000L) {
                     val count = BenchmarkSuiteManager.autoMergeInstalledDeviceApps(applicationContext, saveAfter = true)
                     runOnUiThread {
                         rebuildSuiteListView()
@@ -811,7 +838,7 @@ class MainActivity : Activity() {
             textSize = 11f
             setPadding(dp(12), dp(8), dp(12), dp(8))
             setOnClickListener {
-                worker.execute {
+                submitWorkerWithTimeout(timeoutMs = 8_000L) {
                     val list = BenchmarkSuiteManager.resetToDefaultSuite(applicationContext)
                     runOnUiThread {
                         rebuildSuiteListView()
@@ -1048,7 +1075,7 @@ class MainActivity : Activity() {
         }
 
         // 背景初始化雙本地 AI、本機已安裝 App 與 36+ 基礎測試集
-        worker.execute {
+        submitWorkerWithTimeout(timeoutMs = 30_000L) {
             NeedleIsolatedClient.init(applicationContext)
             NeedleIsolatedClient.bind()
             NeedleIsolatedClient.awaitReady(applicationContext, 25000L)
@@ -1556,7 +1583,7 @@ class MainActivity : Activity() {
     }
 
     private fun refreshInstalledAppsAsync(force: Boolean) {
-        worker.execute {
+        submitWorkerWithTimeout(timeoutMs = 10_000L) {
             val apps = InstalledAppLauncher.getInstalledLaunchableApps(applicationContext, forceRefresh = force)
             BenchmarkSuiteManager.autoMergeInstalledDeviceApps(applicationContext, saveAfter = true)
             val suite = BenchmarkSuiteManager.ensureLoaded(applicationContext)
@@ -1795,7 +1822,10 @@ class MainActivity : Activity() {
             return
         }
 
-        worker.execute {
+        submitWorkerWithTimeout(
+            timeoutMs = 8_000L,
+            onTimeoutUi = { aiDecisionTv.text = "啟動應用程式逾時，請稍後再試。" }
+        ) {
             val appMatch = InstalledAppLauncher.resolveTargetAppForGoal(
                 context = applicationContext,
                 rawUserGoal = goal,
@@ -1846,7 +1876,10 @@ class MainActivity : Activity() {
         if (goal.isEmpty()) return
         VisionAccessibilityService.activeGoalForHud = goal
 
-        worker.execute {
+        submitWorkerWithTimeout(
+            timeoutMs = 8_000L,
+            onTimeoutUi = { aiDecisionTv.text = "單步推論逾時，請重試。" }
+        ) {
             val dec: AiActionDecision = DualLocalAiCoordinator.decide(
                 mode = currentAiMode,
                 userGoal = goal,
@@ -2056,7 +2089,7 @@ class MainActivity : Activity() {
                 b
             }.getOrNull()
 
-            worker.execute {
+            submitWorkerWithTimeout(timeoutMs = 6_000L) {
                 val report = AiVisionPipeline.execute(
                     rawNodes = rawNodes,
                     screenWidth = sw,
