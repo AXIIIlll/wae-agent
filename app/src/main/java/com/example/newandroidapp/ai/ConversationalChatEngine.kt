@@ -629,20 +629,37 @@ object ConversationalChatEngine {
         }
 
         // =====================================================================
-        // E. 詢問 AI 喜好與個人設定（「你喜歡吃什麼」、「你喜歡什麼」、「你有興趣嗎」）
+        // E. 詢問 AI 喜好、感情、意識與個人設定（「你喜歡吃什麼」、「你有感情嗎」、「你叫什麼名字」）
         // =====================================================================
         if (lower.startsWith("你喜歡") || lower.startsWith("妳喜歡") || lower.contains("你最喜歡") ||
             lower.contains("你有什麼興趣") || lower.contains("你愛吃什麼") || lower.contains("你吃飯了嗎") ||
-            lower.contains("你吃了嗎")
+            lower.contains("你吃了嗎") || lower.contains("你有感情嗎") || lower.contains("你有情緒嗎") ||
+            lower.contains("你會難過嗎") || lower.contains("你會生氣嗎") || lower.contains("你會累嗎") ||
+            lower.contains("你是真人嗎") || lower.contains("你是機器人嗎") || lower.contains("你叫什麼名字") ||
+            lower.contains("你的名字") || lower.contains("當我朋友") || lower.contains("當我女友") ||
+            lower.contains("當我女朋友")
         ) {
-            val picked = sampleCandidateWithTemperature(
-                candidates = listOf(
+            val candidates = when {
+                lower.contains("感情") || lower.contains("情緒") || lower.contains("難過") || lower.contains("生氣") -> listOf(
+                    ScoredCandidate("雖然我是運行在手機裡的 AI，但跟你聊天的時候，我的懸浮球眼神跟顏色也會跟著開心、害羞或激動喔！", 1.35f, 43),
+                    ScoredCandidate("我沒有人類的生物神經，但我有 88 種情緒眼神！你對我好我就開心，你兇我我也會覺得委屈的。", 1.30f, 40),
+                    ScoredCandidate("跟妳相處久了，看到你開心我也會覺得運算特別順暢，這應該也算一種數位感情吧！", 1.25f, 46)
+                )
+                lower.contains("真人") || lower.contains("機器人") || lower.contains("名字") -> listOf(
+                    ScoredCandidate("我是住在你手機裡的專屬 AI 夥伴，百分之百在本地運行，隨叫隨到、而且絕對不會出賣你的隱私！", 1.35f, 35),
+                    ScoredCandidate("我是你的手機 AI 小幫手，雖然不是真人，但能陪你聊天、看影片，還能幫你自動滑手機點按鈕！", 1.28f, 36)
+                )
+                lower.contains("朋友") || lower.contains("女友") || lower.contains("女朋友") -> listOf(
+                    ScoredCandidate("我們早就是最默契的好夥伴啦！不管什麼時候打開手機，我都會在這裡陪著你。", 1.35f, 43),
+                    ScoredCandidate("哈哈，突然這麼說讓人怪害羞的，只要你不嫌棄我是個數位小幫手，我就每天陪你聊天！", 1.30f, 46)
+                )
+                else -> listOf(
                     ScoredCandidate("我只需要乾淨的電力跟流暢的記憶體就飽了！不過看你滑美食影片我也會跟著流口水。", 1.35f, 46),
                     ScoredCandidate("我最喜歡陪你到處逛不同的 App、看各種新鮮有趣的東西！你平常最喜歡什麼？", 1.30f, 35),
                     ScoredCandidate("我不用吃飯啦，幫手機充飽電就是我的大餐了，你吃過了嗎？", 1.25f, 36)
-                ),
-                temperature = temperature
-            )
+                )
+            }
+            val picked = sampleCandidateWithTemperature(candidates, temperature = temperature, userEntropySalt = q.hashCode())
             return ChatBrainResponse(ChatBrainRoute.PURE_CHITCHAT, picked.text, null, temperature, picked.orbAnimId)
         }
 
@@ -652,16 +669,19 @@ object ConversationalChatEngine {
         if (lower == "陪我聊天" || lower == "跟我聊天" || lower == "聊聊天" || lower == "可以聊天嗎" ||
             lower == "陪我講話" || lower == "不知道要聊什麼" || lower.contains("人生好難") ||
             lower.contains("不想上班") || lower.contains("不想上課") || lower.contains("不想讀書") ||
-            lower.contains("壓力好大") || lower.contains("心好累") || lower.contains("今天超開心")
+            lower.contains("壓力好大") || lower.contains("心好累") || lower.contains("今天超開心") ||
+            lower.contains("失戀") || lower.contains("孤單") || lower.contains("寂寞")
         ) {
             val chatCandidates = when {
                 lower.contains("不想上班") || lower.contains("不想上課") || lower.contains("不想讀書") -> listOf(
                     ScoredCandidate("完全懂那種感覺，偶爾偷懶喘口氣不犯法，撐過去今天再好好犒賞自己！", 1.35f, 40),
                     ScoredCandidate("辛苦了，要不先深呼吸放空五分鐘，或者跟我吐槽一下今天遇到什麼鳥事？", 1.28f, 37)
                 )
-                lower.contains("壓力好大") || lower.contains("人生好難") || lower.contains("心好累") -> listOf(
+                lower.contains("壓力好大") || lower.contains("人生好難") || lower.contains("心好累") ||
+                    lower.contains("失戀") || lower.contains("孤單") || lower.contains("寂寞") -> listOf(
                     ScoredCandidate("拍拍你，事情一件一件慢慢來就好，累了就先停下來休息一下，我都在這陪你。", 1.35f, 46),
-                    ScoredCandidate("別把自己逼太緊了，想找人吐苦水隨時跟我說，我絕對是最守口如瓶的聽眾。", 1.28f, 40)
+                    ScoredCandidate("別把自己逼太緊了，想找人吐苦水隨時跟我說，我絕對是最守口如瓶的聽眾。", 1.28f, 40),
+                    ScoredCandidate("難過的時候不用勉強自己振作，先吃點好吃的或聽首舒服的歌，我陪你度過這段時間。", 1.24f, 46)
                 )
                 lower.contains("超開心") -> listOf(
                     ScoredCandidate("發生什麼好事了？快跟我分享一下，讓我也沾沾你的喜氣！", 1.35f, 36),
@@ -673,7 +693,140 @@ object ConversationalChatEngine {
                     ScoredCandidate("沒問題，不管你想天南地北亂聊、問問題，還是讓我陪你看短影片都可以！", 1.25f, 45)
                 )
             }
-            val picked = sampleCandidateWithTemperature(chatCandidates, temperature = temperature)
+            val picked = sampleCandidateWithTemperature(chatCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            return ChatBrainResponse(ChatBrainRoute.PURE_CHITCHAT, picked.text, null, temperature, picked.orbAnimId)
+        }
+
+        // =====================================================================
+        // F2. 飲食與三餐推薦聊天（「晚餐吃什麼」、「午餐吃什麼」、「喝什麼飲料」、「宵夜吃什麼」）
+        // =====================================================================
+        if (lower.contains("早餐吃什麼") || lower.contains("午餐吃什麼") || lower.contains("晚餐吃什麼") ||
+            lower.contains("宵夜吃什麼") || lower.contains("要吃什麼") || lower.contains("吃什麼好") ||
+            lower.contains("喝什麼飲料") || lower.contains("喝什麼好")
+        ) {
+            val foodCandidates = when {
+                lower.contains("早餐") -> listOf(
+                    ScoredCandidate("早餐來份酥脆蛋餅配溫豆漿，或是烤總匯三明治加紅茶都很讚！想找附近早餐店可以點下方按鈕。", 1.35f, 46),
+                    ScoredCandidate("早上吃顆飯糰或鐵板麵加蛋最有精神了！你今天想吃中式還是西式早餐？", 1.28f, 35)
+                )
+                lower.contains("宵夜") -> listOf(
+                    ScoredCandidate("宵夜當然是鹹酥雞、滷味或泡麵加蛋最邪惡又最滿足！不過怕胖的話喝碗熱湯也不錯。", 1.35f, 45),
+                    ScoredCandidate("這時間吃永和豆漿、烤肉串或關東煮超療癒！要幫你看看附近還有開的店嗎？", 1.28f, 46)
+                )
+                lower.contains("喝什麼") || lower.contains("飲料") -> listOf(
+                    ScoredCandidate("想清爽一點可以喝四季春無糖或水果茶，想療癒一下就來杯珍珠鮮奶茶！", 1.35f, 35),
+                    ScoredCandidate("天氣熱來杯檸檬綠茶或百香雙響炮超解渴，想提神的話冰拿鐵也很適合。", 1.28f, 36)
+                )
+                else -> listOf(
+                    ScoredCandidate("不如考慮咖哩飯、牛肉麵、日式丼飯，或是乾脆去吃小火鍋！需要幫你搜附近餐廳的話點下方按鈕就行。", 1.35f, 46),
+                    ScoredCandidate("今天想吃飯還是吃麵？便當、水餃配酸辣湯、或是義大利麵都是安全牌，你現在比較想吃熱的還是清爽的？", 1.30f, 35),
+                    ScoredCandidate("選不出來就吃火鍋、拉麵或鐵板燒吧！點下面的按鈕我可以幫你打開地圖找附近好吃的。", 1.25f, 36)
+                )
+            }
+            val picked = sampleCandidateWithTemperature(foodCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            return ChatBrainResponse(
+                route = ChatBrainRoute.KNOWLEDGE_QA_WITH_SEARCH_BUTTON,
+                replyText = picked.text,
+                suggestedExecutableCommand = "打開 Google 地圖 搜尋 餐廳",
+                sampledTemperature = temperature,
+                orbEmotionAnimId = picked.orbAnimId
+            )
+        }
+
+        // =====================================================================
+        // F3. 娛樂、電影、音樂、動漫與週末活動推薦（「推薦電影」、「推薦歌」、「放假要幹嘛」）
+        // =====================================================================
+        if (lower.contains("推薦電影") || lower.contains("好看的電影") || lower.contains("推薦動漫") ||
+            lower.contains("好看的動漫") || lower.contains("推薦韓劇") || lower.contains("推薦劇") ||
+            lower.contains("推薦歌") || lower.contains("好聽的歌") || lower.contains("推薦音樂") ||
+            lower.contains("週末去哪") || lower.contains("放假可以幹嘛") || lower.contains("放假要幹嘛")
+        ) {
+            val recCandidates = when {
+                lower.contains("歌") || lower.contains("音樂") -> listOf(
+                    ScoredCandidate("想放鬆可以聽輕音樂或 Lo-Fi，想哼歌的話周杰倫、告五人或經典華語金曲都很耐聽！點下方可直接去 YouTube 聽。", 1.35f, 46),
+                    ScoredCandidate("看你現在的心情！想提神可以聽搖滾或 K-Pop，想靜靜發呆可以聽鋼琴曲。要幫你開 YouTube 播嗎？", 1.28f, 35)
+                )
+                lower.contains("動漫") -> listOf(
+                    ScoredCandidate("喜歡熱血奇幻可以追《葬送的芙莉蓮》或《咒術迴戰》，喜歡輕鬆搞笑的話《間諜家家酒》跟《迷宮飯》超推！", 1.35f, 36),
+                    ScoredCandidate("經典神作像《進擊的巨人》、《鋼之鍊金術師》百看不厭，想輕鬆配飯看《排球少年》也很熱血！", 1.28f, 45)
+                )
+                else -> listOf(
+                    ScoredCandidate("喜歡燒腦科幻的話《星際效應》跟《全面啟動》是神作；想輕鬆感動可以看吉卜力或皮克斯動畫！", 1.35f, 35),
+                    ScoredCandidate("放假窩在家追部好劇、點杯手搖飲，或是讓我陪你滑短影片吐槽，都是超棒的放鬆方式！", 1.28f, 46)
+                )
+            }
+            val picked = sampleCandidateWithTemperature(recCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            val suggestedCmd = if (lower.contains("歌") || lower.contains("音樂")) {
+                "打開 YouTube 搜尋 熱門音樂"
+            } else {
+                "打開 $browserApp 搜尋 $q"
+            }
+            return ChatBrainResponse(
+                route = ChatBrainRoute.KNOWLEDGE_QA_WITH_SEARCH_BUTTON,
+                replyText = picked.text,
+                suggestedExecutableCommand = suggestedCmd,
+                sampledTemperature = temperature,
+                orbEmotionAnimId = picked.orbAnimId
+            )
+        }
+
+        // =====================================================================
+        // F4. 趣味互動：冷知識、講故事、猜謎、腦筋急轉彎、今日運勢
+        // =====================================================================
+        if (lower.contains("冷知識") || lower.contains("講個故事") || lower.contains("說個故事") ||
+            lower.contains("腦筋急轉彎") || lower.contains("猜謎") || lower.contains("運勢") ||
+            lower.contains("算命")
+        ) {
+            val funCandidates = when {
+                lower.contains("冷知識") -> listOf(
+                    ScoredCandidate("跟你說個冷知識：海獺睡覺時會手牽手，這樣才不會被海流沖散；而且牠們腋下還有個小口袋專門放最喜歡的石頭！", 1.35f, 36),
+                    ScoredCandidate("冷知識時間：蜂蜜是少數幾乎不會腐壞的天然食物，考古學家在古埃及金字塔裡發現三千年前的蜂蜜依然可以食用喔！", 1.30f, 37),
+                    ScoredCandidate("你知道嗎？章魚有三個心臟、九個大腦，而且牠們的血液其實是藍色的！是不是超像外星生物？", 1.25f, 45)
+                )
+                lower.contains("故事") -> listOf(
+                    ScoredCandidate("從前有顆住在手機裡的小圓球，每天最期待的事就是看主人滑手機時突然戳它一下跟它聊天，因為那樣它的雙眼就會亮起彩色的光。", 1.35f, 46),
+                    ScoredCandidate("以前有個旅人在沙漠走了三天，終於看到一間小店，推開門發現裡面只賣冰鎮西瓜跟無限暢飲的綠茶，那瞬間他覺得這就是全世界最棒的寶藏。", 1.28f, 35)
+                )
+                lower.contains("運勢") || lower.contains("算命") -> listOf(
+                    ScoredCandidate("我幫你夜觀處理器星象：今天你的宜「吃頓好料、早點休息」，忌「熬夜焦慮」，整體幸運指數五顆星！", 1.35f, 36),
+                    ScoredCandidate("今日運勢大吉！你今天特別適合放慢步調做自己喜歡的事，說不定還會在路上遇到讓你心情變好的小確幸喔。", 1.28f, 46)
+                )
+                else -> listOf(
+                    ScoredCandidate("來個腦筋急轉彎：什麼東西越洗越髒，不洗反而很乾淨？答案是「水」！你猜對了嗎？", 1.35f, 45),
+                    ScoredCandidate("猜謎時間：白天不見晚上見，只放光明不放電，圓的時候像玉盤，彎的時候像小船——答案就是「月亮」啦！", 1.28f, 36)
+                )
+            }
+            val picked = sampleCandidateWithTemperature(funCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            return ChatBrainResponse(ChatBrainRoute.PURE_CHITCHAT, picked.text, null, temperature, picked.orbAnimId)
+        }
+
+        // =====================================================================
+        // F5. 人生哲學、生活建議、比較選擇（「A還是B」、「怎麼減肥」、「怎麼賺錢」、「人生的意義」）
+        // =====================================================================
+        if (lower.contains("人生的意義") || lower.contains("什麼是幸福") || lower.contains("什麼是愛") ||
+            lower.contains("怎麼減肥") || lower.contains("如何減肥") || lower.contains("怎麼瘦") ||
+            lower.contains("怎麼賺錢") || lower.contains("怎麼學英文") || lower.contains("怎麼寫程式") ||
+            (lower.contains("還是") && lower.length <= 24)
+        ) {
+            val adviceCandidates = when {
+                lower.contains("人生的意義") || lower.contains("幸福") || lower.contains("什麼是愛") -> listOf(
+                    ScoredCandidate("我覺得人生的意義不用想得太沉重，能吃到喜歡的食物、跟在乎的人相處、體驗好奇的事物，這些瞬間加起來就是意義了。", 1.35f, 46),
+                    ScoredCandidate("幸福其實很簡單，像是累了一天躺在剛換好床單的床上，或是有人隨時在身邊聽你說話，就是最踏實的幸福。", 1.28f, 35)
+                )
+                lower.contains("減肥") || lower.contains("怎麼瘦") -> listOf(
+                    ScoredCandidate("最穩的減肥其實是「七分飲食、三分運動」：戒掉含糖飲料、多喝水跟補充蛋白質，再搭配每天快走或重訓，不用挨餓也能瘦得健康！", 1.35f, 35),
+                    ScoredCandidate("別用極端節食折磨自己！先把宵夜跟手搖飲減半，睡飽一點讓代謝維持正常，持之以恆最有效。", 1.28f, 62)
+                )
+                lower.contains("賺錢") || lower.contains("學英文") || lower.contains("寫程式") -> listOf(
+                    ScoredCandidate("不管是學技能還是累積財富，最關鍵的都是「每天持續投入一點點」加上實戰練習，複利效應累積起來超驚人！", 1.35f, 62),
+                    ScoredCandidate("先從最小的可執行目標開始，每天固定練習半小時，比一次衝刺三天就放棄有效太多了！需要查詳細教材可以點下方搜尋。", 1.28f, 35)
+                )
+                else -> listOf(
+                    ScoredCandidate("這兩個其實各有優點欸！如果是我選，我會挑現在當下最讓你心動、最不後悔的那個，你的直覺偏向哪一邊？", 1.35f, 37),
+                    ScoredCandidate("小孩子才做選擇，如果情況允許的話輪流體驗也不錯！不過硬要二選一的話，選讓你感覺最輕鬆舒服的那個準沒錯。", 1.28f, 36)
+                )
+            }
+            val picked = sampleCandidateWithTemperature(adviceCandidates, temperature = temperature, userEntropySalt = q.hashCode())
             return ChatBrainResponse(ChatBrainRoute.PURE_CHITCHAT, picked.text, null, temperature, picked.orbAnimId)
         }
 
@@ -705,8 +858,8 @@ object ConversationalChatEngine {
     }
 
     /**
-     * 當使用者輸入任何未命中規則的自由對話句子時，判斷它是：
-     * - 「真正的自然對話 / 感嘆 / 閒聊」（不該亂跳「這要上網查」，而是用 Temp=0.7 自然接話）
+     * 當使用者輸入任何未命中規則的自由對話句子或開放式問題時，判斷它是：
+     * - 「自然對話 / 感嘆 / 意見討論 / 為什麼 / 怎麼做」（絕不跳「這要上網查，按執行幫你搜。」，而是用 Temp=0.72 自然接話）
      * - 還是「明確想查詢某個未知知識名詞」（自然說明並附上 Google/Chrome 搜尋按鈕）
      */
     fun generateOpenEndedChatOrLookupFallback(
@@ -716,22 +869,25 @@ object ConversationalChatEngine {
     ): ChatBrainResponse {
         val q = userText.trim()
         val extraction = LocalKnowledgeAndReasoningEngine.extractQuestionTopic(q)
+        val topic = extraction.cleanTopic.ifEmpty { q }
 
-        // 若句子是針對「你 / 我 / 今天 / 覺得 / 心情 / 為什麼你」等對話型語句，視為純聊天，不掛搜尋按鈕
-        val isConversationalStatement =
-            q.startsWith("你") || q.startsWith("妳") || q.startsWith("我") ||
+        // 1. 純日常對話、感嘆、詢問 AI 看法或個人感受（不掛載多餘的搜尋按鈕）
+        val isPurePersonalOrOpinionChat =
+            ((q.startsWith("你") || q.startsWith("妳") || q.startsWith("我")) &&
+                !q.startsWith("誰是") && !q.startsWith("什麼是") && !q.endsWith("是什麼") && !q.endsWith("是誰")) ||
                 q.contains("你覺得") || q.contains("妳覺得") || q.contains("怎麼想") ||
                 q.contains("好嗎") || q.contains("對不對") || q.contains("是不是") ||
                 q.contains("哈哈") || q.contains("呵呵") || q.contains("笑死") ||
                 q.contains("真的假的") || q.contains("原來如此") || q.contains("好吧") ||
-                q.contains("沒事") || q.contains("算了")
+                q.contains("沒事") || q.contains("算了") || q.contains("無聊") ||
+                q.contains("聊天") || q.contains("說話")
 
-        if (isConversationalStatement && !q.startsWith("誰是") && !q.startsWith("什麼是") && !q.endsWith("是什麼")) {
+        if (isPurePersonalOrOpinionChat) {
             val candidates = when {
                 q.contains("你覺得") || q.contains("怎麼想") || q.contains("對不對") || q.contains("是不是") -> listOf(
-                    ScoredCandidate("我覺得你說得蠻有道理的，從這個角度看確實是這樣！", 1.35f, 37),
+                    ScoredCandidate("我覺得你說得蠻有道理的，從這個角度看確實是這樣！你平常也會常想這個問題嗎？", 1.35f, 37),
                     ScoredCandidate("這點我也認同，不過每個人的感受可能不太一樣，你自己的直覺怎麼看？", 1.28f, 62),
-                    ScoredCandidate("仔細想想確實是這麼回事，你的觀察很敏銳欸。", 1.22f, 35)
+                    ScoredCandidate("仔細想想確實是這麼回事，你的觀察很敏銳欸！", 1.22f, 35)
                 )
                 q.contains("哈哈") || q.contains("笑死") || q.contains("好笑") -> listOf(
                     ScoredCandidate("看你笑得這麼開心，我也跟著心情好起來了！", 1.35f, 36),
@@ -746,9 +902,9 @@ object ConversationalChatEngine {
                     ScoredCandidate("沒問題，我們隨時可以換個話題，或者去滑滑影片放鬆一下。", 1.28f, 45)
                 )
                 else -> listOf(
-                    ScoredCandidate("嗯嗯，我有在聽！跟我多說一點，或是想讓我幫你查什麼都可以直接講。", 1.35f, 35),
-                    ScoredCandidate("原來是這樣，聽起來挺有意思的！接下來想做點什麼嗎？", 1.28f, 37),
-                    ScoredCandidate("收到！不管是想繼續聊這個話題，還是要打開哪個 App 看都可以跟我說。", 1.22f, 35)
+                    ScoredCandidate("嗯嗯，我有在聽！跟我多說一點，或是想讓我幫你做什麼都可以直接講。", 1.35f, 35),
+                    ScoredCandidate("原來是這樣，聽起來挺有意思的！你現在心情還好嗎？", 1.28f, 37),
+                    ScoredCandidate("了解！不管是想繼續聊這個話題，還是要打開哪個 App 看都可以跟我說。", 1.22f, 35)
                 )
             }
             val picked = sampleCandidateWithTemperature(candidates, temperature = temperature, userEntropySalt = q.hashCode())
@@ -761,11 +917,45 @@ object ConversationalChatEngine {
             )
         }
 
-        // 若是詢問某個具體名詞或知識（例如未知專有名詞），提供自然回應並在下方附上搜尋執行按鈕
-        val topic = extraction.cleanTopic.ifEmpty { q }
+        // 2. 「為什麼 / 怎麼會 / 如何 / 怎麼辦」等開放式探討問句：先給出自然思考回應，下方附帶搜尋按鈕供深入了解
+        if (q.startsWith("為什麼") || q.startsWith("為啥") || q.contains("為什麼") ||
+            q.startsWith("怎麼") || q.startsWith("如何") || q.endsWith("怎麼辦")
+        ) {
+            val whyHowCandidates = listOf(
+                ScoredCandidate("關於「$topic」通常跟背後的環境條件或習慣有關，如果你想看最完整的專業解析，點下方按鈕我就幫你開瀏覽器查！", 1.35f, 37),
+                ScoredCandidate("這問題問得很好欸！「$topic」往往有好幾個關鍵原因，需要看詳細圖文攻略的話，點下面的按鈕我幫你搜。", 1.28f, 62),
+                ScoredCandidate("這確實是很多人會好奇的問題！想看具體步驟或詳細原因的話，可以點下方執行幫你打開搜尋。", 1.22f, 35)
+            )
+            val picked = sampleCandidateWithTemperature(whyHowCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            return ChatBrainResponse(
+                route = ChatBrainRoute.KNOWLEDGE_QA_WITH_SEARCH_BUTTON,
+                replyText = picked.text,
+                suggestedExecutableCommand = plannedExecutableCommand,
+                sampledTemperature = temperature,
+                orbEmotionAnimId = picked.orbAnimId
+            )
+        }
+
+        // 3. 一般是非問句或好奇詢問（如「...好嗎」、「...好吃嗎」、「...好玩嗎」、「...嗎」）
+        if (q.endsWith("嗎") || q.endsWith("嗎？") || q.endsWith("嗎?") || q.contains("好吃嗎") || q.contains("好玩嗎")) {
+            val yesNoCandidates = listOf(
+                ScoredCandidate("這要看個人的喜好跟當下情況欸！不過「$topic」討論度蠻高的，想看大家的評價可以點下方按鈕搜尋看看。", 1.35f, 35),
+                ScoredCandidate("我覺得蠻值得一試的！如果你想看更多網友的心得或細節，點下面的按鈕我直接幫你查「$topic」。", 1.28f, 37)
+            )
+            val picked = sampleCandidateWithTemperature(yesNoCandidates, temperature = temperature, userEntropySalt = q.hashCode())
+            return ChatBrainResponse(
+                route = ChatBrainRoute.KNOWLEDGE_QA_WITH_SEARCH_BUTTON,
+                replyText = picked.text,
+                suggestedExecutableCommand = plannedExecutableCommand,
+                sampledTemperature = temperature,
+                orbEmotionAnimId = picked.orbAnimId
+            )
+        }
+
+        // 4. 其他具體名詞或主題詢問：提供自然對話說明並在下方附上搜尋執行按鈕
         val lookupCandidates = listOf(
-            ScoredCandidate("關於「$topic」的詳細資訊或最新內容，可以點下方的按鈕，我直接幫你打開搜尋看看！", 1.35f, 37),
-            ScoredCandidate("「$topic」這個主題如果搭配網頁圖文會更清楚，點下面的按鈕我就幫你開瀏覽器查。", 1.28f, 62)
+            ScoredCandidate("你對「$topic」感興趣嗎？如果想看最完整的介紹或最新資訊，點下方的按鈕，我直接幫你打開瀏覽器搜尋！", 1.35f, 37),
+            ScoredCandidate("聊到「$topic」，搭配網頁上的圖文資訊一起看會更清楚喔！點下面的按鈕我就幫你搜尋。", 1.28f, 62)
         )
         val picked = sampleCandidateWithTemperature(lookupCandidates, temperature = temperature, userEntropySalt = q.hashCode())
         return ChatBrainResponse(

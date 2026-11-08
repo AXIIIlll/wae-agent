@@ -728,6 +728,14 @@ object OpenSourceAiDatabaseManager {
     /**
      * 查詢 120,000 條中文百科、詞彙與成語常識問答庫（O(1) 雜湊 + 二元字首倒排索引加速）
      */
+    private val QA_GENERIC_SKIP_WORDS = setOf(
+        "什麼", "為什麼", "為啥", "怎麼", "如何", "哪裡", "哪個", "多少", "幾點",
+        "可以", "能夠", "是不是", "好不好", "有沒有", "會不會", "對不對", "行不行",
+        "今天", "明天", "昨天", "現在", "目前", "最近", "剛剛", "以後", "之後",
+        "覺得", "認為", "喜歡", "討厭", "知道", "請問", "告訴", "解釋", "介紹",
+        "意思", "東西", "事情", "問題", "方法", "原因", "結果", "感覺", "心情"
+    )
+
     fun lookupEncyclopediaOrLexicalQa(
         cleanTopic: String,
         context: Context? = null
@@ -740,13 +748,24 @@ object OpenSourceAiDatabaseManager {
         encyclopediaQaMap[lower]?.let { return it }
         encyclopediaQaMap[normTw]?.let { return it }
 
-        // 使用二元字首倒排索引 (encyclopediaPrefixIndex) 執行高速前綴/子串檢索，避免線性掃描 12 萬筆詞條
-        if (normTw.length in 2..8) {
-            val prefix2 = normTw.substring(0, 2)
+        // 剝離常見口語問句外殼後再次 O(1) 精確查表
+        val stripped = normTw
+            .replace(Regex("^(?:請問一下|請問|幫我解釋|解釋一下|介紹一下|跟我說說|說說看|到底|究竟|為什麼會|為什麼|什麼叫做|什麼叫|什麼是|啥是|誰是)\\s*"), "")
+            .replace(Regex("\\s*(?:是什麼意思|是什麼東西|是什麼水果|是什麼動物|是什麼概念|是什麼|是啥意思|是啥|的意思|有什麼用|有什麼好處|怎麼來的|怎麼形成|嗎|呢|吧|啊|[？?！!。，,])+\\s*$"), "")
+            .trim()
+
+        if (stripped.isNotEmpty() && stripped !in QA_GENERIC_SKIP_WORDS) {
+            encyclopediaQaMap[stripped]?.let { return it }
+        }
+
+        // 使用二元字首倒排索引 (encyclopediaPrefixIndex) 執行高速前綴檢索
+        val targetForPrefix = if (stripped.length in 2..8) stripped else normTw
+        if (targetForPrefix.length in 2..8 && targetForPrefix !in QA_GENERIC_SKIP_WORDS) {
+            val prefix2 = targetForPrefix.substring(0, 2)
             val candidates = encyclopediaPrefixIndex[prefix2]
             if (candidates != null) {
                 for ((k, v) in candidates) {
-                    if (k == normTw || (normTw.length >= 2 && k.startsWith(normTw))) {
+                    if (k == targetForPrefix || (targetForPrefix.length >= 2 && k.startsWith(targetForPrefix))) {
                         return v
                     }
                 }

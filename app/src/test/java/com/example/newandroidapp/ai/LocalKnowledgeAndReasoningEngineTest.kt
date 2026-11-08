@@ -21,8 +21,8 @@ class LocalKnowledgeAndReasoningEngineTest {
     @Test
     fun `test unindexed question plans full Chrome search command instead of raw question`() {
         val (reply, plannedCmd) = AndroidNativeAiEngine.generateConversationalReply("誰是張三豐測試人物", null)
-        assertEquals("這要上網查，按執行幫你搜。", reply)
-        assertTrue(reply.length <= 20)
+        assertTrue(reply.isNotBlank())
+        assertTrue(reply != "這要上網查，按執行幫你搜。")
         assertEquals("打開 Chrome 搜尋 張三豐測試人物", plannedCmd)
     }
 
@@ -392,6 +392,23 @@ class LocalKnowledgeAndReasoningEngineTest {
         val (strawberryReply, strawberryCmd) = AndroidNativeAiEngine.generateConversationalReply("什麼是草莓", null)
         assertTrue("草莓回答必須包含草莓與特徵說明: $strawberryReply", strawberryReply.contains("草莓") && strawberryReply.contains("水果"))
         assertEquals("打開 Chrome 搜尋 草莓", strawberryCmd)
+
+        // 4. 廣泛日常問題與閒聊（晚餐、感情、為什麼、好不好、冷知識、12萬百科）絕不再跳出「這要上網查，按執行幫你搜。」
+        val diverseQuestions = listOf(
+            "今天晚餐吃什麼好？",
+            "你有感情嗎？",
+            "為什麼人要睡覺？",
+            "草莓好吃嗎？",
+            "跟我說個冷知識",
+            "週末去哪玩比較好？",
+            "貓咪可愛還是狗狗可愛",
+            "破釜沉舟是什麼意思"
+        )
+        for (q in diverseQuestions) {
+            val (reply, _) = AndroidNativeAiEngine.generateConversationalReply(q, null)
+            assertTrue("問題「$q」不應回傳僵化搜尋句，實際回傳: $reply", reply != "這要上網查，按執行幫你搜。")
+            assertTrue("問題「$q」不應回傳呆板執行句，實際回傳: $reply", reply != "知道了，按執行我就幫你用。")
+        }
     }
 
     @Test

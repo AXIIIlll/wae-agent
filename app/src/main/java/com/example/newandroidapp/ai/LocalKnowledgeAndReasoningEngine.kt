@@ -338,10 +338,18 @@ object LocalKnowledgeAndReasoningEngine {
         val extraction = extractQuestionTopic(q)
         val cleanTopic = extraction.cleanTopic.lowercase()
 
-        // 避免攔截明確的 App 操控指令（例如「打開 YouTube 搜尋周杰倫」）
+        // 避免攔截明確的 App 操控指令（例如「打開 YouTube 搜尋周杰倫」），但保留所有日常疑問句與對話句型
+        val hasConversationalQuestionForm =
+            q.startsWith("誰是") || q.endsWith("是誰") ||
+                q.startsWith("什麼是") || q.endsWith("是什麼") ||
+                q.startsWith("為什麼") || q.startsWith("為啥") ||
+                q.startsWith("怎麼") || q.startsWith("如何") ||
+                q.contains("你覺得") || q.contains("怎麼辦") ||
+                q.contains("去哪裡") || q.contains("去哪玩") ||
+                q.endsWith("嗎") || q.endsWith("？") || q.endsWith("?")
+
         val isExplicitAppControl = EXPLICIT_ACTION_REGEX.containsMatchIn(q) &&
-            !q.startsWith("誰是") && !q.endsWith("是誰") &&
-            !q.startsWith("什麼是") && !q.endsWith("是什麼") &&
+            !hasConversationalQuestionForm &&
             !q.startsWith("幫我查") && !q.startsWith("查一下")
 
         if (!isExplicitAppControl) {
@@ -364,27 +372,30 @@ object LocalKnowledgeAndReasoningEngine {
                 if (openSourceHit != null) {
                     val (canonicalTopic, answerText) = openSourceHit
                     val plannedSearch = "打開 $browserApp 搜尋 $canonicalTopic"
+                    val cleanAnswer = if (answerText.length > 110) answerText.take(110) + "…" else answerText
                     return ConversationalReasoningResult(
-                        replyText = HumanColloquialPersonaEngine.enforceConciseLength(answerText),
+                        replyText = cleanAnswer,
                         plannedExecutableCommand = plannedSearch
                     )
                 }
             }
         }
 
-        // 5. 若屬於客觀知識疑問句或查詢意圖（排除對 AI 或自身狀態的日常對話問句），但不在本機離線百科內：
-        //    誠實告知需要上網查，並「預先規劃好完整的 Chrome/Google 搜尋指令」！
-        val isPersonalChatQuestion = (q.startsWith("你") || q.startsWith("妳") || q.startsWith("我")) &&
-            !q.startsWith("誰是") && !q.startsWith("什麼是") && !q.endsWith("是什麼") && !q.endsWith("是誰")
-        if (!isExplicitAppControl && !isPersonalChatQuestion && extraction.isQuestionOrLookup && extraction.cleanTopic.isNotEmpty()) {
+        // 5. 若屬於疑問句或查詢意圖，但不在本機離線百科內：
+        //    全面交由第二腦 Temperature = 0.72f 自然對話回應並附帶搜尋按鈕，徹底廢除「這要上網查，按執行幫你搜。」！
+        if (!isExplicitAppControl && extraction.isQuestionOrLookup && extraction.cleanTopic.isNotEmpty()) {
             val plannedCmd = if (extraction.isLocationLookup) {
                 "打開 Google 地圖 搜尋 ${extraction.cleanTopic}"
             } else {
                 "打開 $browserApp 搜尋 ${extraction.cleanTopic}"
             }
-            return ConversationalReasoningResult(
-                replyText = HumanColloquialPersonaEngine.enforceConciseLength("這要上網查，按執行幫你搜。"),
+            val openChatFallback = ConversationalChatEngine.generateOpenEndedChatOrLookupFallback(
+                userText = q,
                 plannedExecutableCommand = plannedCmd
+            )
+            return ConversationalReasoningResult(
+                replyText = openChatFallback.replyText,
+                plannedExecutableCommand = openChatFallback.suggestedExecutableCommand
             )
         }
 
