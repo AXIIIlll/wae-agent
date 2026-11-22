@@ -1,0 +1,106 @@
+# WAE 100 題人工驗證清單（2026-11-22）
+# 格式：id <TAB> tier <TAB> command <TAB> target_app <TAB> risk
+# 依 benchmark/README.md 的分級：EASY 30 / MEDIUM 30 / HARD 25 / EXTREME 15
+# risk：safe=唯讀或可回復；confirm=會改設定但可改回；risky=會產生資料或不可逆，測前想清楚
+# 題目只用這台手機實際安裝的 App（設定、時鐘、相機、計算機、聯絡人、電話、Chrome、
+# Samsung 瀏覽器、地圖、YouTube、YouTube Music、相簿、影片、Spotify）。
+001	EASY	打開設定	com.android.settings	safe
+002	EASY	打開時鐘	com.sec.android.app.clockpackage	safe
+003	EASY	打開相機	com.sec.android.app.camera	safe
+004	EASY	打開計算機	com.sec.android.app.popupcalculator	safe
+005	EASY	打開聯絡人	com.samsung.android.app.contacts	safe
+006	EASY	打開 Chrome	com.android.chrome	safe
+007	EASY	打開地圖	com.google.android.apps.maps	safe
+008	EASY	打開 YouTube	com.google.android.youtube	safe
+009	EASY	打開相簿	com.google.android.apps.photos	safe
+010	EASY	打開 Spotify	com.spotify.music	safe
+011	EASY	在設定裡搜尋藍牙	com.android.settings	safe
+012	EASY	在設定裡搜尋 Wi-Fi	com.android.settings	safe
+013	EASY	在設定裡搜尋電池	com.android.settings	safe
+014	EASY	在設定裡搜尋顯示	com.android.settings	safe
+015	EASY	在 Chrome 搜尋貓咪	com.android.chrome	safe
+016	EASY	在 YouTube 搜尋烹飪影片	com.google.android.youtube	safe
+017	EASY	在地圖搜尋咖啡店	com.google.android.apps.maps	safe
+018	EASY	在時鐘看世界時間	com.sec.android.app.clockpackage	safe
+019	EASY	在時鐘查看鬧鐘清單	com.sec.android.app.clockpackage	safe
+020	EASY	打開 Wi-Fi	com.android.settings	confirm
+021	EASY	關閉藍牙	com.android.settings	confirm
+022	EASY	把亮度調高	com.android.settings	confirm
+023	EASY	把音量調低	com.android.settings	confirm
+024	EASY	在聯絡人搜尋王	com.samsung.android.app.contacts	safe
+025	EASY	在電話查看通話紀錄	com.samsung.android.dialer	safe
+026	EASY	打開 Chrome 的歷史紀錄	com.android.chrome	safe
+027	EASY	在地圖看目前位置	com.google.android.apps.maps	safe
+028	EASY	在 YouTube 打開首頁	com.google.android.youtube	safe
+029	EASY	打開 Samsung 瀏覽器	com.sec.android.app.sbrowser	safe
+030	EASY	打開 YouTube Music	com.google.android.apps.youtube.music	safe
+031	MEDIUM	在設定裡搜尋飛航模式並打開	com.android.settings	confirm
+032	MEDIUM	在設定裡開啟 Wi-Fi 並查看已連線網路	com.android.settings	confirm
+033	MEDIUM	在設定裡進入藍牙並看已配對裝置	com.android.settings	safe
+034	MEDIUM	在設定裡把字型調大	com.android.settings	confirm
+035	MEDIUM	在設定裡關閉自動旋轉	com.android.settings	confirm
+036	MEDIUM	在設定裡查看電池用量	com.android.settings	safe
+037	MEDIUM	在設定裡查看儲存空間	com.android.settings	safe
+038	MEDIUM	在設定裡查看應用程式清單	com.android.settings	safe
+039	MEDIUM	在 Chrome 搜尋今天天氣並打開第一個結果	com.android.chrome	safe
+040	MEDIUM	在 Chrome 搜尋台北車站	com.android.chrome	safe
+041	MEDIUM	在 YouTube 搜尋音樂並播放第一首	com.google.android.youtube	safe
+042	MEDIUM	在 YouTube 搜尋新聞並打開第一個	com.google.android.youtube	safe
+043	MEDIUM	在地圖搜尋加油站	com.google.android.apps.maps	safe
+044	MEDIUM	在地圖搜尋停車場	com.google.android.apps.maps	safe
+045	MEDIUM	在地圖查看路線到台北 101	com.google.android.apps.maps	safe
+046	MEDIUM	在相簿查看最近的照片	com.google.android.apps.photos	safe
+047	MEDIUM	在相簿搜尋食物	com.google.android.apps.photos	safe
+048	MEDIUM	在時鐘新增一個早上七點的鬧鐘	com.sec.android.app.clockpackage	confirm
+049	MEDIUM	在時鐘開啟計時器	com.sec.android.app.clockpackage	safe
+050	MEDIUM	在計算機算 15 乘以 8	com.sec.android.app.popupcalculator	safe
+051	MEDIUM	在聯絡人新增聯絡人	com.samsung.android.app.contacts	risky
+052	MEDIUM	在電話查看未接來電	com.samsung.android.dialer	safe
+053	MEDIUM	在 Spotify 搜尋周杰倫	com.spotify.music	safe
+054	MEDIUM	在 Spotify 播放每日推薦	com.spotify.music	safe
+055	MEDIUM	在設定裡查看通知設定	com.android.settings	safe
+056	MEDIUM	在設定裡查看隱私權	com.android.settings	safe
+057	MEDIUM	在設定裡查看語言與輸入	com.android.settings	safe
+058	MEDIUM	在設定裡查看關於手機	com.android.settings	safe
+059	MEDIUM	在 Chrome 開啟新分頁並搜尋台灣	com.android.chrome	safe
+060	MEDIUM	在 YouTube Music 搜尋歌單	com.google.android.apps.youtube.music	safe
+061	HARD	在設定裡把 Wi-Fi 關掉再打開	com.android.settings	confirm
+062	HARD	在設定裡找到開發人員選項並查看 USB 偵錯狀態	com.android.settings	safe
+063	HARD	在設定裡查看某個 App 的權限	com.android.settings	safe
+064	HARD	在設定裡把螢幕逾時改成 1 分鐘	com.android.settings	confirm
+065	HARD	在設定裡關閉某個 App 的通知再開回來	com.android.settings	confirm
+066	HARD	在 Chrome 搜尋餐廳並找評分最高的	com.android.chrome	safe
+067	HARD	在 Chrome 開啟無痕視窗搜尋	com.android.chrome	safe
+068	HARD	在 YouTube 搜尋並篩選本週上傳	com.google.android.youtube	safe
+069	HARD	在 YouTube 訂閱一個頻道	com.google.android.youtube	risky
+070	HARD	在地圖搜尋咖啡店並看評價	com.google.android.apps.maps	safe
+071	HARD	在地圖規劃步行路線	com.google.android.apps.maps	safe
+072	HARD	在地圖切換衛星檢視	com.google.android.apps.maps	safe
+073	HARD	在相簿建立新相簿並命名	com.google.android.apps.photos	risky
+074	HARD	在相簿分享一張照片	com.google.android.apps.photos	risky
+075	HARD	在時鐘設定週一到週五的鬧鐘	com.sec.android.app.clockpackage	confirm
+076	HARD	在時鐘刪除一個鬧鐘	com.sec.android.app.clockpackage	confirm
+077	HARD	在計算機換算匯率	com.sec.android.app.popupcalculator	safe
+078	HARD	在聯絡人編輯一個聯絡人的電話	com.samsung.android.app.contacts	risky
+079	HARD	在電話輸入號碼但不要撥出	com.samsung.android.dialer	safe
+080	HARD	在 Spotify 建立播放清單	com.spotify.music	risky
+081	HARD	在 Spotify 播放某張專輯	com.spotify.music	safe
+082	HARD	在設定裡查看 App 的電池使用限制	com.android.settings	safe
+083	HARD	在設定裡關閉背景資料再開回來	com.android.settings	confirm
+084	HARD	在 Chrome 下載一個檔案	com.android.chrome	risky
+085	HARD	在 YouTube 開啟字幕	com.google.android.youtube	safe
+086	EXTREME	在設定裡找到飛航模式，開啟後再關閉，最後確認狀態	com.android.settings	confirm
+087	EXTREME	在設定裡把 Wi-Fi 關掉再打開，最後回到設定首頁	com.android.settings	confirm
+088	EXTREME	在設定裡依序關閉藍牙、定位、NFC	com.android.settings	confirm
+089	EXTREME	在 Chrome 搜尋三個不同關鍵字後回到第一個分頁	com.android.chrome	safe
+090	EXTREME	在 YouTube 搜尋一部影片，看幾秒後返回再搜尋另一部	com.google.android.youtube	safe
+091	EXTREME	在地圖搜尋加油站，規劃路線後改成步行	com.google.android.apps.maps	safe
+092	EXTREME	在相簿把一張照片加入最愛後再取消	com.google.android.apps.photos	risky
+093	EXTREME	在時鐘新增鬧鐘、確認清單、再刪除它	com.sec.android.app.clockpackage	confirm
+094	EXTREME	在設定裡開啟省電模式並確認電量顯示	com.android.settings	confirm
+095	EXTREME	在設定裡把語言改成英文再改回中文	com.android.settings	risky
+096	EXTREME	在 Chrome 開啟網站後用頁內搜尋找關鍵字	com.android.chrome	safe
+097	EXTREME	在 YouTube 搜尋後回到首頁再打開訂閱	com.google.android.youtube	safe
+098	EXTREME	在計算機連續算三個不同算式並清除	com.sec.android.app.popupcalculator	safe
+099	EXTREME	在設定裡查看儲存空間後清除快取再確認	com.android.settings	confirm
+100	EXTREME	在聯絡人搜尋並開啟聯絡人後返回清單	com.samsung.android.app.contacts	safe

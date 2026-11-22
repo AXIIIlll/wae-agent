@@ -103,6 +103,16 @@
             android:name=".settings.SettingsActivity"
             android:exported="false"
             android:label="設定" />
+        <!-- 開發用：100 題驗證題庫（每列一題，點一下複製、長按執行） -->
+        <activity
+            android:name=".dev.BenchmarkTasksActivity"
+            android:exported="true"
+            android:label="驗證題庫">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".settings.AppTypeOrderActivity"
             android:exported="false"
