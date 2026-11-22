@@ -41,19 +41,6 @@ class WaeApp : Application() {
             }
         }.start()
 
-        // 每 App 的別名衍生：背景、一天一次、最多 12 個 App。
-        // 為什麼要模型：使用者講的是自己的說法（「短句」「哀居」），靜態清單永遠補不完。
-        // 為什麼放背景＋限量：0.6B 每生成一次要幾秒，不能擋啟動或語音指令。
-        Thread {
-            try {
-                val n = com.wae.agent.core.app.AliasGenerator.runOnce(this)
-                if (n > 0) {
-                    Log.i("WAE_ALIAS", "background alias generation wrote $n apps")
-                }
-            } catch (t: Throwable) {
-                Log.w("WAE_ALIAS", "background alias generation failed: " + t.message)
-            }
-        }.start()
     }
 
     private fun installCrashGuard() {

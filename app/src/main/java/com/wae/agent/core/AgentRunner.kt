@@ -21,13 +21,13 @@ import com.wae.agent.agent.Observer
 import com.wae.agent.agent.SafetyCheck
 import com.wae.agent.agent.UserAsker
 import com.wae.agent.agent.VerifyRules
-import com.wae.agent.llm.LlmPlanner
 import com.wae.agent.voice.VoiceRiskPolicy
 
 /**
- * LLM Agent 在真實裝置上的執行器（M2）：
- *   Planner（Qwen3-0.6B）→ Observation（無障礙樹）→ DecisionResolver（MiniLM）
- *   → Safety → 既有無障礙動作 → VerifyRules → 迴圈。
+ * 開放式目標在真實裝置上的執行器（M2，**不含 LLM**）：
+ *   AppSelector（意圖→類別→已安裝 App）→ OpenEndedPlanner（決定性模板）
+ *   → 或 ElementPlanner（逐元素打分）→ Observation（無障礙樹）
+ *   → DecisionResolver（MiniLM）→ Safety → 既有無障礙動作 → VerifyRules → 迴圈。
  *
  * 不含任何 App 專屬流程；動作只有通用種類。
  */
@@ -105,14 +105,8 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                 return VoiceRiskPolicy.classify(ctx, decision.text.orEmpty()) != VoiceRiskPolicy.Risk.BLOCK
             }
         }
-        val installedLabels = catalog.map { it.label }
-        val planner = LlmPlanner(
-            context = ctx,
-            installedAppsProvider = { installedLabels },
-            nThreads = 4
-        )
         // 第一段：先走「意圖 → 類別 → 已安裝 App」的決定性路徑（看劇／聽歌／導航這類），
-        // 只有低信心或平手才退回 embedding + LLM 問答。
+        // 沒有把握時退回模板或逐元素決策；本專案不出貨 LLM，所以沒有「生成計畫」這條路。
         val appDecision = com.wae.agent.core.app.AppSelector.select(
             goal, catalog, usage,
             bias = { cat, label -> com.wae.agent.core.app.AppChoiceMemo.bias(ctx, cat, label) }
@@ -142,7 +136,6 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             // 直接採用分數最高的候選，並在 log/畫面上說明選了誰。
             val best = appDecision.best
             if (best == null) {
-                planner.unload()
                 return AgentRunOutcome(
                     com.wae.agent.agent.AgentResult.ASKING,
                     "找不到可用的 App，請先安裝或直接說「打開 XX」",
@@ -158,68 +151,33 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                 "app auto-picked: $selectedApp (${best.candidate.pkg}) reason=${appDecision.reason}"
             )
         } else {
-            // 沒有內建模型（lite flavor）→ 改用「逐元素決策」迴圈（不生成文字、不需要 LLM）。
-            // 能做完就做完；不知道要做什麼就明確回報需要反問，不要硬跑一個註定失敗的計畫。
-            if (!planner.ensureLoaded()) {
-                val element = ElementPlanner(observer, resolver, executor, maxSteps = 8)
-                val r = element.run(goal)
-                planner.unload()
-                Log.i("WAE_AGENT", "element planner: success=${r.success} ask=${r.needsAsk} steps=${r.steps} reason=${r.reason}")
-                return AgentRunOutcome(
-                    when {
-                        r.success -> com.wae.agent.agent.AgentResult.SUCCESS
-                        r.needsAsk -> com.wae.agent.agent.AgentResult.ASKING
-                        else -> com.wae.agent.agent.AgentResult.FAIL
-                    },
-                    "element planner: " + r.reason + " steps=" + r.steps,
-                    llmCalls = 0
-                )
-            }
-            val shortlist = rankAppsByGoal(goal)
-            val bestScore = shortlist.firstOrNull()?.second ?: 0f
-            if (shortlist.isEmpty() || bestScore < 0.42f) {
-                val options = appDecision.options.ifEmpty { shortlist.take(3).map { it.first } }
-                Log.i(
-                    "WAE_AGENT",
-                    "app too uncertain (reason=${appDecision.reason} best=$bestScore) options=" + options
-                )
-                planner.unload()
-                return AgentRunOutcome(
-                    com.wae.agent.agent.AgentResult.ASKING,
-                    if (options.isEmpty()) "要開啟哪個 App？" else "要用哪個 App？ " + options.joinToString(" / "),
-                    llmCalls = 0
-                )
-            }
-            val names = shortlist.map { it.first }
-            val choice = planner.selectApp(goal, names)
-            if (choice != null && !choice.ask.isNullOrBlank()) {
-                planner.unload()
-                return AgentRunOutcome(
-                    com.wae.agent.agent.AgentResult.ASKING,
-                    choice.ask + " " + choice.options.joinToString(" / "),
-                    llmCalls = 1
-                )
-            }
-            selectedApp = choice?.app?.takeIf { it.isNotBlank() }
-                ?: shortlist.firstOrNull()?.first
-            if (selectedApp != null && !names.contains(selectedApp)) {
-                selectedApp = shortlist.firstOrNull()?.first
-            }
-            Log.i("WAE_AGENT", "shortlist=" + names + " -> selected=" + selectedApp)
+            // 沒有計畫模型（本專案不出貨 LLM）→ 直接走「逐元素決策」迴圈：
+            // 不生成任何文字，只在目前畫面上挑最該動的元素。能做完就做完；
+            // 不知道要做什麼就明確回報需要反問，不要硬跑一個註定失敗的計畫。
+            val element = ElementPlanner(observer, resolver, executor, maxSteps = 8)
+            val r = element.run(goal)
+            Log.i("WAE_AGENT", "element planner: success=${r.success} ask=${r.needsAsk} steps=${r.steps} reason=${r.reason}")
+            return AgentRunOutcome(
+                when {
+                    r.success -> com.wae.agent.agent.AgentResult.SUCCESS
+                    r.needsAsk -> com.wae.agent.agent.AgentResult.ASKING
+                    else -> com.wae.agent.agent.AgentResult.FAIL
+                },
+                "element planner: " + r.reason + " steps=" + r.steps,
+                llmCalls = 0
+            )
         }
         if (selectedApp != null) {
-            planner.selectedApp = selectedApp
             Log.i("WAE_AGENT", "selected app=" + selectedApp)
         }
         // 開放式意圖（看劇／聽歌／導航／外送／購物）走決定性模板：
-        // 0.6B planner 在這些句子上會退化成「到設定查看劇」，模板可靠得多。
+        // 模板可預測、步驟少，比「生成式計畫」在這些句子上可靠得多。
         // 先用 FuzzyIntent 抽槽位；缺必要槽位就反問，不要硬猜。
         val fuzzy = com.wae.agent.core.app.FuzzyIntent.resolve(goal)
         val slots: Map<String, String> = when (fuzzy) {
             is com.wae.agent.core.app.FuzzyIntent.Result.Resolved -> fuzzy.slots
             is com.wae.agent.core.app.FuzzyIntent.Result.Ask -> {
                 if (appDecision.confident) {
-                    planner.unload()
                     return AgentRunOutcome(
                         com.wae.agent.agent.AgentResult.ASKING,
                         fuzzy.question,
@@ -238,8 +196,8 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             Log.i("WAE_AGENT_TEMPLATE", "deterministic plan: " + templatePlan.summary)
             object : com.wae.agent.agent.Planner {
                 override fun plan(goal: String): com.wae.agent.agent.AgentPlan? = templatePlan
-                // 模板計畫失敗時只重試「失敗的那一步」一次（LLM 版靠 replan 重寫整份計畫，
-                // 模板沒有推理能力，重寫只會亂；重試一次對開屏慢、動畫延遲這類暫時性失敗有用）。
+                // 模板計畫失敗時只重試「失敗的那一步」一次（模板沒有推理能力，
+                // 重寫整份計畫只會亂；重試一次對開屏慢、動畫延遲這類暫時性失敗有用）。
                 override fun replan(
                     goal: String,
                     failedStep: com.wae.agent.agent.AgentStep?,
@@ -270,7 +228,19 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                 }
             }
         } else {
-            com.wae.agent.agent.AppBoundPlanner(planner, selectedApp)
+            // 沒有模板可套、也沒有 LLM 可以生成計畫 → 逐元素決策，並誠實回報結果。
+            val element = ElementPlanner(observer, resolver, executor, maxSteps = 8)
+            val r = element.run(goal)
+            Log.i("WAE_AGENT", "element planner (no template): success=${r.success} ask=${r.needsAsk} steps=${r.steps} reason=${r.reason}")
+            return AgentRunOutcome(
+                when {
+                    r.success -> com.wae.agent.agent.AgentResult.SUCCESS
+                    r.needsAsk -> com.wae.agent.agent.AgentResult.ASKING
+                    else -> com.wae.agent.agent.AgentResult.FAIL
+                },
+                "element planner: " + r.reason + " steps=" + r.steps,
+                llmCalls = 0
+            )
         }
         val loop = AgentLoop(
             planner = boundPlanner,
@@ -294,7 +264,6 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             "result=" + out.result + " steps=" + out.stepsExecuted + " llmCalls=" + out.llmCalls +
                 " ms=" + (SystemClock.elapsedRealtime() - t0) + " msg=" + out.message
         )
-        planner.unload()
         return out
     }
 

@@ -7,9 +7,9 @@
 每次改完程式碼，**一律**照這個順序做完，不需詢問：
 
 ```powershell
-$env:JAVA_HOME='C:\Users\Wade\.jdks\jbr-21.0.11'
+$env:JAVA_HOME='C:\Users\User\.jdks\jdk-21.0.13.1+2'
 $env:GRADLE_USER_HOME='E:\WAE\gradle-home'
-# full = 內建 Qwen3-0.6B（Agent 可用）；lite = 不含 GGUF（~157MB，Agent 會回報不可用）
+# full = 含 cross-encoder 語意精排（113MB）；lite = 不含精排，其餘相同
 .\gradlew.bat :app:testFullDebugUnitTest :app:assembleFullDebug --console=plain --no-daemon
 
 # SDK 已搬到 E 槽（C 槽保留給系統）
@@ -118,6 +118,17 @@ $adb="E:\WAE\android-sdk\platform-tools\adb.exe"
 - Instrumentation：`app/src/androidTest`（需裝置/emulator；`assembleDebugAndroidTest` 可編譯）。
 - CI：`.github/workflows/android.yml`（unit tests + assembleRelease + artifact）。
 - 語音/端到端腳本：`tools/voice_baseline.ps1`、`tools/e2e_benchmark.ps1`。
+
+## 5.8.1 本專案**不出貨 LLM**（2026-11-22 使用者決定）
+
+- 使用者原話：「我本來就沒打算加入 LLM」。`.gguf`、`llama.cpp`、`LlmPlanner`、
+  `QwenTaskPlanner`、`OpPlanner`（模型直接輸出 op）、`AliasGenerator`（模型生成別名）
+  已全部刪除，`extremeRuntimeHooks.AGENT_ENABLED` 與設定頁的模型列也一併移除。
+- 開放式目標（「我想看劇」）由**模板**與**逐元素決策**處理：
+  `OpenEndedPlanner`（TSV 模板）→ 失敗則 `ElementPlanner`（打分迴圈）→ 都不行才反問。
+- 決策鏈路仍然是模型，但都是**小模型／ONNX**（MiniLM、bge、tiny BERT、cross-encoder、OCR），
+  不是生成式 LLM：這些不是「LLM 冗余」，不要一起刪。
+- 守門測試 `ClickPathNoLlmTest` 會擋點擊路徑重新引入 LLM 字樣；要復活 LLM 請先問使用者。
 
 ## 5.9 簽章與版本
 

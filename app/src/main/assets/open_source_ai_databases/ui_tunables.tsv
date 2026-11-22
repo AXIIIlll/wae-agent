@@ -51,7 +51,3 @@ alias.generate_per_run	12	每輪背景別名生成最多處理幾個 App
 voice.wake_word_enabled	1	喚醒詞預設是否開啟（1/0）
 voice.confirm_first_n	20	前幾次高風險操作要確認
 perception.launch_settle_timeout_ms	12000	開 App 的等待上限（ms）；冷啟動比換頁慢很多，只等到畫面變了為止
-llm.temperature.plan	0.4	思考模型（任務拆解）的溫度：唯一允許有溫度的決策層
-llm.temperature.select	0.1	App 選擇的溫度（幾乎確定）
-llm.temperature.extract	0.0	槽位／別名抽取：必須完全可重現
-llm.temperature.copy	0.6	給人看的文字（摘要／草稿）才用高溫

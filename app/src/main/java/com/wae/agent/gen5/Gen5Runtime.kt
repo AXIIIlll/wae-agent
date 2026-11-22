@@ -515,15 +515,6 @@ object Gen5Runtime {
         // 例：「我想找 AI 資料」→ INFO → 瀏覽器搜尋；「我想找醫院」→ PLACE → 地圖
         runCatching { nounFallback(context, command) }.getOrNull()?.let { return it }
 
-        // 模型直接輸出 op（必須引用檢索片段）；lite 版沒有模型會自動回 null
-        runCatching {
-            val knowledge = com.wae.agent.chat.OpPlanner.contextFor(context, command)
-            com.wae.agent.chat.OpPlanner.planAndRun(context, command, knowledge)
-        }.getOrNull()?.takeIf { it.ok }?.let { result ->
-            Log.i(TAG, "result=SUCCESS opPlanner steps=" + result.steps.count { it.action == "OP" } + " command=$command")
-            return RunResult(Outcome.Success, result.summary, 0)
-        }
-
         // ── 使用者糾正（G7）──────────────────────────────────────────
         // 「不是這個」= 把上一次成功的那一步禁掉（同一畫面 × 效果 × 手段）。
         if (CORRECTION_PATTERN.matches(command.trim())) {

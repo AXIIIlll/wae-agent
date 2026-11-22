@@ -77,18 +77,6 @@ object VoiceCommandGate {
             runCatching { Log.i(TAG, "accept (complete goal): $text") }
             return true
         }
-        // 規則：使用者開啟 LLM Agent 後，合理長度的中文句子交給規劃器判斷（不是字表）
-        val agentOn = runCatching {
-            com.wae.agent.core.runtime.RuntimeFlags.isAgentEnabled(context)
-        }.getOrDefault(false)
-        if (agentOn) {
-            val normalized = text.replace(Regex("\\s+"), "")
-            val cjk = normalized.count { it.code in 0x4E00..0x9FFF }
-            if (cjk >= 2 && normalized.length <= 30) {
-                runCatching { Log.i(TAG, "accept (agent enabled): $text") }
-                return true
-            }
-        }
         return false
     }
 

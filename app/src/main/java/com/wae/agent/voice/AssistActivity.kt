@@ -640,24 +640,19 @@ class AssistActivity : Activity() {
         val text = raw.trim()
         if (text.isEmpty() || submitted) return
         submitted = true
-        // S60：Agent 模式（A/B）—目標類語句交給 LLM Agent；明確指令仍走快速路徑
-        val agentOn = runCatching {
-            com.wae.agent.core.runtime.RuntimeFlags.isAgentEnabled(applicationContext)
-        }.getOrDefault(false)
+        // 開放式語句交給開放式執行器（模板／逐元素決策，不用 LLM）；明確指令仍走快速路徑
         val agentSvc = WaeVisionAccessibilityService.activeInstance
         val route = runCatching {
             com.wae.agent.core.ExecutionRouter.route(applicationContext, text)
         }.getOrDefault(com.wae.agent.core.ExecutionRouter.Route.FAST)
-        // 規則：拆得出完整目標 → 快速；拆不出且 Agent 已開 → Agent；兩者皆無 → 請使用者打字
+        // 規則：拆得出完整目標 → 快速；拆不出但有意圖模板 → 開放式執行器；兩者皆無 → 請使用者打字
         if (route == com.wae.agent.core.ExecutionRouter.Route.ASK) {
             input.hint = "我不確定這是不是指令，請換個說法或打字"
             submitted = false
             switchToTyping()
             return
         }
-        if (route == com.wae.agent.core.ExecutionRouter.Route.AGENT &&
-            agentOn && agentSvc != null
-        ) {
+        if (route == com.wae.agent.core.ExecutionRouter.Route.AGENT && agentSvc != null) {
             try {
                 input.setText(text)
             } catch (_: Throwable) {}

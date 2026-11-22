@@ -9,7 +9,7 @@ package com.wae.agent.core.app
  *   Instagram / IG（短名，來自 metadata 別名）
  *   某某 App / 某某（去後綴）
  *
- * 純函式，JVM 可測。模型衍生的別名（`AliasGenerator`）會跟這裡的結果合併。
+ * 純函式，JVM 可測。全部由規則與 metadata 衍生，不依賴任何模型。
  */
 object AppAliasHeuristics {
 

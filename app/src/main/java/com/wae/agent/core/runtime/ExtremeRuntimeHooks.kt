@@ -59,15 +59,6 @@ object ExtremeRuntimeHooks {
      */
     @Volatile var WAE_OMEGA_ENABLED: Boolean = false
 
-    /**
-     * LLM Agent（S60）：目標類語句 → LLM 規劃 → reranker 決策 → 既有執行/安全層。
-     * 預設 **false**：M1–M4 驗證期間只開 emulator A/B；達標後才切預設。
-     */
-    @Volatile var AGENT_ENABLED: Boolean = false
-
-    /** Agent 失敗時是否退回舊的快速路徑（明確動詞）。 */
-    @Volatile var AGENT_FASTPATH_ENABLED: Boolean = true
-
     // ── 迴圈層 ────────────────────────────────────────────────────
 
     /** 每個迴圈開始。目前沒有需要記錄的東西，保留簽名給呼叫端。 */

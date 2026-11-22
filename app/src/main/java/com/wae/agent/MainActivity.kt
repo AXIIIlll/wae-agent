@@ -75,7 +75,6 @@ class MainActivity : Activity() {
     private lateinit var taskOsBtn: Button
     private lateinit var omegaBtn: Button
     private lateinit var grounding2Btn: Button
-    private lateinit var agentBtn: Button
     private lateinit var wakeWordBtn: Button
     private lateinit var recentCommandsView: TextView
     private lateinit var versionView: TextView
@@ -1715,18 +1714,18 @@ class MainActivity : Activity() {
             return
         }
 
-        // 通用規則：拆不出完整目標 + Agent 已開 → 交給 LLM Agent
+        // 通用規則：拆不出完整目標但有意圖模板 → 交給開放式執行器（模板／逐元素決策，不用 LLM）
         if (svc != null) {
             val route = runCatching {
                 com.wae.agent.core.ExecutionRouter.route(this, raw)
             }.getOrDefault(com.wae.agent.core.ExecutionRouter.Route.FAST)
             if (route == com.wae.agent.core.ExecutionRouter.Route.AGENT) {
-                statusLineView.text = "🤖 交給 LLM Agent 規劃「$raw」…"
+                statusLineView.text = "交給開放式執行器處理「$raw」…"
                 svc.runAgentCommand(raw)
                 return
             }
             if (route == com.wae.agent.core.ExecutionRouter.Route.ASK) {
-                statusLineView.text = "⚠ 我不確定這是不是指令，請換個說法（或開啟 LLM Agent 讓我自行規劃）"
+                statusLineView.text = "我不確定這是不是指令，請換個說法"
                 return
             }
         }
@@ -2104,11 +2103,6 @@ class MainActivity : Activity() {
         applyToggleStyle(taskOsBtn, "Task OS（長任務）", to)
         applyToggleStyle(omegaBtn, "WAE-Ω（可驗證執行）", om)
         applyToggleStyle(grounding2Btn, "Grounding 2.0", g2)
-        if (::agentBtn.isInitialized) {
-            val ag = com.wae.agent.core.runtime.RuntimeFlags.isAgentEnabled(this)
-            agentBtn.tag = ag
-            applyToggleStyle(agentBtn, "LLM Agent（目標式）", ag)
-        }
         if (::wakeWordBtn.isInitialized) {
             val wake = runCatching { com.wae.agent.voice.WakeWordService.isEnabled(this) }.getOrDefault(false)
             wakeWordBtn.tag = wake

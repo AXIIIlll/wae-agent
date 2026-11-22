@@ -128,8 +128,7 @@ class SettingsActivity : Activity() {
         // 關於
         section("關於")
         card(
-            infoRow("版本", "3.0.0-wae（versionCode 6）"),
-            infoRow("模型", if (hasAsset("models/qwen3-0.6b-instruct-iq4_xs.gguf")) "full（內建 Qwen3-0.6B）" else "lite（無內建模型）")
+            infoRow("版本", "3.0.0-wae（versionCode 6）")
         )
         target = null
 

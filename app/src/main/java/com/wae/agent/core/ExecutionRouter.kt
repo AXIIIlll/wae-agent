@@ -1,19 +1,18 @@
 package com.wae.agent.core
 
 import android.content.Context
-import com.wae.agent.core.runtime.RuntimeFlags
 
 /**
- * 執行路由（S61）：**用規則決定**要走快速管線還是 LLM Agent。
+ * 執行路由：**用規則決定**要走快速管線還是開放式執行器。
  *
  * 不寫死任何詞表；規則是：
  *  1. 先用既有的指令拆解器把句子拆成 LocalGoal（它本身就是資料驅動的通用解析器）。
  *  2. 拆得出「結構完整」的目標（有解析到 App、或輸入目標帶 App 與內容）→ 快速管線。
- *  3. 拆不出完整目標（只有畫面文字點擊、或完全沒有目標）→ 交給 LLM Agent。
- *  4. Agent 未開啟時 → 沿用舊行為（快速管線），不要讓純點擊指令因開關而失效。
+ *  3. 拆不出完整目標，但意圖類別有決定性模板（看劇／聽歌／導航／外送／查詢）→ 開放式執行器。
+ *  4. 都沒有 → 反問，不要硬猜。
  *
- * 這樣「打開設定」「打開 YouTube 搜尋貓咪」走快速路徑；
- * 「我想看劇」「幫我找一部電影」拆不出完整目標 → Agent 依畫面自行規劃。
+ * 本專案**不出貨 LLM**：開放式執行器由「模板」與「逐元素決策」組成，
+ * 沒有任何生成式模型，所以路由不需要判斷「模型存不存在」。
  */
 object ExecutionRouter {
 
@@ -34,18 +33,12 @@ object ExecutionRouter {
         // 規則 1：有「結構完整」的目標 → 快速管線
         if (goals.any { isStructurallyComplete(it) }) return Route.FAST
 
-        // 規則 2：拆不出完整目標 → Agent（前提是這個 flavor 真的有模型）
-        // 「我想看劇」「幫我找間餐廳」這類開放式目標，規則路徑永遠拆不出完整目標；
-        // 以前要手動開 AGENT_ENABLED 才會走 Agent，等於預設功能不存在。
-        // 現在改成：只要 APK 內有 GGUF（full flavor）就交給 Agent。
-        if (RuntimeFlags.isAgentEnabled(context) || isAgentModelAvailable(context)) return Route.AGENT
-
-        // 規則 2b：**沒有模型**也可能處理開放式意圖——只要意圖類別命中、且唯一選得出 App，
+        // 規則 2：**沒有生成模型**也能處理開放式意圖——只要意圖類別命中、且選得出 App，
         // 就走 `OpenEndedPlanner` 的決定性模板（看劇／聽歌／導航／外送／查詢都不需要 LLM）。
-        // 這是 lite flavor（157MB、無 GGUF）仍能「我想看劇」的關鍵。
+        // 這是「我想看劇」這種句子唯一的處理路徑。
         if (canResolveWithTemplate(context, t)) return Route.AGENT
 
-        // 規則 3：拆不出完整目標、Agent 未開 → 保留舊行為（快速管線會失敗並回報）
+        // 規則 3：拆不出完整目標、也沒有模板 → 保留舊行為（快速管線會失敗並回報）
         return if (goals.isNotEmpty()) Route.FAST else Route.ASK
     }
 
@@ -76,11 +69,6 @@ object ExecutionRouter {
             com.wae.agent.core.app.InstalledAppCatalog.usageCounts(context)
         )
         decision.confident || decision.best != null
-    }.getOrDefault(false)
-
-    /** 這個 APK 有沒有內建 planner 模型（full flavor 有、lite flavor 沒有）。 */
-    fun isAgentModelAvailable(context: Context): Boolean = runCatching {
-        context.assets.openFd(com.wae.agent.llm.GgufModel.ASSET_NAME).use { true }
     }.getOrDefault(false)
 
     /** 對外：這句話能不能拆出「結構完整」的目標（給語音閘門等地方用，不改變路由）。 */

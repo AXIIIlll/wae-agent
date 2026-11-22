@@ -63,12 +63,12 @@ android {
     }
 
     androidResources {
-        noCompress += listOf("bin", "onnx", "gguf")
+        noCompress += listOf("bin", "onnx")
     }
 
-    // 兩個 flavor：
-    //   full = 內建 Qwen3-0.6B GGUF（assets/models/…gguf 放在 src/full/）→ 大 APK，Agent 可用
-    //   lite = 不含 GGUF（~212MB）→ 規則路徑、語音、OCR 全部可用，只有「目標式 LLM Agent」會回報不可用
+    // 兩個 flavor（本專案不出貨 LLM，所以差別只在「語意精排模型」）：
+    //   full = 含 cross-encoder 精排（113MB，放在 src/full/）→ Agent 決策多一層精排
+    //   lite = 不含精排，其餘（規則、語音、OCR、決策頭、分類器）全部相同
     // 預設是 full，所以既有的 `assembleDebug` / `assembleRelease` 行為不變；
     // lite 用 `assembleLiteDebug` / `assembleLiteRelease` 建置。
     flavorDimensions += "model"

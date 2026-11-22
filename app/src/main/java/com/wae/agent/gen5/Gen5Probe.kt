@@ -57,16 +57,12 @@ object Gen5Probe {
                             digestReport(context)
                         } else if (command.startsWith(LEXICON_PREFIX)) {
                             lexiconCommand(context, command.removePrefix(LEXICON_PREFIX).trim())
-                        } else if (command.startsWith(LLM_PREFIX)) {
-                            llmCommand(context, command.removePrefix(LLM_PREFIX).trim())
                         } else if (command.startsWith(RULES_PREFIX)) {
                             rulesCommand(context, command.removePrefix(RULES_PREFIX).trim())
                         } else if (command.startsWith(JUDGE_PREFIX)) {
                             judgeCommand(context, command.removePrefix(JUDGE_PREFIX).trim())
                         } else if (command.startsWith(ICONS_PREFIX)) {
                             iconsSwitch(command.removePrefix(ICONS_PREFIX).trim())
-                        } else if (command.startsWith(PLAN_PREFIX)) {
-                            planReport(context, command.removePrefix(PLAN_PREFIX).trim())
                         } else if (command == APPS_SUMMARY || command.startsWith(APPS_PREFIX)) {
                             appsReport(context, command)
                         } else if (command.startsWith(CLIP_COPY_PREFIX)) {
@@ -192,28 +188,6 @@ object Gen5Probe {
             " roles=" + lexicon.roles().size
     }
 
-    private fun llmCommand(context: Context, action: String): String {
-        val keys = mapOf(
-            "plan" to "llm.temperature.plan",
-            "select" to "llm.temperature.select",
-            "extract" to "llm.temperature.extract",
-            "copy" to "llm.temperature.copy"
-        )
-        if (action.startsWith("set ")) {
-            val parts = action.removePrefix("set ").trim().split(" ")
-            val key = keys[parts.getOrNull(0)?.lowercase().orEmpty()]
-                ?: return "ERROR:usage !llm set <plan|select|extract|copy> <0..1>"
-            val value = parts.getOrNull(1)?.toFloatOrNull()
-                ?: return "ERROR:usage !llm set <plan|select|extract|copy> <0..1>"
-            com.wae.agent.core.runtime.Tunables.override(context, key, value.toString())
-            return "LLM set $key=$value（下次呼叫生效）"
-        }
-        val temps = keys.entries.joinToString(" ") { (name, key) ->
-            name + "=" + com.wae.agent.core.runtime.Tunables.getFloat(context, key, -1f)
-        }
-        return "LLM " + temps + " | " + com.wae.agent.llm.LlmStats.summary()
-    }
-
     private fun rulesCommand(context: Context, action: String): String = when (action) {
         "on" -> { RuleEngineHost.enabled = true; RuleEngineHost.status(context) }
         "off" -> { RuleEngineHost.enabled = false; RuleEngineHost.status(context) }
@@ -233,23 +207,6 @@ object Gen5Probe {
         "on" -> { IconChannel.enabled = true; "ICONS on" }
         "off" -> { IconChannel.enabled = false; "ICONS off（只認有文字的元件）" }
         else -> "ICONS " + if (IconChannel.enabled) "on" else "off"
-    }
-
-    /**
-     * `!plan <指令>`：看大模型／規則把這句話拆成哪些步驟。
-     *
-     * 用途：驗證「三層兩憶」的任務層。輸出是封閉詞彙（StepKind），
-     * 一眼就能看出它有沒有亂塞動作型別。
-     */
-    private fun planReport(context: Context, command: String): String {
-        if (command.isEmpty()) return "ERROR:usage !plan <指令>"
-        return runCatching {
-            val planner = com.wae.agent.gen5.QwenTaskPlanner(context)
-            val memory = com.wae.core.step.TaskMemory(command = command, goalText = command)
-            val goals = planner.plan(memory)
-            "PLAN calls=" + planner.callsUsed() + " steps=" +
-                (goals?.joinToString(";") { it.kind.name + (if (it.hint.isEmpty()) "" else "(" + it.hint + ")") } ?: "none")
-        }.getOrElse { t -> "ERROR:" + t.message }
     }
 
     /**
@@ -482,18 +439,12 @@ object Gen5Probe {
     private const val APPS_SUMMARY = "!apps"
     private const val APPS_PREFIX = "!apps "
 
-    /** 任務計畫探針：`!plan 在設定裡搜尋藍牙`（會用大模型，若可用）。 */
-    private const val PLAN_PREFIX = "!plan "
-
     /** 圖示偵測開關：`!icons on|off|status`（小模型可關，計畫 §12）。 */
     private const val ICONS_PREFIX = "!icons"
 
     /** 規則引擎：`!rules on|off|status`、`!judge <句子>`。 */
     private const val RULES_PREFIX = "!rules"
     private const val JUDGE_PREFIX = "!judge "
-
-    /** 溫度與 LLM 統計：`!llm` 看、`!llm set plan 0.2` 調。 */
-    private const val LLM_PREFIX = "!llm"
 
     /** 詞庫探針：`!lexicon 購物車` 看它會被歸到哪個角色／家族。 */
     private const val LEXICON_PREFIX = "!lexicon "
