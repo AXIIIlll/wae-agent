@@ -100,3 +100,5 @@
 097	EXTREME	在 YouTube 搜尋後回到首頁再打開訂閱	com.google.android.youtube	SUCCESS		SUCCESS	11-22 18:44:32.685 27903  5381 I WAE_CAPS: record pkg=com.google.android.youtube purpose=A5.1 ok=true
 098	EXTREME	在計算機連續算三個不同算式並清除	com.sec.android.app.popupcalculator	FAIL	FAIL	FAIL	11-22 18:44:53.972 27903  6069 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=95 success=0.99 (execution flag=true)
 099	EXTREME	在設定裡查看儲存空間後清除快取再確認	com.android.settings	FAIL	FAIL	FAIL	11-22 18:45:59.369 27903  6468 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=116 success=0.99 (execution flag=true)
+100	EXTREME	在聯絡人搜尋並開啟聯絡人後返回清單	com.samsung.android.app.contacts	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:46:45.308 27903  6730 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+036	MEDIUM	在設定裡查看電池用量	com.android.settings	FAIL	FAIL	FAIL	11-22 18:48:05.529 27903  7955 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=140 success=0.99 (execution flag=true)
