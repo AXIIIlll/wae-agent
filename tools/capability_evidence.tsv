@@ -1,0 +1,75 @@
+# 能力清單的證據（ID<TAB>種類<TAB>證據）
+#
+# 為什麼要有這張表：`WAE_Gen5_Capability_Map.md` 的 ✅ 曾經大量說謊
+# （10 列寫「還沒做」，其實早就驗證過）。清單是「我以為」，這裡是「證據」。
+#
+# 種類：
+#   case    detail = 指令字串，必須出現在 tools/gen5_*.tsv 的某一套案例裡
+#   code    detail = 相對路徑::關鍵字，檔案必須存在且包含該關鍵字
+#   test    detail = 測試檔名片段，必須存在於 core/src/test 或 app/src/test
+#   manual  detail = 具體證據說明（logcat／收據／截圖），不能空白
+#
+A1	code	app/src/main/java/com/wae/agent/gen5/A11yFrameSource.kt::walk
+A2	code	core/src/main/kotlin/com/wae/core/model/FrameFingerprint.kt::fun of(
+A4	manual	模擬器 logcat: icon scan 320x640 boxes=10（10–13 候選/幀，已併入 frame icons>0）
+A5	code	core/src/main/kotlin/com/wae/core/pipeline/Strategies.kt::scrollable
+A6	code	core/src/main/kotlin/com/wae/core/pipeline/Settler.kt::awaitChange
+B1	code	core/src/main/kotlin/com/wae/core/intent/IntentFrame.kt::Role
+B2	case	打開電話
+B3	code	core/src/main/kotlin/com/wae/core/match/TargetResolver.kt::resolve
+B6	test	BenchmarkSuiteTest
+C1	code	core/src/main/kotlin/com/wae/core/effect/Planner.kt::plan
+C2	case	在設定裡搜尋藍牙
+C4	code	core/src/main/kotlin/com/wae/core/pipeline/Strategies.kt::Seeker
+C5	code	core/src/main/kotlin/com/wae/core/pipeline/Strategies.kt::Retreater
+C7	code	core/src/main/kotlin/com/wae/core/memory/ProgramCache.kt::hintsFor
+D1	code	app/src/main/java/com/wae/agent/gen5/DeviceIO.kt::perform
+D2	code	app/src/main/java/com/wae/agent/gen5/DeviceIO.kt::gestureAt
+D3	code	app/src/main/java/com/wae/agent/gen5/AndroidActuator.kt::runInput
+D4	code	app/src/main/java/com/wae/agent/gen5/AndroidActuator.kt::ACTION_IME_ENTER
+D5	case	打開設定
+D6	case	回到主頁
+D8	code	app/src/main/java/com/wae/agent/gen5/AndroidActuator.kt::openDeepLink
+D9	case	調高音量
+D10	case	打開Wi-Fi
+D11	case	分享你好給訊息
+E1	code	core/src/main/kotlin/com/wae/core/effect/EffectVerifier.kt::toggleState
+E2	code	core/src/main/kotlin/com/wae/core/exec/PostConditions.kt::textAppeared
+E3	code	core/src/main/kotlin/com/wae/core/exec/PostConditions.kt::pkgEquals
+E4	code	app/src/main/java/com/wae/agent/gen5/NotificationChannel.kt::corroborate
+E5	code	core/src/main/kotlin/com/wae/core/effect/EffectVerifier.kt::verify
+E10	code	core/src/main/kotlin/com/wae/core/memory/InMemoryMemory.kt::silentFailures
+F1	code	core/src/main/kotlin/com/wae/core/model/Plan.kt::enum class Risk
+F2	code	core/src/main/kotlin/com/wae/core/ui/CardFactory.kt::CardKind { CONFIRM
+F3	code	core/src/main/kotlin/com/wae/core/ui/CardFactory.kt::abstainCard
+F4	code	core/src/main/kotlin/com/wae/core/safety/ContractBudget.kt::Budget
+F5	code	core/src/main/kotlin/com/wae/core/safety/Safety.kt::decide
+F6	manual	真機：在相簿裡搜尋貓 → 收據 rollback:3 rolled_back=3 SUCCESS，前景回到桌面
+F7	code	core/src/main/kotlin/com/wae/core/learn/PostureClassifier.kt::LOGIN_WALL
+F10	code	core/src/main/kotlin/com/wae/core/safety/Safety.kt::warmup
+G1	code	core/src/main/kotlin/com/wae/core/memory/RefutationLog.kt::record
+G2	code	core/src/main/kotlin/com/wae/core/receipt/TaskReceipt.kt::ReceiptRecorder
+G3	code	core/src/main/kotlin/com/wae/core/routing/Capability.kt::CapabilityIndex
+G4	code	core/src/main/kotlin/com/wae/core/worldmodel/Transitions.kt::Transition
+G10	code	bench/smoke_history.tsv::runs_passed
+H1	code	app/src/main/java/com/wae/agent/MainActivity.kt::Gen5Runtime
+H2	code	core/src/main/kotlin/com/wae/core/ui/CardFactory.kt::fun from
+H7	code	app/src/main/java/com/wae/agent/MainActivity.kt::showRefutations
+I1	code	tools/gen5_smoke_cases.tsv::打開設定
+I2	code	tools/gen5_bench_cases.tsv::搜尋
+B4	code	app/src/main/java/com/wae/agent/gen5/AppAliases.kt::canonical
+C9	code	core/src/main/kotlin/com/wae/core/intent/IntentFrame.kt::repeated
+D7	case	打開通知列
+G6	code	core/src/main/kotlin/com/wae/core/memory/ProgramCache.kt::record
+H5	code	app/src/main/java/com/wae/agent/gen5/Gen5Runtime.kt::onProgress
+A10	code	core/src/main/kotlin/com/wae/core/learn/PostureClassifier.kt::PERMISSION_WALL
+C6	code	core/src/main/kotlin/com/wae/core/routing/RouteSelector.kt::CapabilityIndex
+B11	case	傳訊息
+B10	case	取消
+H6	case	再做一次
+G7	manual	打開日曆 → 不是這個（refutations 出現 global BAN）→ 打開日曆 ABSTAIN(no_candidate) → 刪反例後恢復 SUCCESS
+C10	code	core/src/main/kotlin/com/wae/core/pipeline/Agent.kt::TIMING_BACKOFF_BASE
+B14	case	打开日历
+H9	manual	!diagshare → DIAG_SHARE content://com.wae.agent.shots/diag.txt，前景為 com.android.intentresolver/.ChooserActivityLauncher
+D14	manual	打開設定 → 複製結果（copy=ok chars=40）→ !clip 讀回「SUCCESS frames=145 ...」
+D15	manual	選一張照片 → SUCCESS，前景 com.google.android.providers.media.photopicker.PhotoPickerGetContentActivity

@@ -1,0 +1,11 @@
+# ui_policy_rules.tsv — WAE-Ω 策略規則（S34）
+# 格式：policy<TAB>RiskKind<TAB>blocked(0/1)<TAB>requiresConfirmation(0/1)
+# RiskKind ∈ PAYMENT / DESTRUCTIVE / PUBLIC_WRITE / PERMISSION / PRIVATE_READ
+# 原則：
+#  - PERMISSION（權限/驗證碼頁）直接阻擋（不自動過風控）
+#  - PAYMENT / DESTRUCTIVE / PUBLIC_WRITE / PRIVATE_READ 需要使用者確認
+policy	PAYMENT	0	1
+policy	DESTRUCTIVE	0	1
+policy	PUBLIC_WRITE	0	1
+policy	PERMISSION	1	0
+policy	PRIVATE_READ	0	1

@@ -1,0 +1,38 @@
+# ui_ui_ontology.tsv — WAE-Ω 通用 UI 本體論（S34）
+# 格式：utype<TAB>signal<TAB>pattern
+#   signal = class | id | role | container | text | description
+# 只放「跨 App 都成立的結構/語意規則」，不要放單一 App 的專屬字串。
+# App Model 用這些型別描述畫面，因此技能可以跨 App 同構轉移。
+utype	TEXT_FIELD	class	EditText
+utype	TEXT_FIELD	class	AutoCompleteTextView
+utype	TEXT_FIELD	class	TextInputEditText
+utype	SEARCH_BOX	id	search
+utype	SEARCH_BOX	id	omnibox
+utype	SEARCH_BOX	description	搜尋
+utype	SEARCH_BOX	text	搜尋
+utype	SWITCH_ROW	class	Switch
+utype	SWITCH_ROW	class	ToggleButton
+utype	SWITCH_ROW	class	SwitchCompat
+utype	CHECKBOX	class	CheckBox
+utype	CHECKBOX	class	AppCompatCheckBox
+utype	RADIO	class	RadioButton
+utype	RADIO	class	AppCompatRadioButton
+utype	SLIDER	class	SeekBar
+utype	SLIDER	class	Slider
+utype	DROPDOWN	class	Spinner
+utype	DROPDOWN	class	DropDown
+utype	TAB	class	TabLayout
+utype	TAB	role	tab
+utype	NAV_ITEM	container	BOTTOM_NAV
+utype	NAV_ITEM	container	NAV_ITEM
+utype	NAV_ITEM	container	BOTTOM_BAR
+utype	LIST_ROW	container	LIST_ITEM
+utype	LIST_ROW	container	RECYCLER_ROW
+utype	DIALOG	class	Dialog
+utype	DIALOG	container	MODAL_DIALOG
+utype	BUTTON	class	Button
+utype	BUTTON	class	ImageButton
+utype	BUTTON	class	FloatingActionButton
+utype	IMAGE_CARD	id	card
+utype	IMAGE_CARD	id	thumbnail
+utype	IMAGE_CARD	id	cover

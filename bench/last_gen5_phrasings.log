@@ -1,0 +1,22 @@
+cases=15 file=E:\NewAndroidApp\tools\gen5_phrasings.tsv
+
+=== Gen-5 smoke ===
+打開設定     expect=SUCCESS  actual=SUCCESS  PASS
+開啟設定     expect=SUCCESS  actual=SUCCESS  PASS
+回到主頁     expect=SUCCESS  actual=SUCCESS  PASS
+回首頁      expect=SUCCESS  actual=SUCCESS  PASS
+打開通知列    expect=SUCCESS  actual=SUCCESS  PASS
+拉下通知列    expect=SUCCESS  actual=SUCCESS  PASS
+切換應用程式   expect=SUCCESS  actual=SUCCESS  PASS
+調大聲      expect=SUCCESS  actual=SUCCESS  PASS
+調小聲      expect=SUCCESS  actual=SUCCESS  PASS
+亮一點      expect=SUCCESS  actual=SUCCESS  PASS
+暗一點      expect=SUCCESS  actual=SUCCESS  PASS
+拍照       expect=ABSTAIN  actual=ABSTAIN  PASS
+照相       expect=ABSTAIN  actual=ABSTAIN  PASS
+拍一張      expect=ABSTAIN  actual=ABSTAIN  PASS
+分享相片給訊息  expect=SUCCESS  actual=SUCCESS  PASS
+receipts:    3425 files/mem/receipts.tsv
+transitions: 4001 files/mem/transitions.tsv
+refutations: 7 files/mem/refutations.tsv
+RESULT: PASS (15/15)

@@ -1,0 +1,3 @@
+[resume] episodes=14701 steps=2205150
+[start] hours=8.0 out=E:\NewAndroidApp\tools\symbolic_sim\out\overnight
+[progress] {'at': '23:47:44', 'min': 2.0, 'phase': 'C1', 'ep': 19287, 'steps': 2893050, 'screens': 19, 'q': 1889, 'eps': 0.113, 'new_obs_rate': 0.0001, 'steps_per_sec': 24108}

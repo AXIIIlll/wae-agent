@@ -1,0 +1,18 @@
+# 用途 → 所屬分類 關聯表 (Purpose → Category Map) — 跨 App 通用，不含任何單一 App 資料
+# 用途: 「亮度」這種屬性要知道它住在哪個設定分類（顯示），才不會靠語意相似度亂鑽分支
+# 來源: AOSP Settings 公開分類與設定項名稱（Apache-2.0）+ 通用中文介面用語
+# 格式: category_id \t category_name \t category_aliases \t purpose_terms \t source
+display	顯示	顯示|顯示螢幕|螢幕|畫面|顯示與亮度	亮度|字體大小|顯示大小|螢幕逾時|螢幕休眠|深色模式|深色主題|自動旋轉|螢幕更新率|解析度|色彩|護眼模式|螢幕鎖定時間|觸控靈敏度	aosp-settings
+sound	音效與震動	音效與震動|音效|聲音|震動	音量|震動強度|鈴聲|通知音|媒體音量|來電音量|鬧鐘音量|靜音|觸控音效|音質	aosp-settings
+network	網路與網際網路	網路與網際網路|網路|網際網路|連線	無線網路|行動網路|飛航模式|熱點|數據用量|漫遊|VPN|代理伺服器|Wi-Fi	aosp-settings
+connected	已連接的裝置	已連接的裝置|連接|藍牙	藍牙|配對|USB|NFC|投放|鄰近分享|印表機	aosp-settings
+battery	電池與裝置維護	電池|裝置維護|電池與裝置維護	電池|省電模式|耗電|充電|效能模式	aosp-settings
+storage	儲存空間	儲存空間|儲存	儲存空間|可用空間|容量|清理|快取	aosp-settings
+apps	應用程式	應用程式|應用|程式	預設應用|應用程式權限|解除安裝|應用程式資訊|自動更新	aosp-settings
+notifications	通知	通知	通知|橫幅|勿擾模式|通知分類|通知音效	aosp-settings
+security	安全性與鎖定螢幕	安全性|安全|鎖定螢幕	螢幕鎖定|指紋|密碼|臉部辨識|圖形鎖|安全性更新|加密	aosp-settings
+accounts	帳號與備份	帳號與備份|帳號|備份	帳號|同步|備份|還原|自動同步	aosp-settings
+system	一般管理	一般管理|系統|語言與輸入	語言|輸入法|日期與時間|鍵盤|軟體更新|重設|開發人員選項|系統導覽	aosp-settings
+privacy	隱私權	隱私權|隱私	定位|位置|權限|廣告|使用記錄	aosp-settings
+accessibility	協助工具	協助工具|無障礙	放大手勢|TalkBack|字幕|顏色修正|互動控制	aosp-settings
+personalize	桌布與個人化	桌布|個人化|主題	桌布|主題|小工具|主螢幕|圖示|動態效果	aosp-settings

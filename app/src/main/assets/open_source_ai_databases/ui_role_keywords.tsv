@@ -1,0 +1,20 @@
+# ui_role_keywords.tsv — 通用角色 → 畫面關鍵詞（RoleResolver 用）
+# 格式：role<TAB>keywords(|分隔，可空)<TAB>prefer<TAB>fallback
+#   prefer：editable（找輸入框）／clickable（找可點元素）／any
+#   fallback：content（找不到就用「內容卡片」策略）／scroll（往下滑再找）／none
+# 角色是跨 App 的抽象：CMGUI 訓練出來的計畫用 $role:xxx，執行期在這裡查關鍵詞。
+role	keywords	prefer	fallback
+input		editable	scroll
+first_result		clickable	content
+next		clickable	content
+list		clickable	content
+play	播放|Play|繼續觀看|开始播放|開始播放	clickable	scroll
+navigate	導航|路线|路線|開始導航|出发|出發	clickable	scroll
+cart	加入购物车|加入購物車|购物车|購物車|加入	clickable	scroll
+buy	立即购买|立即購買|购买|購買|下单|下單|結帳|结账	clickable	scroll
+submit	发送|傳送|送出|提交|发布|發佈	clickable	scroll
+confirm	确认|確認|确定|確定|完成	clickable	scroll
+follow	关注|關注|追踪|追蹤	clickable	scroll
+like	点赞|點讚|赞|讚|喜欢|喜歡	clickable	scroll
+comment	评论|評論|留言|回应|回應	clickable	scroll
+close	关闭|關閉|取消|稍后|稍後|跳过|跳過	clickable	none

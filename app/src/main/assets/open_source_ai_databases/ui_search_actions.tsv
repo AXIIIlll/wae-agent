@@ -1,0 +1,7 @@
+# 搜尋意圖（pkg<TAB>action）——資料驅動，不在程式碼裡寫死 App
+# 用途：使用者說「在 X 裡搜尋 Y」時，如果該 App 有支援「帶查詢字串的搜尋 Activity」，
+# 就直接用意圖開到已填好字的搜尋頁，不必點搜尋列、不必叫輸入法。
+#
+# 這是 Android 的公開機制（Activity 的 intent-filter），不是解析 APK。
+com.android.settings	com.android.settings.action.SETTINGS_SEARCH
+com.google.android.settings.intelligence	com.android.settings.action.SETTINGS_SEARCH

@@ -1,0 +1,14 @@
+# 長句變體（真實使用者常講的形式）
+# 欄位：指令<TAB>預期<TAB>說明
+幫我打開設定	SUCCESS	「幫我」開頭
+請幫我打開相機	SUCCESS	「請幫我」
+可以幫我回到主頁嗎	SUCCESS	問句
+我要打開日曆	SUCCESS	「我要」
+把聲音調大聲一點	SUCCESS	「把…」句式
+幫我把音量調低	SUCCESS	「把」＋正式說法
+聲音太小幫我調大聲一點	SUCCESS	語境＋命令
+請打開通知列	SUCCESS	「請」
+幫我調亮螢幕	SUCCESS	「調亮螢幕」
+幫我分享照片給訊息	SUCCESS	跨 App
+幫我傳訊息給媽媽	ABSTAIN	敏感操作
+請問今天天氣如何	ABSTAIN	問句＋無法執行

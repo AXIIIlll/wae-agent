@@ -1,0 +1,55 @@
+# 語言層詞彙（全部由資料驅動；程式碼不得內建任何一個詞）
+# 格式: kind \t word \t note
+#   kind = SEPARATOR  子句連接詞（序列指令）
+#          LEAD       子句開頭的語助詞（會被剝除）
+#          SEARCH     搜尋框的提示詞
+#          LABEL      任務骨架用到的介面標籤（由 grounding 匹配）
+#
+# ── 子句連接詞 ──
+SEPARATOR	然後	
+SEPARATOR	接著	
+SEPARATOR	之後	
+SEPARATOR	再幫我	
+SEPARATOR	，再	
+SEPARATOR	,再	
+SEPARATOR	再	
+#
+# ── 子句開頭語助詞 ──
+LEAD	首先	
+LEAD	先	
+LEAD	麻煩	
+LEAD	幫我	
+LEAD	請	
+LEAD	把	
+LEAD	將	
+#
+# ── 搜尋框提示詞 ──
+SEARCH	搜尋	
+SEARCH	搜索	
+SEARCH	查找	
+SEARCH	search	
+SEARCH	find	
+#
+# ── 任務骨架的介面標籤（App 實際按鈕文字由 grounding 匹配，這裡只是「語意名稱」）──
+LABEL	share	分享
+LABEL	send	送出
+LABEL	new	新增
+LABEL	save	儲存
+LABEL	back	返回
+LABEL	back_en	Back
+LABEL	back_up	上一頁
+LABEL	route	路線
+#
+# ── 任務動作詞（開 App 之後要做的事）──
+TASKVERB	搜尋	
+TASKVERB	搜索	
+TASKVERB	查找	
+TASKVERB	查詢	
+TASKVERB	點擊	
+TASKVERB	點選	
+TASKVERB	導航到	
+#
+# ── 開 App 的動詞 ──
+OPEN	打開	
+OPEN	開啟	
+OPEN	開	

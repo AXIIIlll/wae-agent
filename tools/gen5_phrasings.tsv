@@ -1,0 +1,17 @@
+# 說法變體（同一件事的多種講法）
+# 欄位：指令<TAB>預期<TAB>說明
+打開設定	SUCCESS	動詞「打開」
+開啟設定	SUCCESS	動詞「開啟」
+回到主頁	SUCCESS	基準
+回首頁	SUCCESS	簡稱
+打開通知列	SUCCESS	基準
+拉下通知列	SUCCESS	口語
+切換應用程式	SUCCESS	口語
+調大聲	SUCCESS	音量口語
+調小聲	SUCCESS	音量口語
+亮一點	SUCCESS	亮度口語
+暗一點	SUCCESS	亮度口語
+拍照	ABSTAIN	基準（無法確認存檔）
+照相	ABSTAIN	同義詞
+拍一張	ABSTAIN	同義詞
+分享相片給訊息	SUCCESS	相片＝照片

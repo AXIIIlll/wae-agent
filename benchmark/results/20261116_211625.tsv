@@ -1,0 +1,3 @@
+id	tier	ok	elapsed_s	steps	min_steps	detail	cmd
+E01	EASY	False	41.2	0	1	timeout	打開地圖
+E02	EASY	False	47.3	0	2	timeout	在地圖搜尋台北101

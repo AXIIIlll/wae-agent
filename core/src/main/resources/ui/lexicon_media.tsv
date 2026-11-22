@@ -1,0 +1,9 @@
+# MEDIA 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+PLAY	播放|play|▶
+PAUSE	暫停|pause|⏸
+NEXT_EPISODE	下一集|下一部|next episode
+QUALITY	畫質|解析度|quality
+SUBTITLE	字幕|subtitles|cc
+CAST	投放|cast|tv
+ADD_LIST	加入片單|收藏|my list

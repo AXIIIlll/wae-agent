@@ -1,0 +1,19 @@
+cases=12 file=E:\NewAndroidApp\tools\gen5_longphrases.tsv
+
+=== Gen-5 smoke ===
+幫我打開設定       expect=SUCCESS  actual=SUCCESS  PASS
+請幫我打開相機      expect=SUCCESS  actual=SUCCESS  PASS
+可以幫我回到主頁嗎    expect=SUCCESS  actual=SUCCESS  PASS
+我要打開日曆       expect=SUCCESS  actual=SUCCESS  PASS
+把聲音調大聲一點     expect=SUCCESS  actual=SUCCESS  PASS
+幫我把音量調低      expect=SUCCESS  actual=SUCCESS  PASS
+聲音太小幫我調大聲一點  expect=SUCCESS  actual=SUCCESS  PASS
+請打開通知列       expect=SUCCESS  actual=SUCCESS  PASS
+幫我調亮螢幕       expect=SUCCESS  actual=SUCCESS  PASS
+幫我分享照片給訊息    expect=SUCCESS  actual=SUCCESS  PASS
+幫我傳訊息給媽媽     expect=ABSTAIN  actual=ABSTAIN  PASS
+請問今天天氣如何     expect=ABSTAIN  actual=ABSTAIN  PASS
+receipts:    3437 files/mem/receipts.tsv
+transitions: 4011 files/mem/transitions.tsv
+refutations: 7 files/mem/refutations.tsv
+RESULT: PASS (12/12)

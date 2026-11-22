@@ -1,0 +1,170 @@
+# 目的（分類法葉節點）；格式：id<TAB>domain<TAB>slots<TAB>required<TAB>post<TAB>risk<TAB>reversible<TAB>undo<TAB>operations<TAB>navigate_only
+A1.1	A	app	app	pkg_matches(app)	LOW	true		INTENT|A11Y_CLICK|LAUNCHER	false
+A1.2	A	app	app	pkg_matches(app)	LOW	true		INTENT|A11Y_CLICK|LAUNCHER	false
+A1.3	A	app	app	pkg_matches(app)	LOW	true		INTENT|A11Y_CLICK|LAUNCHER	false
+A1.4	A	app	app	pkg_matches(app)	LOW	true		INTENT|A11Y_CLICK|LAUNCHER	false
+A2.1	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.2	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.3	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.4	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.5	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.6	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.7	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A2.8	A			screen_changed	LOW	true		BACK|SYSTEM_API|A11Y_CLICK	false
+A3.1	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A3.2	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A3.3	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A3.4	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A3.5	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A3.6	A			screen_changed	LOW	true		A11Y_CLICK|GESTURE	false
+A4.1	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A4.2	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A4.3	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A4.4	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A4.5	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A4.6	A	text		text_appears	LOW	true		A11Y_SET_TEXT|INPUT_PASTE	false
+A5.1	A	app|query	query	results_visible	LOW	true		A11Y_SET_TEXT|INTENT|A11Y_CLICK	false
+A5.2	A	query	query	results_visible	LOW	true		A11Y_SET_TEXT|INTENT|A11Y_CLICK	false
+A5.3	A	query	query	results_visible	LOW	true		A11Y_SET_TEXT|INTENT|A11Y_CLICK	false
+A5.4	A	query	query	results_visible	LOW	true		A11Y_SET_TEXT|INTENT|A11Y_CLICK	false
+A6.1	A			clipboard_matches	LOW	true		CLIPBOARD|A11Y_CLICK	false
+A6.2	A			clipboard_matches	LOW	true		CLIPBOARD|A11Y_CLICK	false
+A6.3	A			clipboard_matches	LOW	true		CLIPBOARD|A11Y_CLICK	false
+A7.1	A			screen_changed	LOW	true		A11Y_CLICK	false
+A7.2	A			screen_changed	LOW	true		A11Y_CLICK	false
+A7.3	A			screen_changed	LOW	true		A11Y_CLICK	false
+A7.4	A			screen_changed	LOW	true		A11Y_CLICK	false
+B1.1	B			text_available	LOW	true		A11Y_READ|SYSTEM_API	false
+B1.2	B			text_available	LOW	true		A11Y_READ|SYSTEM_API	false
+B1.3	B			text_available	LOW	true		A11Y_READ|SYSTEM_API	false
+B1.4	B			text_available	LOW	true		A11Y_READ|SYSTEM_API	false
+B2.1	B			artifact_created	LOW	true		SYSTEM_API|A11Y_CLICK	false
+B2.2	B			artifact_created	LOW	true		SYSTEM_API|A11Y_CLICK	false
+B2.3	B			artifact_created	LOW	true		SYSTEM_API|A11Y_CLICK	false
+B3.1	B			media_state_changed	LOW	true		SYSTEM_API	false
+B3.2	B			media_state_changed	LOW	true		SYSTEM_API	false
+B3.3	B			media_state_changed	LOW	true		SYSTEM_API	false
+B3.4	B			media_state_changed	LOW	true		SYSTEM_API	false
+B3.5	B			media_state_changed	LOW	true		SYSTEM_API	false
+B4.1	B	target_app|text	target_app	foreground_matches(target_app)	MEDIUM	true		INTENT	false
+B4.2	B	target_app		foreground_matches(target_app)	MEDIUM	true		INTENT	false
+B4.3	B	target_app		foreground_matches(target_app)	MEDIUM	true		INTENT	false
+B4.4	B	target_app		foreground_matches(target_app)	MEDIUM	true		INTENT	false
+C1.1	C	contact	contact	text_in_thread	HIGH	false		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+C1.2	C	contact	contact	text_in_thread	HIGH	false		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+C1.3	C	contact	contact	text_in_thread	HIGH	false		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+C1.4	C	contact	contact	text_in_thread	HIGH	false		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+C1.5	C	contact	contact	text_in_thread	HIGH	false		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+C2.1	C	contact	contact	call_active	HIGH	false		INTENT|A11Y_CLICK	false
+C2.2	C	contact	contact	call_active	HIGH	false		INTENT|A11Y_CLICK	false
+C2.3	C	contact	contact	call_active	HIGH	false		INTENT|A11Y_CLICK	false
+C2.4	C	contact	contact	call_active	HIGH	false		INTENT|A11Y_CLICK	false
+C2.5	C	contact	contact	call_active	HIGH	false		INTENT|A11Y_CLICK	false
+C3.1	C	contact	contact	contact_visible	LOW	true		INTENT|A11Y_CLICK	false
+C3.2	C	contact	contact	contact_visible	LOW	true		INTENT|A11Y_CLICK	false
+C3.3	C	contact	contact	contact_visible	LOW	true		INTENT|A11Y_CLICK	false
+C3.4	C	contact	contact	contact_visible	LOW	true		INTENT|A11Y_CLICK	false
+C4.1	C	contact	contact	mail_composed	HIGH	false		INTENT|A11Y_SET_TEXT	false
+C4.2	C	contact	contact	mail_composed	HIGH	false		INTENT|A11Y_SET_TEXT	false
+C4.3	C	contact	contact	mail_composed	HIGH	false		INTENT|A11Y_SET_TEXT	false
+C4.4	C	contact	contact	mail_composed	HIGH	false		INTENT|A11Y_SET_TEXT	false
+C4.5	C	contact	contact	mail_composed	HIGH	false		INTENT|A11Y_SET_TEXT	false
+D1.1	D	app	app	video_playing|content_visible	LOW	true		INTENT|A11Y_CLICK	false
+D1.2	D	app		video_playing|content_visible	LOW	true		INTENT|A11Y_CLICK	false
+D1.3	D	app		video_playing|content_visible	LOW	true		INTENT|A11Y_CLICK	false
+D1.4	D	app		video_playing|content_visible	LOW	true		INTENT|A11Y_CLICK	false
+D2.1	D		app	media_state_changed	LOW	true		SYSTEM_API|INTENT	false
+D2.2	D			media_state_changed	LOW	true		SYSTEM_API|INTENT	false
+D2.3	D			media_state_changed	LOW	true		SYSTEM_API|INTENT	false
+D2.4	D			media_state_changed	LOW	true		SYSTEM_API|INTENT	false
+D3.1	D			photo_appeared|content_visible	LOW	true		INTENT|A11Y_CLICK|SYSTEM_API	false
+D3.2	D			photo_appeared|content_visible	LOW	true		INTENT|A11Y_CLICK|SYSTEM_API	false
+D3.3	D			photo_appeared	LOW	true		INTENT|A11Y_CLICK|SYSTEM_API	false
+D3.4	D			photo_appeared|content_visible	LOW	true		INTENT|A11Y_CLICK|SYSTEM_API	false
+D3.5	D			photo_appeared|content_visible	LOW	true		INTENT|A11Y_CLICK|SYSTEM_API	false
+D3.6	D			photo_removed	HIGH	false		INTENT|A11Y_CLICK|SYSTEM_API	true
+D4.1	D	app	app	pkg_matches(app)	LOW	true		INTENT	false
+E1.1	E			panel_visible	MEDIUM	true		PANEL|SYSTEM_API	true
+E1.2	E			panel_visible	MEDIUM	true		PANEL|SYSTEM_API	true
+E1.3	E			panel_visible	MEDIUM	true		PANEL|SYSTEM_API	true
+E1.4	E			panel_visible	MEDIUM	true		PANEL|SYSTEM_API	true
+E1.5	E			panel_visible	LOW	true		PANEL|SYSTEM_API	false
+E1.6	E			panel_visible	LOW	true		PANEL|SYSTEM_API	false
+E2.1	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E2.2	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E2.3	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E2.4	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E2.5	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E2.6	E	value		value_changed	LOW	true	restore_previous	SYSTEM_API|A11Y_CLICK|GESTURE	false
+E3.1	E			text_available	LOW	true		SYSTEM_API|INTENT	false
+E3.2	E			text_available	LOW	true		SYSTEM_API|INTENT	false
+E3.3	E			text_available	LOW	true		SYSTEM_API|INTENT	false
+E3.4	E			text_available	LOW	true		SYSTEM_API|INTENT	true
+E4.1	E	app	app	screen_changed	HIGH	false		INTENT	false
+E4.2	E	app	app	screen_changed	HIGH	false		INTENT	true
+E4.3	E	app	app	screen_changed	HIGH	false		INTENT	true
+E4.4	E	app	app	screen_changed	HIGH	false		INTENT	true
+E5.1	E			screen_changed	MEDIUM	true		INTENT	false
+E5.2	E			screen_changed	MEDIUM	true		INTENT	true
+E6.1	E			state_is	MEDIUM	true		INTENT|PANEL	false
+E6.2	E			state_is	MEDIUM	true		INTENT|PANEL	false
+E7.1	E			state_is	HIGH	false		INTENT	true
+E7.2	E			state_is	HIGH	false		INTENT	true
+E8.1	E			text_available	LOW	true		A11Y_READ|INTENT	false
+E8.2	E			text_available	LOW	true		A11Y_READ|INTENT	false
+E8.3	E			text_available	LOW	true		A11Y_READ|INTENT	false
+E8.4	E			text_available	LOW	true		A11Y_READ|INTENT	false
+E9.1	E			screen_changed	HIGH	false		INTENT	false
+E9.2	E			screen_changed	HIGH	false		INTENT	true
+E9.3	E			screen_changed	HIGH	false		INTENT	true
+F1.1	F	query		results_visible	MEDIUM	true		INTENT|A11Y_CLICK	false
+F1.2	F	query		results_visible	MEDIUM	true		INTENT|A11Y_CLICK	true
+F1.3	F	query		results_visible	MEDIUM	true		INTENT|A11Y_CLICK	false
+F1.4	F	query		results_visible	MEDIUM	true		INTENT|A11Y_CLICK	false
+F1.5	F	query		results_visible	MEDIUM	true		INTENT|A11Y_CLICK	true
+F2.1	F			screen_changed	HIGH	false		INTENT	false
+F2.2	F			screen_changed	HIGH	false		INTENT	true
+F2.3	F			screen_changed	HIGH	false		INTENT	true
+F3.1	F			text_available	LOW	true		INTENT	false
+F3.2	F			text_available	LOW	true		INTENT	false
+F3.3	F			text_available	LOW	true		INTENT	false
+F4.1	F			screen_changed	HIGH	false		INTENT	false
+F4.2	F			screen_changed	HIGH	false		INTENT	true
+G1.1	G	title		entry_created	MEDIUM	true	delete_entry	INTENT|A11Y_SET_TEXT	false
+G1.2	G	title		entry_created	MEDIUM	true	delete_entry	INTENT|A11Y_SET_TEXT	false
+G1.3	G	title		entry_created	MEDIUM	true	delete_entry	INTENT|A11Y_SET_TEXT	false
+G1.4	G	title		entry_created	MEDIUM	true	delete_entry	INTENT|A11Y_SET_TEXT	false
+G1.5	G	title		entry_created	MEDIUM	true	delete_entry	INTENT|A11Y_SET_TEXT	false
+G2.1	G	place	place	route_visible	LOW	true		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+G2.2	G	app|place|query	query	route_visible	LOW	true		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+G2.3	G	place	place	route_visible	LOW	true		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+G2.4	G	place	place	route_visible	LOW	true		INTENT|A11Y_SET_TEXT|A11Y_CLICK	false
+G3.1	G			screen_changed	HIGH	false		INTENT	true
+G3.2	G			screen_changed	HIGH	false		INTENT	true
+G3.3	G			screen_changed	HIGH	false		INTENT	true
+H1.1	H			picker_visible	LOW	true		INTENT	false
+H1.2	H			picker_visible	LOW	true		INTENT	false
+H1.3	H			picker_visible	LOW	true		INTENT	false
+H1.4	H			picker_visible	LOW	true		INTENT	false
+H1.5	H			file_removed	HIGH	false		INTENT	true
+H1.6	H			picker_visible	LOW	true		INTENT	false
+H2.1	H			screen_changed	LOW	true		INTENT	false
+H2.2	H			screen_changed	LOW	true		INTENT	false
+H3.1	H			artifact_created	MEDIUM	true		INTENT	false
+H3.2	H			artifact_created	MEDIUM	true		INTENT	false
+I1.1	I			session_started	LOW	true		INTENT|A11Y_CLICK	false
+I1.2	I			session_started	LOW	true		INTENT|A11Y_CLICK	false
+I1.3	I			session_started	LOW	true		INTENT|A11Y_CLICK	false
+I2.1	I	value		text_available	LOW	true		A11Y_SET_TEXT|INTENT	false
+I2.2	I	value		text_available	LOW	true		A11Y_SET_TEXT|INTENT	false
+I2.3	I	value		text_available	LOW	true		A11Y_SET_TEXT|INTENT	false
+I2.4	I	value		text_available	LOW	true		A11Y_SET_TEXT|INTENT	false
+J1.1	J	text		note_created	MEDIUM	true	delete_note	INTENT|A11Y_SET_TEXT	false
+J1.2	J	text		note_created	MEDIUM	true	delete_note	INTENT|A11Y_SET_TEXT	false
+J1.3	J	text		note_created	MEDIUM	true	delete_note	INTENT|A11Y_SET_TEXT	false
+J2.1	J	text		task_created	MEDIUM	true	delete_task	INTENT|A11Y_SET_TEXT	false
+J2.2	J	text		task_created	MEDIUM	true	delete_task	INTENT|A11Y_SET_TEXT	false
+J2.3	J	text		task_created	MEDIUM	true	delete_task	INTENT|A11Y_SET_TEXT	false
+J3.1	J			artifact_created	MEDIUM	true		INTENT	false
+J3.2	J			artifact_created	MEDIUM	true		INTENT	false
+J3.3	J			artifact_created	MEDIUM	true		INTENT	false

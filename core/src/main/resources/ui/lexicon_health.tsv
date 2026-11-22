@@ -1,0 +1,7 @@
+# HEALTH 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+START	開始運動|start
+STOP	結束|stop
+LOG	記錄|log
+GOAL	目標|goal
+STATS	統計|stats

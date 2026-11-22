@@ -2,17 +2,35 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Google Play 合規：不宣告 QUERY_ALL_PACKAGES、REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 與 INTERNET 權限，
-         100% 透過下方 <queries> 進行合規應用探索，且從作業系統層級保證零網路連線、零資料外傳 -->
+    <!-- 強制移除 INTERNET 網路權限，維持純離線環境 -->
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+
+    <!-- Android 11+ (API 30+) 跨 App 查詢與啟動必備權限，否則 getLaunchIntentForPackage 會回傳 null -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 開放式意圖選 App 時用「最近使用」加權（AppOps 授權，非執行期權限；未授權時自動退化） -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- S36 語音助理：系統辨識服務需要 App 端有錄音權限（Samsung 實測會檢查） -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- 只有在使用者說「分享照片」時才讀最近一張（不建索引、不上傳） -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- 調整螢幕亮度用（appop 權限；使用者在系統「修改系統設定」頁面授權） -->
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
@@ -20,90 +38,164 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
         <intent>
-            <action android:name="android.intent.action.SET_ALARM" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.SET_TIMER" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="geo" />
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.INFO" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="google.navigation" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.WEB_SEARCH" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.SEARCH" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.INSERT" />
-            <data android:mimeType="vnd.android.cursor.dir/event" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.DIAL" />
-            <data android:scheme="tel" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.SENDTO" />
-            <data android:scheme="smsto" />
-        </intent>
-        <intent>
-            <action android:name="android.speech.RecognitionService" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.RECOGNIZE_SPEECH" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
 
     <application
+        android:name=".WaeApp"
         android:allowBackup="false"
+        android:hasFragileUserData="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+        android:theme="@android:style/Theme.Black.NoTitleBar">
+
+        <!-- 分享截圖用（把 cache/shots 的 PNG 以 content:// 交給別的 App）。
+             刻意不用 androidx FileProvider：這個專案沒有 androidx.core 依賴，
+             自己寫一個最小 provider 比加一個依賴乾淨。 -->
+        <provider
+            android:name=".gen5.ShotProvider"
+            android:authorities="${applicationId}.shots"
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".vision.VisionAccessibilityService"
+        <!-- 安裝/卸載/更新監聽：只用來把能力圖譜標記為需重掃（綠區，不做任何掃描動作） -->
+        <receiver
+            android:name=".core.capability.PackageChangeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_CHANGED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <!-- S36 語音助理：設為系統預設助理後，長按電源鍵／Home 即可召喚（不用開 App） -->
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false"
+            android:label="對話" />
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false"
+            android:label="設定" />
+        <activity
+            android:name=".settings.AppTypeOrderActivity"
+            android:exported="false"
+            android:label="App 類型排序" />
+        <activity
+            android:name=".voice.AssistActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
-            android:label="@string/app_name"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="accessibility_ai_vision_automation" />
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.WAE.Assist">
+            <intent-filter>
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VOICE_COMMAND" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".voice.WaeVoiceInteractionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/wae_voice_interaction" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".voice.WaeVoiceSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionSessionService" />
+            </intent-filter>
+        </service>
+
+        <!-- 助理角色註冊用的最小辨識服務（系統要求 recognitionService 必須存在） -->
+        <service
+            android:name=".voice.WaeRecognitionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_RECOGNITION_SERVICE">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
+
+        <!-- 快捷設定磚：下拉通知欄點一下就能召喚語音助理 -->
+        <service
+            android:name=".voice.WaeAssistTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher_foreground"
+            android:label="WAE"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- WAE V2.6 核心無障礙服務 -->
+        <service
+            android:name=".core.WaeVisionAccessibilityService"
+            android:exported="true"
+            android:label="@string/service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
                 android:name="android.accessibilityservice"
-                android:resource="@xml/vision_accessibility_service" />
+                android:resource="@xml/wae_accessibility_service" />
         </service>
 
-        <!-- 第 5 項：Needle 3 原生 C++ 獨立隔離行程服務 (:ai) -->
-        <service
-            android:name=".stability.NeedleIsolatedAiService"
+            <service
+            android:name=".voice.WakeWordService"
             android:exported="false"
-            android:process=":ai" />
+            android:foregroundServiceType="microphone" />
 
+        <!-- App 安裝／移除／更新時清掉「已安裝 App 目錄」快取（別名也會重算） -->
+        <receiver
+            android:name=".core.app.AppCatalogWatcher"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_CHANGED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
     </application>
-
 </manifest>

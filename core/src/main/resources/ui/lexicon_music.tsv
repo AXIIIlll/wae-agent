@@ -1,0 +1,10 @@
+# MUSIC 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+PLAY	播放|play
+PAUSE	暫停|pause
+NEXT_TRACK	下一首|next
+PREV_TRACK	上一首|previous
+SHUFFLE	隨機|shuffle
+REPEAT	重複|repeat
+LIKE	喜歡|讚|like|♡
+PLAYLIST	播放清單|playlist|歌單

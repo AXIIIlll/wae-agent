@@ -1,0 +1,38 @@
+# ui_decision_head.tsv — 線性決策頭權重（Bootstrap 版本）
+# 格式：model<TAB>feature<TAB>weight
+#   model = candidate（候選元素重排序，加進 L3 logits）
+#           edge     （自動機規劃邊重排序，從 A* 邊成本扣除）
+#           meta     （alpha_candidate / alpha_edge / *_bias）
+# 註解以 # 開頭；由 tools/decision_head/train_linear.py 可重新產生並覆蓋此檔。
+# 注意：DecisionHead.ENABLED 預設 false；本檔只有在旗標開啟時才會被使用。
+meta	alpha_candidate	0.60
+meta	alpha_edge	0.25
+meta	candidate_bias	0.00
+meta	edge_bias	0.00
+candidate	flag:isEditable	1.20
+candidate	flag:hasSearchIdHint	1.00
+candidate	flag:isSearchAffordance	0.60
+candidate	flag:isClickable	0.40
+candidate	flag:isEnabled	0.50
+candidate	flag:isContentItem	0.80
+candidate	flag:isNavigationRow	-1.20
+candidate	flag:isBottomNavigationTab	-1.50
+candidate	flag:isReadOnlyOnly	-0.80
+candidate	flag:isCheckable	0.35
+candidate	flag:canToggle	0.35
+candidate	num:sim	1.00
+candidate	num:detConfidence	0.20
+candidate	num:area	-0.10
+candidate	token:search	0.50
+candidate	token:switch	0.40
+candidate	token:seek	0.60
+candidate	token:tab	-0.60
+candidate	token:edit	0.40
+edge	num:success	0.80
+edge	num:total	0.30
+edge	num:p95	-0.20
+edge	flag:opMatch	0.40
+edge	num:overlap	0.50
+edge	flag:selectorEmpty	-0.40
+edge	num:negative	-0.60
+edge	flag:fromCurrent	0.20

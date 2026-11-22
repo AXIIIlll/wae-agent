@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  助理設定：session service（對話 UI 入口）＋ recognition service（角色註冊必需）。
+-->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.wae.agent.voice.WaeVoiceSessionService"
+    android:recognitionService="com.wae.agent.voice.WaeRecognitionService"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="false" />

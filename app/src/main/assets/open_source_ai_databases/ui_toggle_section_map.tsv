@@ -1,0 +1,35 @@
+# 開關目標 → 所在設定分類（資料驅動；找不到就改走「設定內搜尋」）
+# 格式: target_keyword \t section_keywords(以|分隔) \t note \t oem(可空；空=通用)
+# oem 比對方式：Build.MANUFACTURER 小寫後「包含」即可
+飛航	連接|連接設定|行動網路	三星/原生：飛航在連接頁	
+飛航	無線與網路|无线和网络|更多連接|更多连接	原生 Android 舊版	
+行動網路	連接|行動網路		
+行動數據	連接|行動網路		
+wifi	連接|wi-fi		
+wi-fi	連接|wi-fi		
+藍牙	連接|藍牙		
+深色模式	顯示|顯示螢幕|深色		
+亮度	顯示|顯示螢幕		
+字型	顯示|螢幕		
+飛航	連接與共享|连接与共享|雙卡與行動網路|双卡与移动网络	小米/紅米/POCO	xiaomi
+藍牙	連接與共享|连接与共享	小米/紅米/POCO	xiaomi
+wifi	WLAN|無線網路|无线网络	小米用 WLAN	xiaomi
+亮度	顯示|顯示螢幕	小米	xiaomi
+飛航	無線與網路|无线和网络|行動網路|移动网络|更多連接	華為/榮耀	huawei
+藍牙	藍牙|裝置連線	華為	huawei
+wifi	WLAN|無線網路	華為	huawei
+飛航	行動網路|其他無線連線	OPPO/realme	oppo
+藍牙	已連線的裝置|藍牙	OPPO/realme	oppo
+wifi	WLAN|Wi-Fi	OPPO/realme	oppo
+飛航	行動網路|飛航模式	realme	realme
+飛航	網路與網際網路|網路和網際網路|行動網路	原生/Pixel	google
+藍牙	已連結的裝置|已連接的裝置|藍牙	原生/Pixel	google
+wifi	網路與網際網路|網際網路	原生/Pixel	google
+飛航	行動網路|飛航模式|連線	OnePlus	oneplus
+藍牙	已連線的裝置|藍牙	OnePlus	oneplus
+飛航	行動網路|飛航模式|其他連線	vivo/iQOO	vivo
+飛航	行動網路|飛航模式|其他連線	vivo/iQOO	iqoo
+熱點	連接|行動熱點與網路共享|行動熱點	三星：連接 → 行動熱點與網路共享	
+行動熱點	連接|行動熱點與網路共享|行動熱點	三星：連接 → 行動熱點與網路共享	
+熱點	網路與網際網路|無線基地台與網路共享|行動熱點	原生/Pixel	google
+熱點	其他無線連線|行動熱點	OPPO/realme	

@@ -1,0 +1,8 @@
+# SOCIAL 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+LIKE	讚|喜歡|like|♡
+COMMENT	留言|comment
+FOLLOW	追蹤|訂閱|follow
+POST	發文|發布|post
+STORY	限時動態|story
+MESSAGE	私訊|訊息|message

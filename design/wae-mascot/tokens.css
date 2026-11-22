@@ -1,0 +1,17 @@
+:root {
+  /* 取自 App 目前的介面色：白底、slate 文字、藍色主色 */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #71717a;
+  --line: #e2e8f0;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --accent-line: #93c5fd;
+  --brand-body: #eff6ff;
+  --brand-stroke: #1d4ed8;
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 24px;
+  --font: "Inter", "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", system-ui, sans-serif;
+}

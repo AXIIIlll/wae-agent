@@ -1,27 +1,41 @@
-cmake_minimum_required(VERSION 3.22.1)
-project("needle_jni")
+﻿cmake_minimum_required(VERSION 3.22.1)
+project("wae_jni" LANGUAGES CXX)
 
-# 100% 純原創自研 C++17 三大異質微引擎（Micro-Llama GGUF Q4 + MiniSat/PDDL 規劃器 + TRM Policy/MCTS）與向量推論引擎
-add_library(needle_jni SHARED
-    self_vector_engine.cpp
-    sat_smt_pddl_planner.cpp
-    trm_policy_mcts.cpp
-    micro_cot_gguf_engine.cpp
-    needle_jni.cpp
-    cute_girl_vocoder.cpp
-    zero_copy_vision_accel.cpp
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_library(
+    wae_jni
+    SHARED
+    wae_jni.cpp
 )
 
-target_include_directories(needle_jni PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
+target_compile_options(
+    wae_jni
+    PRIVATE
+    -O3
+    -fvisibility=hidden
+    -ffunction-sections
+    -fdata-sections
+    -Wall
+    -Wextra
+)
+
+target_link_options(
+    wae_jni
+    PRIVATE
+    -Wl,--gc-sections
+    -Wl,-z,max-page-size=16384
+    -s
 )
 
 find_library(log-lib log)
 find_library(android-lib android)
+find_library(nativewindow-lib nativewindow)
 
-target_link_libraries(needle_jni
+target_link_libraries(
+    wae_jni
     ${log-lib}
     ${android-lib}
-    m
-    dl
+    ${nativewindow-lib}
 )

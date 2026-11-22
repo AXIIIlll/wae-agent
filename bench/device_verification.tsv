@@ -1,0 +1,10 @@
+# 真機驗證狀態（item<TAB>last_verified_at<TAB>apk_version<TAB>result<TAB>note）
+# 由 tools/device_checklist.py 在「真機」上跑完自動更新；模擬器跑完不會寫這裡。
+R1		-	未驗	無障礙服務綁定
+R2		-	未驗	App 內自我測試 9 項
+R3		-	未驗	亮度讀回（數值必須變）
+R4		-	未驗	被動學習（twin 檔要變大）
+R5		-	未驗	相機快門（模擬器 stub 一定失敗，只能真機）
+R6		-	未驗	分享相簿照片
+R7		-	未驗	搜尋 ×3
+R8		-	未驗	完整 101 條評測

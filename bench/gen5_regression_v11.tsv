@@ -1,0 +1,85 @@
+# 時間	指令	結果	摘要
+2026-11-19T19:55:13	打開設定	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=設定 app=設定 via=open matched_by=verb
+2026-11-19T19:55:13	打開相機	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=ABSTAIN reason=no_candidate noun_type=PRODUCT noun=相機 no_app_for_type
+2026-11-19T19:55:13	打開地圖	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=ABSTAIN reason=no_candidate noun_type=INFO noun=地圖 tried=語音搜尋 search_failed app=語音搜尋
+2026-11-19T19:55:13	我想找餐廳	FAIL	ABSTAIN reason=plan_incomplete steps=3 detail=ABSTAIN reason=no_candidate noun_type=INFO noun=地圖 tried=語音搜尋 search_failed app=語音搜尋
+2026-11-19T19:55:13	我想找AI資料	FAIL	ABSTAIN reason=no_candidate noun_type=INFO noun=AI資料 tried=語音搜尋 search_failed app=語音搜尋
+2026-11-19T19:55:13	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-19T19:55:13	導航到台北車站	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=ABSTAIN reason=no_candidate noun_type=INFO noun=地圖 tried=語音搜尋 search_failed app=語音搜尋
+2026-11-19T19:55:13	我想看影片	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YouTube app=設定 via=open matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T19:55:13	打開日曆	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=日曆 app=設定 via=open matched_by=verb
+2026-11-19T19:55:13	打開Chrome	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=Chrome app=設定 via=open matched_by=verb
+2026-11-19T19:55:13	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=設定 via=open matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T19:55:13	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-19T19:58:54	打開設定	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=設定 app=設定 via=direct matched_by=verb
+2026-11-19T19:58:54	打開相機	FAIL	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T19:58:54	打開地圖	FAIL	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T19:58:54	我想找餐廳	FAIL	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-19T19:58:54	我想找AI資料	FAIL	ABSTAIN reason=no_candidate noun_type=INFO noun=AI資料 tried=語音搜尋 search_failed app=語音搜尋
+2026-11-19T19:58:54	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-19T19:58:54	導航到台北車站	FAIL	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-19T19:58:54	我想看影片	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YouTube app=YouTube via=direct matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T19:58:54	打開日曆	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=日曆 app=日曆 via=direct matched_by=verb
+2026-11-19T19:58:54	打開Chrome	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=Chrome app=Chrome via=direct matched_by=verb
+2026-11-19T19:58:54	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=YT Music via=direct matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T19:58:54	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-19T20:01:00	打開設定	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=設定 app=設定 via=direct matched_by=verb
+2026-11-19T20:01:00	打開相機	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:01:00	打開地圖	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:01:00	我想找餐廳	PASS	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-19T20:01:00	我想找AI資料	PASS	SUCCESS noun_type=INFO noun=AI資料 app=Chrome via=uri matched_by=noun
+2026-11-19T20:01:00	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-19T20:01:00	導航到台北車站	PASS	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-19T20:01:00	我想看影片	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YouTube app=YouTube via=direct matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T20:01:00	打開日曆	FAIL	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=日曆 app=日曆 via=direct matched_by=verb
+2026-11-19T20:01:00	打開Chrome	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=Chrome app=Chrome via=direct matched_by=verb
+2026-11-19T20:01:00	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=YT Music via=direct matched_by=verb + content=0 (太少，可能空白或載入中)
+2026-11-19T20:01:00	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-19T20:07:10	打開設定	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:07:10	打開相機	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:07:10	打開地圖	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:07:10	我想找餐廳	PASS	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-19T20:07:10	我想找AI資料	PASS	SUCCESS noun_type=INFO noun=AI資料 app=Chrome via=uri matched_by=noun
+2026-11-19T20:07:10	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-19T20:07:10	導航到台北車站	PASS	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-19T20:07:10	我想看影片	PASS	steps=1 verified=true + rule=A1.1 llm=0 + content=1 (太少，可能空白或載入中)
+2026-11-19T20:07:10	打開日曆	FAIL	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:07:10	打開Chrome	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:07:10	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=YT Music via=direct matched_by=verb + content=2 (太少，可能空白或載入中)
+2026-11-19T20:07:10	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-19T20:10:18	打開設定	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:10:18	打開相機	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:10:18	打開地圖	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:10:18	我想找餐廳	PASS	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-19T20:10:18	我想找AI資料	PASS	SUCCESS noun_type=INFO noun=AI資料 app=Chrome via=uri matched_by=noun
+2026-11-19T20:10:18	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-19T20:10:18	導航到台北車站	PASS	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-19T20:10:18	我想看影片	PASS	steps=1 verified=null + rule=A1.1 llm=0 + content=0 (太少，可能空白或載入中)
+2026-11-19T20:10:18	打開日曆	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:10:18	打開Chrome	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-19T20:10:18	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=YT Music via=direct matched_by=verb + content=2 (太少，可能空白或載入中)
+2026-11-19T20:10:18	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-20T10:22:12	打開設定	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:22:12	打開相機	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:22:12	打開地圖	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:22:12	我想找餐廳	PASS	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-20T10:22:12	我想找AI資料	PASS	SUCCESS noun_type=INFO noun=AI資料 app=Chrome via=uri matched_by=noun
+2026-11-20T10:22:12	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-20T10:22:12	導航到台北車站	PASS	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-20T10:22:12	我想看影片	PASS	steps=1 verified=true + rule=A1.1 llm=0 + content=1 (太少，可能空白或載入中)
+2026-11-20T10:22:12	打開日曆	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=日曆 app=日曆 via=direct matched_by=verb
+2026-11-20T10:22:12	打開Chrome	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:22:12	我想聽音樂	PASS	steps=1 verified=null + rule=A1.1 llm=0 + content=0 (太少，可能空白或載入中)
+2026-11-20T10:22:12	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）
+2026-11-20T10:28:56	打開設定	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:28:56	打開相機	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:28:56	打開地圖	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:28:56	我想找餐廳	PASS	steps=3 verified=null + rule=G2.2 llm=0
+2026-11-20T10:28:56	我想找AI資料	PASS	SUCCESS noun_type=INFO noun=AI資料 app=Chrome via=uri matched_by=noun
+2026-11-20T10:28:56	我想找醫院	PASS	SUCCESS noun_type=PLACE noun=醫院 app=地圖 via=uri matched_by=noun
+2026-11-20T10:28:56	導航到台北車站	PASS	steps=1 verified=null + rule=G2.1 llm=0
+2026-11-20T10:28:56	我想看影片	PASS	steps=1 verified=true + rule=A1.1 llm=0 + content=1 (太少，可能空白或載入中)
+2026-11-20T10:28:56	打開日曆	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:28:56	打開Chrome	PASS	steps=1 verified=true + rule=A1.1 llm=0
+2026-11-20T10:28:56	我想聽音樂	PASS	ABSTAIN reason=plan_incomplete steps=1 detail=SUCCESS noun_type=APP noun=YT Music app=YT Music via=direct matched_by=verb + content=2 (太少，可能空白或載入中)
+2026-11-20T10:28:56	hello	SKIP	chat 需人工點開（ChatActivity 未 exported）

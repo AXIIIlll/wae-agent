@@ -1,0 +1,43 @@
+﻿# 相容性掃描目標（台灣常用 App；package 用於比對「已安裝」，不會被自動操作）
+# 用途: 掃描時只啟動、抓畫面文字、偵測阻擋訊號，不執行任何任務
+# 格式: package \t label \t category
+com.linecorp.line	LINE	通訊
+jp.naver.line.android	LINE(舊版)	通訊
+com.whatsapp	WhatsApp	通訊
+com.android.mms	簡訊	通訊
+com.shopee.tw	蝦皮購物	電商
+com.momo.mobile	momo購物	電商
+com.pchome.mobile	PChome	電商
+com.yahoo.tw	Yahoo奇摩	入門網站
+com.books.tw	博客來	電商
+com.taobao.tw	淘寶	電商
+com.tencent.sqsc.tw	街口支付	支付
+tw.com.taiwanpay	台灣Pay	支付
+com.easycard.wallet	悠遊付	支付
+com.pay.tappay	TapPay	支付
+com.cathayholdings.mobilebank	國泰世華	銀行
+tw.com.esunbank.mobile	玉山銀行	銀行
+com.taishinbank.mobilebank	台新銀行	銀行
+com.ctbcbank.mobilebank	中國信託	銀行
+com.fubon.mobilebank	富邦銀行	銀行
+com.firstbank.mobilebank	第一銀行	銀行
+com.hncb.mobilebank	華南銀行	銀行
+com.megabank.mobilebank	兆豐銀行	銀行
+com.landbank.mobilebank	土地銀行	銀行
+tw.gov.nhi.ezhealth	健保快易通	政府
+tw.gov.moica.moicaapp	行動自然人憑證	政府
+com.foodpanda.tw	foodpanda	外送
+com.ubercab.eats	UberEats	外送
+com.facebook.katana	Facebook	社群
+com.instagram.android	Instagram	社群
+com.threads.app	Threads	社群
+com.google.android.youtube	YouTube	影音
+com.netflix.mediaclient	Netflix	影音
+com.spotify.music	Spotify	影音
+com.kkbox	KKBOX	影音
+com.android.chrome	Chrome	瀏覽器
+com.google.android.apps.maps	Google 地圖	導航
+com.google.android.gm	Gmail	信箱
+com.google.android.apps.docs	Google 文件	工具
+com.google.android.calendar	行事曆	工具
+com.sec.android.app.popupcalculator	計算機	工具

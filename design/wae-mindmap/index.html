@@ -1,0 +1,844 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="dsh-design" content="diagram 4178x4803">
+<title>WAE 端到端流程心智圖</title>
+<style>
+*{box-sizing:border-box} html,body{margin:0;height:100%;background:#FAFAFB;font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif}
+#wrap{position:relative;width:100vw;height:100vh;overflow:hidden;cursor:grab}
+#wrap.d{cursor:grabbing} #stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.tb{position:fixed;right:16px;top:14px;display:flex;gap:8px;z-index:9}
+.tb button{border:1px solid #E7E6EC;background:#fff;border-radius:10px;height:36px;padding:0 14px;font:inherit;font-size:13px;color:#3A4150;cursor:pointer;box-shadow:0 1px 2px rgba(17,17,23,.06)}
+.tb button:hover{background:#F3EEFF;border-color:#C4B5FD;color:#5B21B6}
+.legend{position:fixed;left:16px;top:14px;background:rgba(255,255,255,.94);border:1px solid #E7E6EC;border-radius:14px;padding:12px 14px;font-size:12.5px;color:#3A4150;box-shadow:0 2px 10px rgba(17,17,23,.06);z-index:9;line-height:1.9}
+.legend b{display:block;font-size:13px;color:#111117;margin-bottom:4px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px}
+.hint{position:fixed;left:16px;bottom:14px;font-size:12px;color:#8A8A96;background:rgba(255,255,255,.9);border:1px solid #E7E6EC;border-radius:999px;padding:7px 12px}
+</style></head><body>
+<div id="wrap"><div id="stage"><svg id="mm" xmlns="http://www.w3.org/2000/svg" width="4178" height="4803" viewBox="0 0 4178 4803">
+<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#4C1D95"/></linearGradient><filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#111117" flood-opacity="0.10"/></filter></defs>
+<rect width="4178" height="4803" fill="#FAFAFB"/>
+<rect x="64.0" y="891.4" width="1705.3" height="1225.8" rx="24" fill="#F3EEFF" fill-opacity=".5"/>
+<path d="M1839.2,2438.8 C1739.2,2438.8 1843.3,1520.1 1743.3,1520.1" fill="none" stroke="#6D28D9" stroke-opacity=".6" stroke-width="3"/>
+<path d="M1460.1,1520.1 C1360.1,1520.1 1250.1,1139.8 1150.1,1139.8" fill="none" stroke="#6D28D9" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1032.0,1139.8 C932.0,1139.8 832.0,952.5 732.0,952.5" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M636.0,952.5 C536.0,952.5 436.0,930.4 336.0,930.4" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,952.5 C536.0,952.5 436.0,974.5 336.0,974.5" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1139.8 C932.0,1139.8 832.0,1106.8 732.0,1106.8" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M636.0,1106.8 C536.0,1106.8 436.0,1018.6 336.0,1018.6" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1106.8 C536.0,1106.8 436.0,1062.7 336.0,1062.7" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1106.8 C536.0,1106.8 436.0,1106.8 336.0,1106.8" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1106.8 C536.0,1106.8 436.0,1150.9 336.0,1150.9" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1106.8 C536.0,1106.8 436.0,1195.0 336.0,1195.0" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1139.8 C932.0,1139.8 832.0,1239.1 732.0,1239.1" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M636.0,1239.1 C536.0,1239.1 436.0,1239.1 336.0,1239.1" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1139.8 C932.0,1139.8 832.0,1327.2 732.0,1327.2" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M636.0,1327.2 C536.0,1327.2 436.0,1283.1 336.0,1283.1" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1327.2 C536.0,1327.2 436.0,1327.2 336.0,1327.2" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M636.0,1327.2 C536.0,1327.2 436.0,1371.3 336.0,1371.3" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1460.1,1520.1 C1360.1,1520.1 1250.1,1525.6 1150.1,1525.6" fill="none" stroke="#6D28D9" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1032.0,1525.6 C932.0,1525.6 832.0,1415.4 732.0,1415.4" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M580.6,1415.4 C480.6,1415.4 380.6,1415.4 280.6,1415.4" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1525.6 C932.0,1525.6 832.0,1503.6 732.0,1503.6" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M588.4,1503.6 C488.4,1503.6 388.4,1459.5 288.4,1459.5" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M588.4,1503.6 C488.4,1503.6 388.4,1503.6 288.4,1503.6" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M588.4,1503.6 C488.4,1503.6 388.4,1547.7 288.4,1547.7" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1525.6 C932.0,1525.6 832.0,1591.8 732.0,1591.8" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M590.7,1591.8 C490.7,1591.8 390.7,1591.8 290.7,1591.8" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1032.0,1525.6 C932.0,1525.6 832.0,1635.9 732.0,1635.9" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M636.0,1635.9 C536.0,1635.9 436.0,1635.9 336.0,1635.9" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1460.1,1520.1 C1360.1,1520.1 1250.1,1900.4 1150.1,1900.4" fill="none" stroke="#6D28D9" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1001.0,1900.4 C901.0,1900.4 801.0,1724.0 701.0,1724.0" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M605.0,1724.0 C505.0,1724.0 405.0,1680.0 305.0,1680.0" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1724.0 C505.0,1724.0 405.0,1724.0 305.0,1724.0" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1724.0 C505.0,1724.0 405.0,1768.1 305.0,1768.1" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1001.0,1900.4 C901.0,1900.4 801.0,1900.4 701.0,1900.4" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M605.0,1900.4 C505.0,1900.4 405.0,1812.2 305.0,1812.2" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1900.4 C505.0,1900.4 405.0,1856.3 305.0,1856.3" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1900.4 C505.0,1900.4 405.0,1900.4 305.0,1900.4" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1900.4 C505.0,1900.4 405.0,1944.5 305.0,1944.5" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M605.0,1900.4 C505.0,1900.4 405.0,1988.6 305.0,1988.6" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1001.0,1900.4 C901.0,1900.4 801.0,2032.7 701.0,2032.7" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M605.0,2032.7 C505.0,2032.7 405.0,2032.7 305.0,2032.7" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1001.0,1900.4 C901.0,1900.4 801.0,2076.8 701.0,2076.8" fill="none" stroke="#6D28D9" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M605.0,2076.8 C505.0,2076.8 405.0,2076.8 305.0,2076.8" fill="none" stroke="#6D28D9" stroke-opacity=".16" stroke-width="1.1"/>
+<rect x="127.7" y="2110.5" width="1641.5" height="1801.6" rx="24" fill="#E6F7F4" fill-opacity=".5"/>
+<path d="M1839.2,2438.8 C1739.2,2438.8 1843.3,2890.7 1743.3,2890.7" fill="none" stroke="#0F766E" stroke-opacity=".6" stroke-width="3"/>
+<path d="M1557.3,2890.7 C1457.3,2890.7 1347.3,2250.1 1247.3,2250.1" fill="none" stroke="#0F766E" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1082.8,2250.1 C982.8,2250.1 882.8,2150.9 782.8,2150.9" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.8,2150.9 C586.8,2150.9 486.8,2150.9 386.8,2150.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.8,2250.1 C982.8,2250.1 882.8,2194.9 782.8,2194.9" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.8,2194.9 C586.8,2194.9 486.8,2194.9 386.8,2194.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.8,2250.1 C982.8,2250.1 882.8,2239.0 782.8,2239.0" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.8,2239.0 C586.8,2239.0 486.8,2239.0 386.8,2239.0" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.8,2250.1 C982.8,2250.1 882.8,2283.1 782.8,2283.1" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.8,2283.1 C586.8,2283.1 486.8,2283.1 386.8,2283.1" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.8,2250.1 C982.8,2250.1 882.8,2349.3 782.8,2349.3" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.8,2349.3 C586.8,2349.3 486.8,2327.2 386.8,2327.2" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.8,2349.3 C586.8,2349.3 486.8,2371.3 386.8,2371.3" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1557.3,2890.7 C1457.3,2890.7 1347.3,2624.8 1247.3,2624.8" fill="none" stroke="#0F766E" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1089.6,2624.8 C989.6,2624.8 889.6,2437.4 789.6,2437.4" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M693.1,2437.4 C593.1,2437.4 493.1,2415.4 393.1,2415.4" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.1,2437.4 C593.1,2437.4 493.1,2459.5 393.1,2459.5" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1089.6,2624.8 C989.6,2624.8 889.6,2613.8 789.6,2613.8" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2503.6 393.6,2503.6" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2547.7 393.6,2547.7" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2591.8 393.6,2591.8" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2635.8 393.6,2635.8" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2679.9 393.6,2679.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M693.6,2613.8 C593.6,2613.8 493.6,2724.0 393.6,2724.0" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1089.6,2624.8 C989.6,2624.8 889.6,2768.1 789.6,2768.1" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M693.6,2768.1 C593.6,2768.1 493.6,2768.1 393.6,2768.1" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1089.6,2624.8 C989.6,2624.8 889.6,2812.2 789.6,2812.2" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M693.6,2812.2 C593.6,2812.2 493.6,2812.2 393.6,2812.2" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1557.3,2890.7 C1457.3,2890.7 1347.3,2967.9 1247.3,2967.9" fill="none" stroke="#0F766E" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,2856.3 744.4,2856.3" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,2903.1 744.4,2903.1" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M648.4,2903.1 C548.4,2903.1 448.4,2903.1 348.4,2903.1" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,2947.1 744.4,2947.1" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M648.4,2947.1 C548.4,2947.1 448.4,2947.1 348.4,2947.1" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,2991.2 744.4,2991.2" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M648.4,2991.2 C548.4,2991.2 448.4,2991.2 348.4,2991.2" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,3035.3 744.4,3035.3" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M648.4,3035.3 C548.4,3035.3 448.4,3035.3 348.4,3035.3" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1044.4,2967.9 C944.4,2967.9 844.4,3079.4 744.4,3079.4" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M640.0,3079.4 C540.0,3079.4 440.0,3079.4 340.0,3079.4" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1557.3,2890.7 C1457.3,2890.7 1347.3,3531.3 1247.3,3531.3" fill="none" stroke="#0F766E" stroke-opacity=".34" stroke-width="2"/>
+<path d="M1082.2,3531.3 C982.2,3531.3 882.2,3233.7 782.2,3233.7" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3123.5 354.8,3123.5" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3167.6 354.8,3167.6" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3211.7 354.8,3211.7" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3255.8 354.8,3255.8" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3299.9 354.8,3299.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M654.8,3233.7 C554.8,3233.7 454.8,3344.0 354.8,3344.0" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.2,3531.3 C982.2,3531.3 882.2,3432.1 782.2,3432.1" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.2,3432.1 C586.2,3432.1 486.2,3388.0 386.2,3388.0" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3432.1 C586.2,3432.1 486.2,3432.1 386.2,3432.1" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3432.1 C586.2,3432.1 486.2,3476.2 386.2,3476.2" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.2,3531.3 C982.2,3531.3 882.2,3586.4 782.2,3586.4" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.2,3586.4 C586.2,3586.4 486.2,3520.3 386.2,3520.3" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3586.4 C586.2,3586.4 486.2,3564.4 386.2,3564.4" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3586.4 C586.2,3586.4 486.2,3608.5 386.2,3608.5" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3586.4 C586.2,3586.4 486.2,3652.6 386.2,3652.6" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.2,3531.3 C982.2,3531.3 882.2,3718.7 782.2,3718.7" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.2,3718.7 C586.2,3718.7 486.2,3696.7 386.2,3696.7" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3718.7 C586.2,3718.7 486.2,3740.8 386.2,3740.8" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M1082.2,3531.3 C982.2,3531.3 882.2,3828.9 782.2,3828.9" fill="none" stroke="#0F766E" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M686.2,3828.9 C586.2,3828.9 486.2,3784.9 386.2,3784.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3828.9 C586.2,3828.9 486.2,3828.9 386.2,3828.9" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M686.2,3828.9 C586.2,3828.9 486.2,3873.0 386.2,3873.0" fill="none" stroke="#0F766E" stroke-opacity=".16" stroke-width="1.1"/>
+<rect x="2317.3" y="68.0" width="1575.6" height="2151.7" rx="24" fill="#FDF3E7" fill-opacity=".5"/>
+<path d="M2247.3,2438.8 C2347.3,2438.8 2243.3,1512.4 2343.3,1512.4" fill="none" stroke="#B45309" stroke-opacity=".6" stroke-width="3"/>
+<path d="M2488.9,1512.4 C2588.9,1512.4 2698.9,999.9 2798.9,999.9" fill="none" stroke="#B45309" stroke-opacity=".34" stroke-width="2"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,239.3 3253.5,239.3" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,107.0 3649.5,107.0" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,151.1 3649.5,151.1" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,195.2 3649.5,195.2" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,239.3 3649.5,239.3" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,283.4 3649.5,283.4" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,327.5 3649.5,327.5" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,239.3 C3449.5,239.3 3549.5,371.6 3649.5,371.6" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,503.9 3253.5,503.9" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,503.9 C3449.5,503.9 3549.5,415.7 3649.5,415.7" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,503.9 C3449.5,503.9 3549.5,459.8 3649.5,459.8" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,503.9 C3449.5,503.9 3549.5,503.9 3649.5,503.9" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,503.9 C3449.5,503.9 3549.5,547.9 3649.5,547.9" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,503.9 C3449.5,503.9 3549.5,592.0 3649.5,592.0" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,834.5 3253.5,834.5" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,636.1 3649.5,636.1" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,680.2 3649.5,680.2" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,724.3 3649.5,724.3" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,768.4 3649.5,768.4" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,812.5 3649.5,812.5" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,856.6 3649.5,856.6" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,900.7 3649.5,900.7" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,944.8 3649.5,944.8" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,988.8 3649.5,988.8" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,834.5 C3449.5,834.5 3549.5,1032.9 3649.5,1032.9" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,1143.2 3253.5,1143.2" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,1143.2 C3449.5,1143.2 3549.5,1077.0 3649.5,1077.0" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1143.2 C3449.5,1143.2 3549.5,1121.1 3649.5,1121.1" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1143.2 C3449.5,1143.2 3549.5,1165.2 3649.5,1165.2" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1143.2 C3449.5,1143.2 3549.5,1209.3 3649.5,1209.3" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,1341.6 3253.5,1341.6" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,1341.6 C3449.5,1341.6 3549.5,1253.4 3649.5,1253.4" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1341.6 C3449.5,1341.6 3549.5,1297.5 3649.5,1297.5" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1341.6 C3449.5,1341.6 3549.5,1341.6 3649.5,1341.6" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1341.6 C3449.5,1341.6 3549.5,1385.7 3649.5,1385.7" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1341.6 C3449.5,1341.6 3549.5,1429.7 3649.5,1429.7" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,1562.0 3253.5,1562.0" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,1562.0 C3449.5,1562.0 3549.5,1473.8 3649.5,1473.8" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1562.0 C3449.5,1562.0 3549.5,1517.9 3649.5,1517.9" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1562.0 C3449.5,1562.0 3549.5,1562.0 3649.5,1562.0" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1562.0 C3449.5,1562.0 3549.5,1606.1 3649.5,1606.1" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1562.0 C3449.5,1562.0 3549.5,1650.2 3649.5,1650.2" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2953.5,999.9 C3053.5,999.9 3153.5,1760.4 3253.5,1760.4" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3349.5,1760.4 C3449.5,1760.4 3549.5,1694.3 3649.5,1694.3" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1760.4 C3449.5,1760.4 3549.5,1738.4 3649.5,1738.4" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1760.4 C3449.5,1760.4 3549.5,1782.5 3649.5,1782.5" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3349.5,1760.4 C3449.5,1760.4 3549.5,1826.6 3649.5,1826.6" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2488.9,1512.4 C2588.9,1512.4 2698.9,2025.0 2798.9,2025.0" fill="none" stroke="#B45309" stroke-opacity=".34" stroke-width="2"/>
+<path d="M2941.7,2025.0 C3041.7,2025.0 3141.7,1870.6 3241.7,1870.6" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3337.7,1870.6 C3437.7,1870.6 3537.7,1870.6 3637.7,1870.6" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2941.7,2025.0 C3041.7,2025.0 3141.7,1958.8 3241.7,1958.8" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3337.7,1958.8 C3437.7,1958.8 3537.7,1914.7 3637.7,1914.7" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3337.7,1958.8 C3437.7,1958.8 3537.7,1958.8 3637.7,1958.8" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3337.7,1958.8 C3437.7,1958.8 3537.7,2002.9 3637.7,2002.9" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2941.7,2025.0 C3041.7,2025.0 3141.7,2047.0 3241.7,2047.0" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3337.7,2047.0 C3437.7,2047.0 3537.7,2047.0 3637.7,2047.0" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2941.7,2025.0 C3041.7,2025.0 3141.7,2113.1 3241.7,2113.1" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3337.7,2113.1 C3437.7,2113.1 3537.7,2091.1 3637.7,2091.1" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3337.7,2113.1 C3437.7,2113.1 3537.7,2135.2 3637.7,2135.2" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2941.7,2025.0 C3041.7,2025.0 3141.7,2179.3 3241.7,2179.3" fill="none" stroke="#B45309" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3337.7,2179.3 C3437.7,2179.3 3537.7,2179.3 3637.7,2179.3" fill="none" stroke="#B45309" stroke-opacity=".16" stroke-width="1.1"/>
+<rect x="2317.3" y="2214.3" width="1796.9" height="2521.1" rx="24" fill="#EAF0FF" fill-opacity=".5"/>
+<path d="M2247.3,2438.8 C2347.3,2438.8 2243.3,3458.4 2343.3,3458.4" fill="none" stroke="#1D4ED8" stroke-opacity=".6" stroke-width="3"/>
+<path d="M2637.1,3458.4 C2737.1,3458.4 2847.1,2562.0 2947.1,2562.0" fill="none" stroke="#1D4ED8" stroke-opacity=".34" stroke-width="2"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2297.5 3427.1,2297.5" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2297.5 C3623.1,2297.5 3723.1,2253.4 3823.1,2253.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2297.5 C3623.1,2297.5 3723.1,2297.5 3823.1,2297.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2297.5 C3623.1,2297.5 3723.1,2341.5 3823.1,2341.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2429.7 3427.1,2429.7" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2429.7 C3623.1,2429.7 3723.1,2385.6 3823.1,2385.6" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2429.7 C3623.1,2429.7 3723.1,2429.7 3823.1,2429.7" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2429.7 C3623.1,2429.7 3723.1,2473.8 3823.1,2473.8" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2539.9 3427.1,2539.9" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2539.9 C3623.1,2539.9 3723.1,2517.9 3823.1,2517.9" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2539.9 C3623.1,2539.9 3723.1,2562.0 3823.1,2562.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2628.1 3427.1,2628.1" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2628.1 C3623.1,2628.1 3723.1,2606.1 3823.1,2606.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2628.1 C3623.1,2628.1 3723.1,2650.2 3823.1,2650.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2738.4 3427.1,2738.4" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2738.4 C3623.1,2738.4 3723.1,2694.3 3823.1,2694.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2738.4 C3623.1,2738.4 3723.1,2738.4 3823.1,2738.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3523.1,2738.4 C3623.1,2738.4 3723.1,2782.4 3823.1,2782.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3127.1,2562.0 C3227.1,2562.0 3327.1,2826.5 3427.1,2826.5" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3523.1,2826.5 C3623.1,2826.5 3723.1,2826.5 3823.1,2826.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2637.1,3458.4 C2737.1,3458.4 2847.1,3223.3 2947.1,3223.3" fill="none" stroke="#1D4ED8" stroke-opacity=".34" stroke-width="2"/>
+<path d="M3080.6,3223.3 C3180.6,3223.3 3280.6,2980.9 3380.6,2980.9" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,2870.6 3776.6,2870.6" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,2914.7 3776.6,2914.7" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,2958.8 3776.6,2958.8" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,3002.9 3776.6,3002.9" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,3047.0 3776.6,3047.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,2980.9 C3576.6,2980.9 3676.6,3091.1 3776.6,3091.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3080.6,3223.3 C3180.6,3223.3 3280.6,3201.3 3380.6,3201.3" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3476.6,3201.3 C3576.6,3201.3 3676.6,3135.2 3776.6,3135.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3201.3 C3576.6,3201.3 3676.6,3179.3 3776.6,3179.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3201.3 C3576.6,3201.3 3676.6,3223.3 3776.6,3223.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3201.3 C3576.6,3201.3 3676.6,3267.4 3776.6,3267.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3080.6,3223.3 C3180.6,3223.3 3280.6,3355.6 3380.6,3355.6" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3476.6,3355.6 C3576.6,3355.6 3676.6,3311.5 3776.6,3311.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3355.6 C3576.6,3355.6 3676.6,3355.6 3776.6,3355.6" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3355.6 C3576.6,3355.6 3676.6,3399.7 3776.6,3399.7" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3080.6,3223.3 C3180.6,3223.3 3280.6,3465.8 3380.6,3465.8" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3476.6,3465.8 C3576.6,3465.8 3676.6,3443.8 3776.6,3443.8" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3476.6,3465.8 C3576.6,3465.8 3676.6,3487.9 3776.6,3487.9" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2637.1,3458.4 C2737.1,3458.4 2847.1,3783.5 2947.1,3783.5" fill="none" stroke="#1D4ED8" stroke-opacity=".34" stroke-width="2"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3532.0 3411.6,3532.0" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3532.0 C3607.6,3532.0 3707.6,3532.0 3807.6,3532.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3576.1 3411.6,3576.1" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3576.1 C3607.6,3576.1 3707.6,3576.1 3807.6,3576.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3620.2 3411.6,3620.2" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3620.2 C3607.6,3620.2 3707.6,3620.2 3807.6,3620.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3664.2 3411.6,3664.2" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3664.2 C3607.6,3664.2 3707.6,3664.2 3807.6,3664.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3730.4 3411.6,3730.4" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3730.4 C3607.6,3730.4 3707.6,3708.3 3807.6,3708.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3507.6,3730.4 C3607.6,3730.4 3707.6,3752.4 3807.6,3752.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3796.5 3411.6,3796.5" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3796.5 C3607.6,3796.5 3707.6,3796.5 3807.6,3796.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3858.7 3411.6,3858.7" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3858.7 C3607.6,3858.7 3707.6,3858.7 3807.6,3858.7" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3902.8 3411.6,3902.8" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3902.8 C3607.6,3902.8 3707.6,3902.8 3807.6,3902.8" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3946.9 3411.6,3946.9" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3946.9 C3607.6,3946.9 3707.6,3946.9 3807.6,3946.9" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,3991.0 3411.6,3991.0" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,3991.0 C3607.6,3991.0 3707.6,3991.0 3807.6,3991.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3111.6,3783.5 C3211.6,3783.5 3311.6,4035.1 3411.6,4035.1" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3507.6,4035.1 C3607.6,4035.1 3707.6,4035.1 3807.6,4035.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M2637.1,3458.4 C2737.1,3458.4 2847.1,4354.7 2947.1,4354.7" fill="none" stroke="#1D4ED8" stroke-opacity=".34" stroke-width="2"/>
+<path d="M3054.6,4354.7 C3154.6,4354.7 3254.6,4079.1 3354.6,4079.1" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3450.6,4079.1 C3550.6,4079.1 3650.6,4079.1 3750.6,4079.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3054.6,4354.7 C3154.6,4354.7 3254.6,4189.4 3354.6,4189.4" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3450.6,4189.4 C3550.6,4189.4 3650.6,4123.2 3750.6,4123.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4189.4 C3550.6,4189.4 3650.6,4167.3 3750.6,4167.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4189.4 C3550.6,4189.4 3650.6,4211.4 3750.6,4211.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4189.4 C3550.6,4189.4 3650.6,4255.5 3750.6,4255.5" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3054.6,4354.7 C3154.6,4354.7 3254.6,4365.7 3354.6,4365.7" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3450.6,4365.7 C3550.6,4365.7 3650.6,4299.6 3750.6,4299.6" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4365.7 C3550.6,4365.7 3650.6,4343.7 3750.6,4343.7" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4365.7 C3550.6,4365.7 3650.6,4387.8 3750.6,4387.8" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4365.7 C3550.6,4365.7 3650.6,4431.9 3750.6,4431.9" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3054.6,4354.7 C3154.6,4354.7 3254.6,4498.0 3354.6,4498.0" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3450.6,4498.0 C3550.6,4498.0 3650.6,4476.0 3750.6,4476.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4498.0 C3550.6,4498.0 3650.6,4520.0 3750.6,4520.0" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3054.6,4354.7 C3154.6,4354.7 3254.6,4630.3 3354.6,4630.3" fill="none" stroke="#1D4ED8" stroke-opacity=".22" stroke-width="1.4"/>
+<path d="M3450.6,4630.3 C3550.6,4630.3 3650.6,4564.1 3750.6,4564.1" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4630.3 C3550.6,4630.3 3650.6,4608.2 3750.6,4608.2" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4630.3 C3550.6,4630.3 3650.6,4652.3 3750.6,4652.3" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<path d="M3450.6,4630.3 C3550.6,4630.3 3650.6,4696.4 3750.6,4696.4" fill="none" stroke="#1D4ED8" stroke-opacity=".16" stroke-width="1.1"/>
+<rect x="1821.5" y="2400.7" width="443.6" height="76.2" rx="20" fill="url(#rg)" filter="url(#sh)"/>
+<text x="2043.3" y="2449.0" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="30" font-weight="700" fill="#fff">WAE 指令 → 動作
+完整架構</text>
+<rect x="1460.1" y="1482.7" width="283.2" height="74.9" rx="14" fill="#F3EEFF" stroke="#6D28D9" stroke-opacity=".6" stroke-width="1.6" filter="url(#sh)"/>
+<rect x="1460.1" y="1482.7" width="6" height="74.9" rx="3" fill="#6D28D9"/>
+<text x="1468.1" y="1514.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117">① 入口 · 閘門 · 生命週</text>
+<text x="1468.1" y="1539.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117">期</text>
+<rect x="1032.0" y="1120.5" width="118.0" height="38.8" rx="10" fill="#fff" stroke="#6D28D9" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1044.0" y="1145.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E0 指令入口</text>
+<rect x="636.0" y="934.1" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="647.0" y="957.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">文字輸入</text>
+<rect x="204.0" y="913.4" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="215.0" y="935.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">首頁輸入框＋執行</text>
+<rect x="111.7" y="957.5" width="224.3" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="122.7" y="979.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">debug_command 注入（讀後刪）</text>
+<rect x="636.0" y="1088.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="647.0" y="1111.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">語音</text>
+<rect x="197.5" y="1001.6" width="138.5" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="208.5" y="1023.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">WakeWord（可選）</text>
+<rect x="144.6" y="1045.6" width="191.4" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="155.6" y="1067.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">AssistActivity 助理角色</text>
+<rect x="201.9" y="1089.7" width="134.2" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="212.9" y="1111.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">sherpa 離線 ASR</text>
+<rect x="214.3" y="1133.8" width="121.7" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="225.3" y="1155.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">ASR 修正／繁簡</text>
+<rect x="240.0" y="1177.9" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="251.0" y="1199.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">語音回饋</text>
+<rect x="636.0" y="1220.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="647.0" y="1243.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">外部</text>
+<rect x="175.9" y="1222.0" width="160.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="186.9" y="1243.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">agent_goal watcher</text>
+<rect x="636.0" y="1308.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="647.0" y="1332.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">共同規則</text>
+<rect x="175.4" y="1266.1" width="160.6" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="186.4" y="1287.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">空白／太短 → 不執行</text>
+<rect x="188.9" y="1310.2" width="147.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="199.9" y="1331.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">忙碌 → 停止或排隊</text>
+<rect x="229.4" y="1354.3" width="106.6" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="240.4" y="1375.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">重複 → 冪等</text>
+<rect x="1032.0" y="1506.3" width="118.0" height="38.8" rx="10" fill="#fff" stroke="#6D28D9" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1044.0" y="1530.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E1 語音閘門</text>
+<rect x="580.6" y="1397.0" width="151.4" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="591.6" y="1420.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">VoiceCommandGate</text>
+<rect x="133.5" y="1398.4" width="147.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="144.5" y="1420.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">噪音／閒聊 → 忽略</text>
+<rect x="588.4" y="1485.2" width="143.6" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="599.4" y="1508.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">VoiceRiskPolicy</text>
+<rect x="90.0" y="1442.5" width="198.4" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="101.0" y="1464.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">BLOCK：付款／刪除 → 拒絕</text>
+<rect x="101.9" y="1486.5" width="186.5" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="112.9" y="1508.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">CONFIRM：敏感 → 確認卡</text>
+<rect x="186.1" y="1530.6" width="102.3" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="197.1" y="1552.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">ALLOW：一般</text>
+<rect x="590.7" y="1573.4" width="141.4" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="601.7" y="1596.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">前 20 次安全模式</text>
+<rect x="194.7" y="1574.7" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="205.7" y="1596.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">逐步確認</text>
+<rect x="636.0" y="1617.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="647.0" y="1640.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">取消</text>
+<rect x="188.9" y="1618.8" width="147.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="199.9" y="1640.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">語音／點擊 → 結束</text>
+<rect x="1001.0" y="1881.0" width="149.0" height="38.8" rx="10" fill="#fff" stroke="#6D28D9" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1013.0" y="1905.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E2 任務生命週期</text>
+<rect x="605.0" y="1705.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="616.0" y="1728.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">建立任務</text>
+<rect x="195.2" y="1662.9" width="109.9" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="206.2" y="1684.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">seq／任務 ID</text>
+<rect x="175.2" y="1707.0" width="129.8" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="186.2" y="1728.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">SessionHistory</text>
+<rect x="187.6" y="1751.1" width="117.4" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="198.6" y="1772.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">overlay＋語音</text>
+<rect x="605.0" y="1882.0" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="616.0" y="1905.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">前置檢查</text>
+<rect x="209.0" y="1795.2" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="220.0" y="1816.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">無障礙在線</text>
+<rect x="173.0" y="1839.3" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="184.0" y="1860.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">助理／麥克風權限</text>
+<rect x="154.7" y="1883.4" width="150.4" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="165.7" y="1905.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">目標是 WAE → 拒絕</text>
+<rect x="198.4" y="1927.4" width="106.6" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="209.4" y="1949.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">鎖屏 → 提示</text>
+<rect x="157.9" y="1971.5" width="147.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="168.9" y="1993.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">取消／逾時 → 停止</text>
+<rect x="605.0" y="2014.3" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="616.0" y="2037.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">佇列</text>
+<rect x="209.0" y="2015.6" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="220.0" y="2037.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">任務串行化</text>
+<rect x="605.0" y="2058.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".181" stroke-width="1"/>
+<text x="616.0" y="2081.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">失敗</text>
+<rect x="157.9" y="2059.7" width="147.1" height="34.1" rx="8" fill="#fff" stroke="#6D28D9" stroke-opacity=".00" stroke-width="1"/>
+<text x="168.9" y="2081.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">權限 → 深連結設定</text>
+<rect x="1557.3" y="2866.0" width="185.9" height="49.5" rx="14" fill="#E6F7F4" stroke="#0F766E" stroke-opacity=".6" stroke-width="1.6" filter="url(#sh)"/>
+<rect x="1557.3" y="2866.0" width="6" height="49.5" rx="3" fill="#0F766E"/>
+<text x="1565.3" y="2897.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117">② 路由 · 規劃</text>
+<rect x="1082.8" y="2230.7" width="164.5" height="38.8" rx="10" fill="#fff" stroke="#0F766E" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1094.8" y="2255.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E3 意圖路由（新）</text>
+<rect x="686.8" y="2132.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.8" y="2155.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">明確單指令</text>
+<rect x="226.2" y="2133.8" width="160.6" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="237.2" y="2155.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">動詞＋對象 → 舊管線</text>
+<rect x="686.8" y="2176.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.8" y="2199.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">明確多步</text>
+<rect x="238.1" y="2177.9" width="148.7" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="249.1" y="2199.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">先A再B → 序列拆解</text>
+<rect x="686.8" y="2220.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.8" y="2243.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">開放式目標</text>
+<rect x="242.4" y="2222.0" width="144.4" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="253.4" y="2243.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">我想看劇 → Agent</text>
+<rect x="686.8" y="2264.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.8" y="2287.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">高風險意圖</text>
+<rect x="199.2" y="2266.1" width="187.6" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="210.2" y="2287.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">付款／刪除 → 確認／拒絕</text>
+<rect x="686.8" y="2330.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.8" y="2354.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">路由依據</text>
+<rect x="254.8" y="2310.2" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="265.8" y="2331.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">動詞表＋目標性詞</text>
+<rect x="260.7" y="2354.3" width="126.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="271.7" y="2375.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">取代「字數≥6」</text>
+<rect x="1089.6" y="2605.4" width="157.7" height="38.8" rx="10" fill="#fff" stroke="#0F766E" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1101.6" y="2630.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E4a 舊管線（快）</text>
+<rect x="693.1" y="2419.1" width="96.6" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="704.1" y="2442.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">decompose</text>
+<rect x="217.3" y="2398.3" width="175.7" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="228.3" y="2420.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">動詞／槽位／連接詞 TSV</text>
+<rect x="206.0" y="2442.4" width="187.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="217.0" y="2464.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">依賴 dependsOnPrevious</text>
+<rect x="693.6" y="2595.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="704.6" y="2618.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Goal 類型</text>
+<rect x="297.6" y="2486.5" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="308.6" y="2508.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">OPEN_APP</text>
+<rect x="255.1" y="2530.6" width="138.5" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="266.1" y="2552.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">開網頁／deeplink</text>
+<rect x="221.1" y="2574.7" width="172.5" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="232.1" y="2596.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">查詢：電池／藍牙／版本</text>
+<rect x="275.1" y="2618.8" width="118.5" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="286.1" y="2640.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">開關：狀態推理</text>
+<rect x="199.5" y="2662.9" width="194.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="210.5" y="2684.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">輸入／搜尋：TYPE＋SUBMIT</text>
+<rect x="297.6" y="2707.0" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="308.6" y="2728.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">數值：滑桿</text>
+<rect x="693.6" y="2749.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="704.6" y="2772.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">序列</text>
+<rect x="219.5" y="2751.1" width="174.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="230.5" y="2772.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">前步失敗 → 中止／續跑</text>
+<rect x="693.6" y="2793.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="704.6" y="2817.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">失敗</text>
+<rect x="242.7" y="2795.2" width="150.9" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="253.7" y="2816.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">→ Agent fallback</text>
+<rect x="1044.4" y="2948.5" width="203.0" height="38.8" rx="10" fill="#fff" stroke="#0F766E" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1056.4" y="2973.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E4b Task OS（旗標關）</text>
+<rect x="577.2" y="2837.9" width="167.1" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="588.2" y="2861.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">TaskOsEngine.start</text>
+<rect x="648.4" y="2884.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="659.4" y="2907.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">模板匹配</text>
+<rect x="153.7" y="2886.0" width="194.6" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="164.7" y="2907.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">templates／verbs／slots</text>
+<rect x="648.4" y="2928.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="659.4" y="2951.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Planned</text>
+<rect x="205.0" y="2930.1" width="143.3" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="216.0" y="2951.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TaskRunner → E5</text>
+<rect x="648.4" y="2972.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="659.4" y="2996.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">NeedVars</text>
+<rect x="252.4" y="2974.2" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="263.4" y="2995.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">→ 反問</text>
+<rect x="648.4" y="3016.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="659.4" y="3040.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">NoMatch</text>
+<rect x="252.4" y="3018.3" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="263.4" y="3039.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">→ 舊管線</text>
+<rect x="640.0" y="3061.0" width="104.4" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="651.0" y="3084.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">checkpoint</text>
+<rect x="212.3" y="3062.4" width="127.7" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="223.3" y="3084.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">上限 20、可續跑</text>
+<rect x="1082.2" y="3511.9" width="165.2" height="38.8" rx="10" fill="#fff" stroke="#0F766E" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="1094.2" y="3536.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E4c Agent（LLM）</text>
+<rect x="654.8" y="3215.3" width="127.4" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="665.8" y="3238.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">App 選擇（新）</text>
+<rect x="225.0" y="3106.5" width="129.8" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="236.0" y="3128.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">IntentResolver</text>
+<rect x="202.3" y="3150.5" width="152.5" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="213.3" y="3172.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">InstalledAppIndex</text>
+<rect x="258.8" y="3194.6" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="269.8" y="3216.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">候選排序</text>
+<rect x="192.6" y="3238.7" width="162.2" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="203.6" y="3260.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">開啟驗證：截圖／a11y</text>
+<rect x="175.8" y="3282.8" width="179.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="186.8" y="3304.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">不像 → BACK 換（≤3）</text>
+<rect x="234.7" y="3326.9" width="120.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="245.7" y="3348.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">全失敗 → 反問</text>
+<rect x="686.2" y="3413.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.2" y="3436.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Planner</text>
+<rect x="209.9" y="3371.0" width="176.3" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="220.9" y="3392.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">prompt：目標＋App(30)</text>
+<rect x="252.0" y="3415.1" width="134.2" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="263.0" y="3436.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">輸出 JSON steps</text>
+<rect x="290.2" y="3459.2" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="301.2" y="3480.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">解析容錯</text>
+<rect x="686.2" y="3568.1" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.2" y="3591.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Runner</text>
+<rect x="290.2" y="3503.3" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="301.2" y="3524.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Observe</text>
+<rect x="168.9" y="3547.4" width="217.3" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="179.9" y="3569.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Decide：$app／$any_content</text>
+<rect x="290.2" y="3591.4" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="301.2" y="3613.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Act（L4）</text>
+<rect x="282.3" y="3635.5" width="103.9" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="293.3" y="3657.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">嚴格 Verify</text>
+<rect x="686.2" y="3700.3" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.2" y="3723.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">失敗</text>
+<rect x="193.2" y="3679.6" width="193.0" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="204.2" y="3701.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">retry ≤2 → replan ≤2</text>
+<rect x="236.9" y="3723.7" width="149.3" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="247.9" y="3745.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">→ AskUser／Abort</text>
+<rect x="686.2" y="3810.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".181" stroke-width="1"/>
+<text x="697.2" y="3833.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">模型</text>
+<rect x="223.4" y="3767.8" width="162.8" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="234.4" y="3789.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">APK 內 gguf FD 直載</text>
+<rect x="268.8" y="3811.9" width="117.4" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="279.8" y="3833.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">無 350MB 複製</text>
+<rect x="246.1" y="3856.0" width="140.1" height="34.1" rx="8" fill="#fff" stroke="#0F766E" stroke-opacity=".00" stroke-width="1"/>
+<text x="257.1" y="3877.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">失敗 → fallback</text>
+<rect x="2343.3" y="1487.7" width="145.6" height="49.5" rx="14" fill="#FDF3E7" stroke="#B45309" stroke-opacity=".6" stroke-width="1.6" filter="url(#sh)"/>
+<rect x="2343.3" y="1487.7" width="6" height="49.5" rx="3" fill="#B45309"/>
+<text x="2351.3" y="1518.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117">③ 執行核心</text>
+<rect x="2798.9" y="980.5" width="154.6" height="38.8" rx="10" fill="#fff" stroke="#B45309" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2810.9" y="1005.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E5 單 Goal 迴圈</text>
+<rect x="3253.5" y="220.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="244.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">感知</text>
+<rect x="3649.5" y="90.0" width="196.8" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="111.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">a11y 樹：文字／角色／狀態</text>
+<rect x="3649.5" y="134.1" width="141.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="155.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">OCR（PaddleOCR）</text>
+<rect x="3649.5" y="178.2" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="199.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">圖示偵測</text>
+<rect x="3649.5" y="222.3" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="243.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">姿態模型</text>
+<rect x="3649.5" y="266.4" width="129.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="288.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">頁面簽章／spine</text>
+<rect x="3649.5" y="310.4" width="105.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="332.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">多視窗取焦點</text>
+<rect x="3649.5" y="354.5" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="376.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">鍵盤遮擋</text>
+<rect x="3253.5" y="485.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="508.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">候選評分</text>
+<rect x="3649.5" y="398.6" width="114.2" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="420.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">L1 字面／詞表</text>
+<rect x="3649.5" y="442.7" width="145.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="464.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">L3 CUA-S1 MiniLM</text>
+<rect x="3649.5" y="486.8" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="508.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">決策頭（預設開）</text>
+<rect x="3649.5" y="530.9" width="176.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="552.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Grounding 2.0（旗標）</text>
+<rect x="3649.5" y="575.0" width="206.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="596.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Twin／自動機／MCTS（旗標）</text>
+<rect x="3253.5" y="816.2" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="839.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">決策分流</text>
+<rect x="3649.5" y="619.1" width="120.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="640.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">EMPTY → FAIL</text>
+<rect x="3649.5" y="663.2" width="214.1" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="684.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">ADJUST_VALUE → 掃描→FAIL</text>
+<rect x="3649.5" y="707.3" width="152.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="728.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TOGGLE → 已開不點</text>
+<rect x="3649.5" y="751.4" width="187.1" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="773.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">AMBIGUOUS → AUTO／ASK</text>
+<rect x="3649.5" y="795.4" width="189.8" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="817.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TYPE 無輸入 → BACK ≤2</text>
+<rect x="3649.5" y="839.5" width="188.2" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="861.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TYPE 只有入口 → 先 TAP</text>
+<rect x="3649.5" y="883.6" width="133.6" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="905.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">唯讀元素 → 拒絕</text>
+<rect x="3649.5" y="927.7" width="133.6" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="949.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">重複動作 → 冪等</text>
+<rect x="3649.5" y="971.8" width="147.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="993.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">CLEAR_WIN → 安全</text>
+<rect x="3649.5" y="1015.9" width="208.1" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1037.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">REJECT → L1→MCTS→L2/L3</text>
+<rect x="3253.5" y="1124.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="1147.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">安全層</text>
+<rect x="3649.5" y="1060.0" width="217.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1081.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">SafetyGate：BLOCK／CONFIRM</text>
+<rect x="3649.5" y="1104.1" width="194.6" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1125.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">SecurityGuardrails 風控</text>
+<rect x="3649.5" y="1148.2" width="170.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1169.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">PolicyVerifier（ω）</text>
+<rect x="3649.5" y="1192.3" width="120.1" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1213.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">不可逆 → 確認</text>
+<rect x="3253.5" y="1323.2" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="1346.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">動作下發</text>
+<rect x="3649.5" y="1236.3" width="193.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1258.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TAP／TYPE／SCROLL／BACK</text>
+<rect x="3649.5" y="1280.4" width="202.2" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1302.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">OPEN_APP／SUBMIT／ADJUST</text>
+<rect x="3649.5" y="1324.5" width="103.9" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1346.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TOCTOU 守衛</text>
+<rect x="3649.5" y="1368.6" width="149.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1390.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">ActionLedger 冪等</text>
+<rect x="3649.5" y="1412.7" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1434.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">IME 處理</text>
+<rect x="3253.5" y="1543.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="1566.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">嚴格驗證</text>
+<rect x="3649.5" y="1456.8" width="121.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1478.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TYPE：文字出現</text>
+<rect x="3649.5" y="1500.9" width="172.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1522.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">OPEN_APP：package 變</text>
+<rect x="3649.5" y="1545.0" width="172.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1566.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">toggle：checkable 變</text>
+<rect x="3649.5" y="1589.1" width="114.2" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1610.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TAP：畫面變化</text>
+<rect x="3649.5" y="1633.1" width="147.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1654.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">UNCERTAIN ≠ 成功</text>
+<rect x="3253.5" y="1742.0" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3264.5" y="1765.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">恢復</text>
+<rect x="3649.5" y="1677.2" width="148.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1698.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">重試 ≤2 → 重感知</text>
+<rect x="3649.5" y="1721.3" width="127.7" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1743.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">L2 去彈窗／滾動</text>
+<rect x="3649.5" y="1765.4" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1787.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">L3 探索</text>
+<rect x="3649.5" y="1809.5" width="123.4" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3660.5" y="1831.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">仍失敗 → FAIL</text>
+<rect x="2798.9" y="2005.6" width="142.8" height="38.8" rx="10" fill="#fff" stroke="#B45309" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2810.9" y="2030.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E6 Agent Step</text>
+<rect x="3241.7" y="1852.3" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3252.7" y="1875.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Observe</text>
+<rect x="3637.7" y="1853.6" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="1875.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">凍結快照</text>
+<rect x="3241.7" y="1940.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3252.7" y="1963.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Decide</text>
+<rect x="3637.7" y="1897.7" width="196.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="1919.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">$app → AppNameResolver</text>
+<rect x="3637.7" y="1941.8" width="197.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="1963.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">$any_content → 內容卡片</text>
+<rect x="3637.7" y="1985.9" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="2007.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">文字：包含／相似</text>
+<rect x="3241.7" y="2028.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3252.7" y="2051.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Act</text>
+<rect x="3637.7" y="2030.0" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="2051.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">同 E5 L4</text>
+<rect x="3241.7" y="2094.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3252.7" y="2117.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">Verify</text>
+<rect x="3637.7" y="2074.0" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="2095.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">嚴格規則</text>
+<rect x="3637.7" y="2118.1" width="153.6" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="2139.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">UNCERTAIN 不寫記憶</text>
+<rect x="3241.7" y="2160.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".181" stroke-width="1"/>
+<text x="3252.7" y="2184.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">失敗</text>
+<rect x="3637.7" y="2162.2" width="217.3" height="34.1" rx="8" fill="#fff" stroke="#B45309" stroke-opacity=".00" stroke-width="1"/>
+<text x="3648.7" y="2183.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">retry → replan → AskUser</text>
+<rect x="2343.3" y="3420.9" width="293.8" height="74.9" rx="14" fill="#EAF0FF" stroke="#1D4ED8" stroke-opacity=".6" stroke-width="1.6" filter="url(#sh)"/>
+<rect x="2343.3" y="3420.9" width="6" height="74.9" rx="3" fill="#1D4ED8"/>
+<text x="2351.3" y="3452.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117">④ 記憶 · 結果 · 邊界 ·</text>
+<text x="2351.3" y="3477.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="19" font-weight="700" fill="#111117"> 資料</text>
+<rect x="2947.1" y="2542.6" width="180.0" height="38.8" rx="10" fill="#fff" stroke="#1D4ED8" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2959.1" y="2567.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E7 記憶與學習（新）</text>
+<rect x="3427.1" y="2279.1" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2302.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">讀</text>
+<rect x="3823.1" y="2236.3" width="134.2" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2258.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">檢索 app_memory</text>
+<rect x="3823.1" y="2280.4" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2302.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">只影響排序</text>
+<rect x="3823.1" y="2324.5" width="132.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2346.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">不跳過感知／安全</text>
+<rect x="3427.1" y="2411.3" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2434.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">寫</text>
+<rect x="3823.1" y="2368.6" width="127.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2390.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">嚴格成功 → ＋1</text>
+<rect x="3823.1" y="2412.7" width="156.3" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2434.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">失敗 → −1；≤0 刪</text>
+<rect x="3823.1" y="2456.8" width="126.6" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2478.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">UNCERTAIN 不寫</text>
+<rect x="3427.1" y="2521.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2544.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">版本／過期</text>
+<rect x="3823.1" y="2500.9" width="147.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2522.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">App 更新 → stale</text>
+<rect x="3823.1" y="2544.9" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2566.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TTL 降權</text>
+<rect x="3427.1" y="2609.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2632.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">上限</text>
+<rect x="3823.1" y="2589.0" width="172.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2610.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">8KB／App、20 entries</text>
+<rect x="3823.1" y="2633.1" width="117.4" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2654.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">全域 5MB、LRU</text>
+<rect x="3427.1" y="2720.0" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2743.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">背景探索</text>
+<rect x="3823.1" y="2677.2" width="194.1" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2698.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">只讀：launch／觀察／BACK</text>
+<rect x="3823.1" y="2721.3" width="170.3" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2742.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">禁 TAP／TYPE／SCROLL</text>
+<rect x="3823.1" y="2765.4" width="149.3" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2787.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">confidence 上限 1</text>
+<rect x="3427.1" y="2808.2" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3438.1" y="2831.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">管理</text>
+<rect x="3823.1" y="2809.5" width="118.5" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3834.1" y="2831.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">一鍵清除／匯出</text>
+<rect x="2947.1" y="3204.0" width="133.5" height="38.8" rx="10" fill="#fff" stroke="#1D4ED8" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2959.1" y="3228.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">E8 結果與回饋</text>
+<rect x="3380.6" y="2962.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3391.6" y="2985.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">結束狀態</text>
+<rect x="3776.6" y="2853.6" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="2875.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">SUCCESS</text>
+<rect x="3776.6" y="2897.7" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="2919.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">FAIL</text>
+<rect x="3776.6" y="2941.8" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="2963.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">NEED_USER</text>
+<rect x="3776.6" y="2985.9" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3007.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">CANCELLED</text>
+<rect x="3776.6" y="3029.9" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3051.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TIMEOUT</text>
+<rect x="3776.6" y="3074.0" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3095.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">REJECTED</text>
+<rect x="3380.6" y="3182.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3391.6" y="3206.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">回饋</text>
+<rect x="3776.6" y="3118.1" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3139.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">狀態列</text>
+<rect x="3776.6" y="3162.2" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3183.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">overlay</text>
+<rect x="3776.6" y="3206.3" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3227.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">語音</text>
+<rect x="3776.6" y="3250.4" width="105.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3272.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">通知（可選）</text>
+<rect x="3380.6" y="3337.2" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3391.6" y="3360.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">記錄</text>
+<rect x="3776.6" y="3294.5" width="129.8" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3316.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">SessionHistory</text>
+<rect x="3776.6" y="3338.6" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3360.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Twin 軌跡</text>
+<rect x="3776.6" y="3382.7" width="107.2" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3404.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">diagnostics</text>
+<rect x="3380.6" y="3447.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3391.6" y="3470.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">停止</text>
+<rect x="3776.6" y="3426.8" width="145.5" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3448.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">下一檢查點安全停止</text>
+<rect x="3776.6" y="3470.8" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3787.6" y="3492.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">清暫存</text>
+<rect x="2947.1" y="3764.1" width="164.5" height="38.8" rx="10" fill="#fff" stroke="#1D4ED8" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2959.1" y="3788.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">邊界情況（11 類）</text>
+<rect x="3411.6" y="3513.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3536.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">入口</text>
+<rect x="3807.6" y="3514.9" width="172.5" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3536.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">噪音／空白／重複／忙碌</text>
+<rect x="3411.6" y="3557.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3580.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">權限</text>
+<rect x="3807.6" y="3559.0" width="199.5" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3580.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">無障礙／助理／麥克風／鎖屏</text>
+<rect x="3411.6" y="3601.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3624.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">模型</text>
+<rect x="3807.6" y="3603.1" width="245.4" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3624.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">未載入／失敗／parse → fallback</text>
+<rect x="3411.6" y="3645.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3669.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">App</text>
+<rect x="3807.6" y="3647.2" width="186.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3668.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">不存在／歧義／開啟後不對</text>
+<rect x="3411.6" y="3712.0" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3735.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">畫面</text>
+<rect x="3807.6" y="3691.3" width="159.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3712.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">白屏／廣告／權限彈窗</text>
+<rect x="3807.6" y="3735.4" width="257.3" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3757.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">IME／多視窗／無 a11y → OCR／截圖</text>
+<rect x="3411.6" y="3778.1" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3801.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">決策</text>
+<rect x="3807.6" y="3770.4" width="277.8" height="52.2" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3792.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">歧義／唯讀／入口／TYPE 無輸入／滑桿找</text>
+<text x="3818.6" y="3810.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">不到</text>
+<rect x="3411.6" y="3840.3" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3863.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">安全</text>
+<rect x="3807.6" y="3841.7" width="258.9" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3863.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">BLOCK／CONFIRM／OTP／密碼／不可逆</text>
+<rect x="3411.6" y="3884.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3907.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">動作</text>
+<rect x="3807.6" y="3885.7" width="280.5" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3907.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">節點消失／座標失效／中文輸入／重複提交</text>
+<rect x="3411.6" y="3928.5" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3951.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">驗證</text>
+<rect x="3807.6" y="3929.8" width="200.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3951.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">畫面沒變／誤判／UNCERTAIN</text>
+<rect x="3411.6" y="3972.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="3995.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">中斷</text>
+<rect x="3807.6" y="3973.9" width="213.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="3995.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">停止／取消／逾時／斷線／來電</text>
+<rect x="3411.6" y="4016.7" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3422.6" y="4039.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">收尾</text>
+<rect x="3807.6" y="4018.0" width="228.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3818.6" y="4039.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">歷史／記憶／diagnostics／清理</text>
+<rect x="2947.1" y="4335.3" width="107.5" height="38.8" rx="10" fill="#fff" stroke="#1D4ED8" stroke-opacity=".3" stroke-width="1.3"/>
+<text x="2959.1" y="4360.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="15.5" font-weight="600" fill="#1F2430">資料與旗標</text>
+<rect x="3354.6" y="4060.8" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3365.6" y="4083.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">prompt</text>
+<rect x="3750.6" y="4062.1" width="209.8" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4083.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">plan_system／user／replan</text>
+<rect x="3354.6" y="4171.0" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3365.6" y="4194.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">TSV</text>
+<rect x="3750.6" y="4106.2" width="137.4" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4127.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">command_lexicon</text>
+<rect x="3750.6" y="4150.3" width="114.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4171.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">app_metadata</text>
+<rect x="3750.6" y="4194.4" width="120.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4216.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">icons／widget</text>
+<rect x="3750.6" y="4238.5" width="105.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4260.1" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">小設定／詞表</text>
+<rect x="3354.6" y="4347.4" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3365.6" y="4370.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">模型</text>
+<rect x="3750.6" y="4282.6" width="141.7" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4304.2" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">Qwen3-0.6B（FD）</text>
+<rect x="3750.6" y="4326.6" width="107.2" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4348.3" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">MiniLM 22MB</text>
+<rect x="3750.6" y="4370.7" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4392.4" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">OCR／圖示</text>
+<rect x="3750.6" y="4414.8" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4436.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">sherpa</text>
+<rect x="3354.6" y="4479.6" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3365.6" y="4502.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">JSON</text>
+<rect x="3750.6" y="4458.9" width="107.2" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4480.5" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">plan schema</text>
+<rect x="3750.6" y="4503.0" width="125.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4524.6" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">reranker／記憶</text>
+<rect x="3354.6" y="4611.9" width="96.0" height="36.8" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".181" stroke-width="1"/>
+<text x="3365.6" y="4635.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="14" font-weight="400" fill="#3A4150">旗標</text>
+<rect x="3750.6" y="4547.1" width="149.3" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4568.7" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">DECISION_HEAD：開</text>
+<rect x="3750.6" y="4591.2" width="103.9" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4612.8" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">TASK_OS：關</text>
+<rect x="3750.6" y="4635.3" width="134.2" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4656.9" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">GROUNDING_2：關</text>
+<rect x="3750.6" y="4679.4" width="96.0" height="34.1" rx="8" fill="#fff" stroke="#1D4ED8" stroke-opacity=".00" stroke-width="1"/>
+<text x="3761.6" y="4701.0" font-family="-apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;, &quot;PingFang TC&quot;, &quot;Noto Sans TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif" font-size="13.5" font-weight="400" fill="#3A4150">WAE-Ω：關</text>
+</svg></div></div>
+<div class="tb"><button onclick="fit()">全貌</button><button onclick="goto(0)">①入口</button><button onclick="goto(1)">②路由</button><button onclick="goto(2)">③執行</button><button onclick="goto(3)">④記憶/邊界</button><button onclick="zb(1.2)">放大</button><button onclick="zb(1/1.2)">縮小</button><button onclick="dl()">下載 PNG</button></div>
+<div class="legend"><b>WAE 端到端流程</b>
+<span><i style="background:#6D28D9"></i>① 入口 · 閘門 · 生命週期</span><br>
+<span><i style="background:#0F766E"></i>② 路由 · 規劃（舊管線／TaskOS／Agent）</span><br>
+<span><i style="background:#B45309"></i>③ 執行核心（感知→決策→安全→動作→驗證）</span><br>
+<span><i style="background:#1D4ED8"></i>④ 記憶 · 結果 · 邊界 · 資料</span></div>
+<div class="hint">滾輪縮放 · 拖曳移動 · 按「全貌」看整體 · 257 個節點 · 4 大群組 · 13 個階段</div>
+<script>
+const GC=[(454.1176744186048, 1516.0223546511652), (510.7715625000001, 2958.6749218750024), (3593.4363492063494, 1221.6297023809523), (3681.977816091954, 3490.9279741379337)];
+const wrap=document.getElementById('wrap'),stage=document.getElementById('stage');
+let s=1,tx=0,ty=0,drag=false,sx=0,sy=0,ox=0,oy=0;
+function apply(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${s})`}
+function goto(i){
+  const c=GC[i]; s=0.75; tx=wrap.clientWidth/2-c[0]*s; ty=wrap.clientHeight/2-c[1]*s; apply();
+}
+function fit(){const w=wrap.clientWidth,h=wrap.clientHeight;s=Math.min(w/4178,h/4803)*.97;tx=(w-4178*s)/2;ty=(h-4803*s)/2;apply()}
+function zb(k){const w=wrap.clientWidth,h=wrap.clientHeight,cx=w/2,cy=h/2;tx=cx-(cx-tx)*k;ty=cy-(cy-ty)*k;s*=k;apply()}
+wrap.addEventListener('wheel',e=>{e.preventDefault();const k=e.deltaY<0?1.1:1/1.1,r=wrap.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;tx=cx-(cx-tx)*k;ty=cy-(cy-ty)*k;s*=k;apply()},{passive:false});
+wrap.addEventListener('pointerdown',e=>{drag=true;wrap.classList.add('d');sx=e.clientX;sy=e.clientY;ox=tx;oy=ty});
+window.addEventListener('pointermove',e=>{if(!drag)return;tx=ox+e.clientX-sx;ty=oy+e.clientY-sy;apply()});
+window.addEventListener('pointerup',()=>{drag=false;wrap.classList.remove('d')});
+function dl(){
+  const svg=document.getElementById('mm');
+  const data=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=()=>{
+    const c=document.createElement('canvas'); c.width=4178; c.height=4803;
+    const g=c.getContext('2d'); g.fillStyle='#FAFAFB'; g.fillRect(0,0,c.width,c.height);
+    g.drawImage(img,0,0); URL.revokeObjectURL(url);
+    const a=document.createElement('a'); a.href=c.toDataURL('image/png');
+    a.download='WAE-flow-mindmap.png'; a.click();
+  };
+  img.src=url;
+}
+window.addEventListener('resize',fit);
+fit();
+</script></body></html>

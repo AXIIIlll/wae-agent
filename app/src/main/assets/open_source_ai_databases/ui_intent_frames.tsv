@@ -1,0 +1,8 @@
+# ui_intent_frames.tsv — 開放式意圖框（FuzzyIntent 用）
+# 格式：intent<TAB>triggers(|分隔)<TAB>required_slots(,分隔；空=不必問)<TAB>template<TAB>ask
+# template 對應 core/app/OpenEndedPlanner 的模板：video / music / maps / food / web
+play_media	看劇|追劇|看影片|看電影|看片|想看劇		video	想看哪一類？
+listen_music	聽歌|聽音樂|放音樂|想聽歌		music	想聽什麼歌？
+navigate	導航|怎麼去|帶我去|我要去	destination	maps	要去哪裡？
+order_food	訂餐|叫外送|點餐|想吃		food	想吃什麼？
+search_web	搜尋|上網查|查一下	query	web	要查什麼？

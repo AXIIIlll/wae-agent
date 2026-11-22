@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "actions": {
+    "tap": {
+      "requires": [
+        "index"
+      ]
+    },
+    "type": {
+      "requires": [
+        "index",
+        "text"
+      ]
+    },
+    "scroll": {
+      "requires": [
+        "direction"
+      ]
+    },
+    "back": {
+      "requires": []
+    },
+    "open_app": {
+      "requires": [
+        "appName"
+      ]
+    },
+    "wait": {
+      "requires": []
+    },
+    "ask_user": {
+      "requires": [
+        "question"
+      ],
+      "optional": [
+        "options"
+      ]
+    },
+    "replan": {
+      "requires": []
+    },
+    "done": {
+      "requires": []
+    }
+  },
+  "noCoordinates": true,
+  "noAppFlows": true
+}

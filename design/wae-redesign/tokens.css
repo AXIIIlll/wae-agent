@@ -1,0 +1,98 @@
+:root {
+  /* Brand — 收斂成一個主色，只用在主操作與少量點綴 */
+  --color-primary: #6D28D9;
+  --color-primary-strong: #5B21B6;
+  --color-primary-soft: #F3EEFF;
+  --color-primary-tint: #EDE7FF;
+  --color-on-primary: #FFFFFF;
+
+  /* Neutral — 帶一點主色色相的暖灰，不用純灰 */
+  --color-bg: #FFFFFF;
+  --color-surface: #F7F7F8;
+  --color-surface-2: #F1F0F4;
+  --color-text: #111117;
+  --color-text-secondary: #5B5B66;
+  --color-muted: #6B6B76;
+  --color-line: #E7E6EC;
+  --color-line-strong: #D8D7DF;
+
+  /* Semantic */
+  --color-success: #0F6B4C;
+  --color-success-soft: #E8F5EF;
+  --color-warning: #B45309;
+  --color-warning-soft: #FDF3E7;
+  --color-danger: #D93025;
+  --color-danger-soft: #FDECEA;
+
+  /* Typography — 一屏最多四個字號 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    Roboto, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei",
+    system-ui, sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-2xl: 32px;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.55;
+
+  /* Spacing — 4 / 8 的倍數 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Elevation — 只有兩檔，低透明度大模糊 */
+  --shadow-1: 0 1px 2px rgba(17, 17, 23, 0.04), 0 4px 16px rgba(17, 17, 23, 0.04);
+  --shadow-2: 0 8px 32px rgba(17, 17, 23, 0.10);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+
+  /* Layout */
+  --app-height: 844px;
+  --safe-top: 54px;
+  --safe-bottom: 34px;
+  --gutter: 20px;
+}
+
+html[data-theme="dark"] {
+  --color-bg: #0B0B0F;
+  --color-surface: #15151B;
+  --color-surface-2: #1C1C24;
+  --color-text: #F4F4F6;
+  --color-text-secondary: #B6B6C0;
+  --color-muted: #9A9AA6;
+  --color-line: #26262E;
+  --color-line-strong: #33333D;
+  --color-primary: #A78BFA;
+  --color-primary-strong: #C4B5FD;
+  --color-primary-soft: #1E1830;
+  --color-primary-tint: #251D3B;
+  --color-on-primary: #14121F;
+  --color-success: #4ADE80;
+  --color-success-soft: #12261C;
+  --color-warning: #FBBF24;
+  --color-warning-soft: #2A2110;
+  --color-danger: #F87171;
+  --color-danger-soft: #2A1414;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.55);
+}

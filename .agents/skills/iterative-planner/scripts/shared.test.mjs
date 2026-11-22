@@ -1,0 +1,1249 @@
+#!/usr/bin/env node
+// Tests for shared.mjs — the single-source-of-truth helpers imported by
+// bootstrap.mjs and validate-plan.mjs.
+// Run: node --test src/scripts/shared.test.mjs
+// Requires: Node.js 18+
+//
+// shared.mjs is side-effect-free (pure exports, no CLI entry guard needed),
+// so the symbols are imported and exercised directly — no fixtures, no spawn.
+
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync, readdirSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from "fs";
+import { tmpdir } from "os";
+import { pathToFileURL } from "url";
+import { spawnSync } from "child_process";
+import { resolve } from "path";
+
+const SHARED = resolve(import.meta.dirname, "shared.mjs");
+
+import {
+  extractField,
+  splitChangelogFields,
+  blankCompressedSummaryBlock,
+  stripHtmlComments,
+  proseOnly,
+  VERSION_RE,
+  htmlCommentSpans,
+  blockCommentSpans,
+  BLOCK_COMMENT_EXTS,
+  unterminatedCommentOpener,
+  COMPRESSED_SUMMARY_OPEN,
+  COMPRESSED_SUMMARY_CLOSE,
+  CHANGELOG_COMPRESSED_INLINE_RE,
+  PLAN_ID_PATTERN,
+  PLAN_ID_RE,
+  LEGACY_PLAN_ID_PATTERN,
+  LEGACY_PLAN_ID_RE,
+  ANY_PLAN_ID_PATTERN,
+  ANY_PLAN_ID_RE,
+  PLAN_DIR_PREFIX_RE,
+  PLAN_SECTION_PATTERN,
+  planDateFromId,
+  DECISION_ID_NUM_PATTERN,
+  COUNTED_BUDGET_RE,
+  isMain,
+} from "./shared.mjs";
+
+// ---------------------------------------------------------------------------
+// extractField
+// ---------------------------------------------------------------------------
+
+test("extractField: returns the trimmed first capture group", () => {
+  assert.equal(extractField("Step: 5", /Step: (\d+)/), "5");
+  assert.equal(extractField("Name: Foo", /Name: (.+)/), "Foo");
+});
+
+test("extractField: trims surrounding whitespace from the capture", () => {
+  assert.equal(extractField("X:   spaced   ", /X:(.+)/), "spaced");
+  // greedy (.+) stops at newline by default; trailing spaces trimmed
+  assert.equal(extractField("Name:  Foo  \nrest", /Name:\s*(.+)/), "Foo");
+});
+
+test("extractField: returns null when the pattern does not match", () => {
+  assert.equal(extractField("hello world", /Step: (\d+)/), null);
+});
+
+test("extractField: returns null for falsy content (empty/null/undefined)", () => {
+  assert.equal(extractField("", /x/), null);
+  assert.equal(extractField(null, /x/), null);
+  assert.equal(extractField(undefined, /x/), null);
+});
+
+test("extractField: honors a multiline-flagged pattern", () => {
+  const content = "preamble\nKey: val\ntrailer";
+  assert.equal(extractField(content, /^Key: (.+)$/m), "val");
+});
+
+test("extractField: with no capture group returns the whole match position throws-free as null-safe", () => {
+  // A pattern with no group: match[1] is undefined -> .trim() would throw, so
+  // callers must always supply a group. Document the supported contract: a
+  // single capture group. This asserts the supported path stays stable.
+  assert.equal(extractField("v1.2.3", /v(\d+\.\d+\.\d+)/), "1.2.3");
+});
+
+// ---------------------------------------------------------------------------
+// splitChangelogFields
+// ---------------------------------------------------------------------------
+
+test("splitChangelogFields: a well-formed 8-field line splits into 8 trimmed fields", () => {
+  const line =
+    "2026-06-27T08:37:20Z | iter-1/step-1 | 003d20a | src/scripts/blast-radius.mjs | EDIT(+1,-1) | radius:LOW(0) | - | removed dead imports";
+  const f = splitChangelogFields(line);
+  assert.equal(f.length, 8);
+  assert.equal(f[0], "2026-06-27T08:37:20Z");
+  assert.equal(f[1], "iter-1/step-1");
+  assert.equal(f[2], "003d20a");
+  assert.equal(f[3], "src/scripts/blast-radius.mjs");
+  assert.equal(f[4], "EDIT(+1,-1)");
+  assert.equal(f[5], "radius:LOW(0)");
+  assert.equal(f[6], "-");
+  assert.equal(f[7], "removed dead imports");
+});
+
+test("splitChangelogFields: the 8th field (reason) absorbs extra ' | ' sequences", () => {
+  const line = "a | b | c | d | e | f | g | reason has | a pipe | and more";
+  const f = splitChangelogFields(line);
+  assert.equal(f.length, 8);
+  assert.equal(f[6], "g");
+  assert.equal(f[7], "reason has | a pipe | and more");
+});
+
+test("splitChangelogFields: fewer than 7 separators returns the raw split (real field count) for the caller to reject", () => {
+  const f = splitChangelogFields("a | b | c");
+  assert.deepEqual(f, ["a", "b", "c"]);
+  assert.equal(f.length, 3); // < 8 -> malformed, caller sees true count
+});
+
+test("splitChangelogFields: trims every field", () => {
+  const line = "  a  |  b  |  c  |  d  |  e  |  f  |  g  |  h  ";
+  const f = splitChangelogFields(line);
+  assert.deepEqual(f, ["a", "b", "c", "d", "e", "f", "g", "h"]);
+});
+
+test("splitChangelogFields: an empty line yields a single empty field (rejected by caller)", () => {
+  const f = splitChangelogFields("");
+  assert.deepEqual(f, [""]);
+});
+
+test("splitChangelogFields: exactly 7 separators with an empty reason still yields 8 fields", () => {
+  const line = "a | b | c | d | e | f | g | ";
+  const f = splitChangelogFields(line);
+  assert.equal(f.length, 8);
+  assert.equal(f[7], ""); // trimmed empty remainder
+});
+
+// ---------------------------------------------------------------------------
+// Compression markers + recognizer regex
+// ---------------------------------------------------------------------------
+
+test("COMPRESSED_SUMMARY_OPEN / CLOSE are the expected HTML-comment markers", () => {
+  assert.equal(COMPRESSED_SUMMARY_OPEN, "<!-- COMPRESSED-SUMMARY -->");
+  assert.equal(COMPRESSED_SUMMARY_CLOSE, "<!-- /COMPRESSED-SUMMARY -->");
+  // close marker is the open marker with a leading slash on the tag name
+  assert.ok(COMPRESSED_SUMMARY_CLOSE.includes("/COMPRESSED-SUMMARY"));
+});
+
+test("CHANGELOG_COMPRESSED_INLINE_RE matches a compressed-inline summary line", () => {
+  assert.ok(
+    CHANGELOG_COMPRESSED_INLINE_RE.test(
+      "- (compressed: 5 low-decision-impact edits folded)",
+    ),
+  );
+  assert.ok(
+    CHANGELOG_COMPRESSED_INLINE_RE.test(
+      "- (compressed: 12 low-decision-impact edits; see history)",
+    ),
+  );
+});
+
+test("CHANGELOG_COMPRESSED_INLINE_RE does NOT match a normal changelog entry line", () => {
+  assert.ok(
+    !CHANGELOG_COMPRESSED_INLINE_RE.test(
+      "2026-06-27T08:37:20Z | iter-1/step-1 | 003d20a | path | EDIT(+1,-1) | radius:LOW(0) | - | reason",
+    ),
+  );
+});
+
+test("CHANGELOG_COMPRESSED_INLINE_RE requires a digit count and a line-start anchor", () => {
+  // no digit
+  assert.ok(
+    !CHANGELOG_COMPRESSED_INLINE_RE.test(
+      "- (compressed: low-decision-impact edits)",
+    ),
+  );
+  // not anchored at start of line (leading whitespace)
+  assert.ok(
+    !CHANGELOG_COMPRESSED_INLINE_RE.test(
+      "  - (compressed: 5 low-decision-impact edits)",
+    ),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// blankCompressedSummaryBlock
+// ---------------------------------------------------------------------------
+
+test("blankCompressedSummaryBlock: removes a complete block's content while preserving line count", () => {
+  const content = [
+    "line1",
+    COMPRESSED_SUMMARY_OPEN,
+    "## Summary (compressed)",
+    "### Decision lookup",
+    "some body",
+    COMPRESSED_SUMMARY_CLOSE,
+    "line2",
+  ].join("\n");
+
+  const out = blankCompressedSummaryBlock(content);
+
+  // line count is identical (so downstream line numbers stay accurate)
+  assert.equal(out.split("\n").length, content.split("\n").length);
+  // surrounding content is untouched
+  assert.ok(out.startsWith("line1\n"));
+  assert.ok(out.endsWith("\nline2"));
+  // markers and body text are blanked out
+  assert.ok(!out.includes(COMPRESSED_SUMMARY_OPEN));
+  assert.ok(!out.includes(COMPRESSED_SUMMARY_CLOSE));
+  assert.ok(!out.includes("Summary (compressed)"));
+  assert.ok(!out.includes("Decision lookup"));
+});
+
+test("blankCompressedSummaryBlock: no markers present -> content returned unchanged", () => {
+  const content = "just\nplain\nmarkdown\nno block";
+  assert.equal(blankCompressedSummaryBlock(content), content);
+});
+
+test("blankCompressedSummaryBlock: open marker without a close marker -> unchanged (incomplete block)", () => {
+  const content = `before\n${COMPRESSED_SUMMARY_OPEN}\ndangling body\nno close`;
+  assert.equal(blankCompressedSummaryBlock(content), content);
+});
+
+test("blankCompressedSummaryBlock: falsy content is returned as-is", () => {
+  assert.equal(blankCompressedSummaryBlock(""), "");
+  assert.equal(blankCompressedSummaryBlock(null), null);
+  assert.equal(blankCompressedSummaryBlock(undefined), undefined);
+});
+
+test("blankCompressedSummaryBlock: a single-line block (markers and body on one line) collapses to blanks", () => {
+  const content = `pre ${COMPRESSED_SUMMARY_OPEN}body${COMPRESSED_SUMMARY_CLOSE} post`;
+  const out = blankCompressedSummaryBlock(content);
+  // single line in, single line out
+  assert.equal(out.split("\n").length, 1);
+  assert.ok(!out.includes(COMPRESSED_SUMMARY_OPEN));
+  assert.ok(!out.includes(COMPRESSED_SUMMARY_CLOSE));
+  assert.ok(!out.includes("body"));
+  // surrounding non-block text preserved
+  assert.ok(out.startsWith("pre "));
+  assert.ok(out.endsWith(" post"));
+});
+
+// ---------------------------------------------------------------------------
+// stripHtmlComments (defect #8 / D-003)
+// ---------------------------------------------------------------------------
+
+test("stripHtmlComments: blanks a multi-line comment interior and preserves line count exactly", () => {
+  const content = [
+    "- INIT → EXPLORE (task started)",
+    "- EXPLORE → PLAN (real, 2026-07-14)",
+    "  - confidence: scope=deep, solutions=open, risks=clear",
+    "<!-- When logging EXPLORE → PLAN, add Exploration Confidence below, e.g.:",
+    "- EXPLORE → PLAN (gathered enough context, YYYY-MM-DDTHH:MM:SSZ)",
+    "  - confidence: scope=deep|partial|shallow",
+    "See references/planning-rigor.md for definitions. -->",
+  ].join("\n");
+  const out = stripHtmlComments(content);
+  const inLines = content.split("\n");
+  const outLines = out.split("\n");
+  assert.equal(outLines.length, inLines.length, "line count must be preserved");
+  // Real transition lines survive byte-identically.
+  assert.equal(outLines[0], inLines[0]);
+  assert.equal(outLines[1], inLines[1]);
+  assert.equal(outLines[2], inLines[2]);
+  // Every line of the comment region is blanked to the empty string.
+  assert.deepEqual(outLines.slice(3), ["", "", "", ""]);
+  // The template's example transition is gone from the scanned text.
+  assert.equal(out.match(/EXPLORE → PLAN/g).length, 1);
+  assert.ok(!out.includes("<!--") && !out.includes("-->"));
+});
+
+test("stripHtmlComments: handles multiple comments in one document", () => {
+  const content = "a<!--x-->b<!--y-->c";
+  assert.equal(stripHtmlComments(content), "abc");
+});
+
+test("stripHtmlComments: leaves non-comment text byte-identical", () => {
+  const content = "# Current State: EXECUTE\n## Iteration: 1\n- EXECUTE → REFLECT (1)\n";
+  assert.equal(stripHtmlComments(content), content);
+});
+
+test("stripHtmlComments: an unterminated <!-- leaves the remainder UNCHANGED (fail-safe, never throws)", () => {
+  // Blanking to EOF here would swallow the real EXECUTE → REFLECT record below and
+  // silently disable the iteration hard cap. Over-count, never under-count.
+  const content = "- EXECUTE → REFLECT (1)\n<!-- dangling opener\n- EXECUTE → REFLECT (2)\n";
+  assert.equal(stripHtmlComments(content), content);
+  assert.equal(content.match(/EXECUTE → REFLECT/g).length, 2);
+});
+
+test("stripHtmlComments: a complete comment before an unterminated one is still blanked", () => {
+  const content = "a\n<!-- gone -->\nb\n<!-- dangling\nc";
+  const out = stripHtmlComments(content);
+  assert.equal(out.split("\n").length, content.split("\n").length);
+  assert.equal(out, "a\n\nb\n<!-- dangling\nc");
+});
+
+test("stripHtmlComments: comments do not nest — the first --> closes the comment", () => {
+  // `<!--` inside a comment body is ordinary text (HTML has no nesting); the trailing
+  // `tail` is therefore OUTSIDE the comment and must survive.
+  const content = "pre <!-- outer <!-- inner --> tail";
+  assert.equal(stripHtmlComments(content), "pre  tail");
+});
+
+test("stripHtmlComments: falsy content is returned as-is", () => {
+  assert.equal(stripHtmlComments(""), "");
+  assert.equal(stripHtmlComments(null), null);
+  assert.equal(stripHtmlComments(undefined), undefined);
+});
+
+// ---------------------------------------------------------------------------
+// Code-span awareness (iter-2 CRITICAL 3 / D-010).
+//
+// A comment delimiter written INSIDE a markdown code span or fenced block is
+// PROSE — it can neither open nor close a comment. Without this, an artifact that
+// merely *writes about* comment handling supplies a phantom opener that pairs with
+// the next `-->` anywhere downstream and swallows every line between, making that
+// content invisible to validation (fail-open). This is the reproduced CRITICAL 3.
+// ---------------------------------------------------------------------------
+
+test("stripHtmlComments: a backticked <!-- is PROSE and opens nothing (the CRITICAL 3 shape)", () => {
+  // The exact shape from this repo's own decisions.md: an entry discussing a
+  // backticked opener, a later entry containing a backticked closer. The old regex
+  // spanned between them and DELETED the lines in the middle.
+  const content = [
+    "**Decision**: the scrubber must ignore a backticked `<!--` token.",
+    "**Complexity Assessment**: no new files.",
+    "**Reasoning**: the closer `-->` is prose too.",
+  ].join("\n");
+  assert.equal(stripHtmlComments(content), content, "no span exists, so nothing may be blanked");
+});
+
+test("stripHtmlComments: a real comment ADJACENT to a code span is still blanked", () => {
+  // Over-masking guard (Pre-Mortem #2): masking code spans must not make real
+  // comments invisible — if it did, bootstrap's schema example would parse as a
+  // phantom D-001 entry.
+  const content = "text `<!--` more\n<!-- a real comment -->\ntail `-->` end";
+  const out = stripHtmlComments(content);
+  assert.equal(out, "text `<!--` more\n\ntail `-->` end");
+  assert.equal(out.split("\n").length, content.split("\n").length);
+});
+
+test("stripHtmlComments: backtick runs of length 1, 2 and 3 all mask their delimiters", () => {
+  // A run of N backticks is closed by a run of exactly N (CommonMark), which is how
+  // one writes a literal backtick inside a code span.
+  for (const n of [1, 2, 3]) {
+    const tick = "`".repeat(n);
+    const content = `pre ${tick}<!--${tick} post`;
+    assert.equal(stripHtmlComments(content), content, `run length ${n} must mask`);
+  }
+});
+
+test("stripHtmlComments: an UNBALANCED backtick masks nothing (a stray tick must not blind the scanner)", () => {
+  // Deliberately conservative: an unclosed run is ordinary text. If it masked to
+  // end-of-line, one stray backtick could hide a real comment opener.
+  const content = "a stray ` tick\n<!-- real -->\ntail";
+  assert.equal(stripHtmlComments(content), "a stray ` tick\n\ntail");
+});
+
+test("stripHtmlComments: a delimiter inside a fenced code block is prose (``` and ~~~)", () => {
+  for (const f of ["```", "~~~"]) {
+    const content = `intro\n${f}\n<!-- this is a code sample, not a comment -->\n${f}\noutro`;
+    assert.equal(stripHtmlComments(content), content, `fence ${f} must mask its body`);
+  }
+});
+
+test("stripHtmlComments: a fenced block cannot swallow a REAL comment that follows it", () => {
+  const content = "```js\nconst re = /<!--/;\n```\n<!-- real -->\nend";
+  const out = stripHtmlComments(content);
+  assert.equal(out, "```js\nconst re = /<!--/;\n```\n\nend");
+  assert.equal(out.split("\n").length, content.split("\n").length);
+});
+
+test("stripHtmlComments: an info-string fence closes on a bare fence of >= the opening length", () => {
+  const content = "````text\n<!-- inside -->\n````\n<!-- outside -->\n";
+  const out = stripHtmlComments(content);
+  assert.match(out, /<!-- inside -->/, "fenced body is literal and must survive");
+  assert.doesNotMatch(out, /outside/, "the comment after the fence is real and must be blanked");
+});
+
+test("stripHtmlComments: line count is preserved for every fixture (line numbers stay true)", () => {
+  const fixtures = [
+    "a\n<!-- x -->\nb",
+    "a\n<!--\nmulti\nline\n-->\nb",
+    "`<!--`\nreal\n`-->`",
+    "```\n<!-- fenced -->\n```",
+    "<!-- unterminated\nrest",
+    "no comments at all",
+  ];
+  for (const f of fixtures) {
+    assert.equal(
+      stripHtmlComments(f).split("\n").length,
+      f.split("\n").length,
+      `line count must survive: ${JSON.stringify(f)}`
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// htmlCommentSpans — the single definition of "where the comments are" (D-010).
+// ---------------------------------------------------------------------------
+
+test("htmlCommentSpans: returns offsets that slice the comment back out of the ORIGINAL text", () => {
+  const content = "pre <!-- one --> mid <!-- two --> post";
+  const spans = htmlCommentSpans(content);
+  assert.equal(spans.length, 2);
+  assert.equal(content.slice(spans[0].start, spans[0].end), "<!-- one -->");
+  assert.equal(content.slice(spans[1].start, spans[1].end), "<!-- two -->");
+});
+
+test("htmlCommentSpans: a phantom (backticked) opener yields NO span", () => {
+  assert.deepEqual(htmlCommentSpans("an entry about `<!--` and later `-->`"), []);
+});
+
+test("htmlCommentSpans: an unterminated opener yields NO span (fail-safe, never throws)", () => {
+  assert.deepEqual(htmlCommentSpans("<!-- dangling\nmore text"), []);
+});
+
+test("htmlCommentSpans: falsy content yields an empty list", () => {
+  assert.deepEqual(htmlCommentSpans(""), []);
+  assert.deepEqual(htmlCommentSpans(null), []);
+});
+
+test("htmlCommentSpans: stripHtmlComments blanks exactly the spans it reports (one definition)", () => {
+  // The anchor scanner (validate-plan.mjs) and the anchor stamper (bootstrap.mjs
+  // retire) are bound by a "sees ⇔ stamps" contract. Both consume THIS function, so
+  // the contract holds by construction rather than by two regexes kept in lockstep.
+  const content = "a\n<!-- one -->\n`<!--`\n<!-- two -->\nz";
+  const spans = htmlCommentSpans(content);
+  const stripped = stripHtmlComments(content);
+  assert.equal(spans.length, 2, "the phantom backticked opener must not produce a third span");
+  // Blanking keeps LINE count, not byte offsets (non-newline chars are removed — the
+  // same idiom as blankCompressedSummaryBlock), so compare content, not offsets.
+  for (const { start, end } of spans) {
+    const body = content.slice(start, end).replace(/\n/g, "");
+    assert.ok(body.length > 0);
+    assert.ok(!stripped.includes(body), `span ${JSON.stringify(body)} must be gone from the output`);
+  }
+  assert.equal(stripped, "a\n\n`<!--`\n\nz");
+  assert.equal(stripped.split("\n").length, content.split("\n").length);
+});
+
+// ---------------------------------------------------------------------------
+// Plan-id grammars (defect #4 — the grammar bootstrap.mjs and validate-plan.mjs each
+// used to define separately, with DIFFERENT hex tails).
+//
+// v2.36.0 (D-003): the ONE grammar became one WRITE grammar + one READ union.
+//   PLAN_ID_*        → new format `plan-YYYY-MM-DDTHHMMSS-XXXXXXXX` (what bootstrap MINTS)
+//   LEGACY_PLAN_ID_* → old format `plan_YYYY-MM-DD_XXXXXXXX` (never minted again)
+//   ANY_PLAN_ID_*    → the union every reader/scanner/validator uses
+// ---------------------------------------------------------------------------
+
+const NEW_ID = "plan-2026-07-14T051317-317362c4";
+const LEGACY_ID = "plan_2026-07-14_79ee0f59";
+
+test("PLAN_ID_RE: accepts the canonical NEW shape bootstrap actually generates", () => {
+  // UTC `YYYY-MM-DDTHHMMSS` (colon-free — D-001) + randomBytes(4).toString("hex").
+  assert.ok(PLAN_ID_RE.test(NEW_ID));
+  assert.ok(PLAN_ID_RE.test("plan-1999-01-01T000000-deadbeef"));
+  assert.ok(PLAN_ID_RE.test("plan-2099-12-31T235959-00000000"));
+});
+
+test("PLAN_ID_RE: rejects malformed NEW plan-ids", () => {
+  const bad = [
+    "plan-2026-07-14T051317-317362c",   // 7 hex — too short
+    "plan-2026-07-14T051317-317362c44", // 9 hex — too long
+    "plan-2026-07-14T051317-ZZZZZZZZ",  // not hex
+    "plan-2026-07-14T051317-317362C4",  // uppercase hex
+    "plan-2026-7-14T051317-317362c4",   // unpadded date
+    "plan-2026-07-14T05131-317362c4",   // 5-digit time
+    "plan-2026-07-14T0513177-317362c4", // 7-digit time
+    "plan-2026-07-14T05:13:17-317362c4", // colons (illegal on Win32 — D-001)
+    "plan-2026-07-14-317362c4",         // the COMMIT tag, not a dir name (no T HHMMSS)
+    "plan-2026-07-14T051317",           // no tail
+    "notaplan-2026-07-14T051317-317362c4", // wrong prefix
+    "../etc/passwd",                    // path traversal (the .current_plan guard)
+    "",
+  ];
+  for (const s of bad) assert.ok(!PLAN_ID_RE.test(s), `${JSON.stringify(s)} must be rejected`);
+});
+
+test("PLAN_ID_RE: the WRITE grammar rejects the legacy format", () => {
+  // Generation is new-only: a legacy id must never satisfy the mint-time assertion.
+  assert.ok(!PLAN_ID_RE.test(LEGACY_ID));
+  assert.ok(!PLAN_ID_RE.test("plan_2026-07-14_deadbeef"));
+});
+
+test("LEGACY_PLAN_ID_RE: accepts every pre-v2.36.0 plan-id", () => {
+  assert.ok(LEGACY_PLAN_ID_RE.test(LEGACY_ID));
+  assert.ok(LEGACY_PLAN_ID_RE.test("plan_1999-01-01_deadbeef"));
+  assert.ok(LEGACY_PLAN_ID_RE.test("plan_2099-12-31_00000000"));
+});
+
+test("LEGACY_PLAN_ID_RE: rejects malformed legacy plan-ids (unchanged old grammar)", () => {
+  const bad = [
+    "plan_2026-07-14_79ee0f5",      // 7 hex — too short
+    "plan_2026-07-14_79ee0f599",    // 9 hex — too long
+    "plan_2026-07-14_ZZZZZZZZ",     // not hex
+    "plan_2026-07-14_79EE0F59",     // uppercase hex
+    "plan_2026-7-14_79ee0f59",      // unpadded date
+    "plan_2026-07-14",              // no tail
+    "notaplan_2026-07-14_79ee0f59", // wrong prefix
+    "../etc/passwd",                // path traversal (the .current_plan guard)
+    "",
+  ];
+  for (const s of bad) {
+    assert.ok(!LEGACY_PLAN_ID_RE.test(s), `${JSON.stringify(s)} must be rejected`);
+  }
+});
+
+test("LEGACY_PLAN_ID_RE: rejects the new format", () => {
+  assert.ok(!LEGACY_PLAN_ID_RE.test(NEW_ID));
+});
+
+test("ANY_PLAN_ID_RE: the READ union accepts BOTH grammars", () => {
+  // This is what keeps yesterday's plan dirs (and their committed DECISION anchors)
+  // readable after the v2.36.0 cutover. See D-003.
+  assert.ok(ANY_PLAN_ID_RE.test(NEW_ID));
+  assert.ok(ANY_PLAN_ID_RE.test(LEGACY_ID));
+});
+
+test("ANY_PLAN_ID_RE: is anchored — no substring match inside a longer string", () => {
+  assert.ok(!ANY_PLAN_ID_RE.test(`x/${LEGACY_ID}`));
+  assert.ok(!ANY_PLAN_ID_RE.test(`${LEGACY_ID}/D-001`));
+  assert.ok(!ANY_PLAN_ID_RE.test(`x/${NEW_ID}`));
+  assert.ok(!ANY_PLAN_ID_RE.test(`${NEW_ID}/D-001`));
+});
+
+test("ANY_PLAN_ID_RE: rejects path traversal (the .current_plan guard — I-4)", () => {
+  const traversal = [
+    "../etc/passwd",
+    "..",
+    ".",
+    "plan-../x",
+    "plan_../x",
+    "../plan_2026-07-14_79ee0f59",
+    "plans/../../etc/passwd",
+    `${NEW_ID}/../..`,
+    "/etc/passwd",
+    "",
+  ];
+  for (const s of traversal) {
+    assert.ok(!ANY_PLAN_ID_RE.test(s), `${JSON.stringify(s)} must be rejected`);
+    assert.ok(!PLAN_ID_RE.test(s), `${JSON.stringify(s)} must be rejected by PLAN_ID_RE`);
+    assert.ok(!LEGACY_PLAN_ID_RE.test(s), `${JSON.stringify(s)} must be rejected by LEGACY`);
+  }
+});
+
+test("ANY_PLAN_ID_PATTERN: is NON-CAPTURING — group indices of the host regex are stable", () => {
+  // LOAD-BEARING (D-003). The 4 anchor regexes in validate-plan.mjs interpolate this
+  // pattern and then read m[1]=planName, m[2]=id, m[3]=stale BY INDEX (`pushMatch`).
+  // A capture group inside the union shifts all three and silently mis-parses every
+  // anchor in the repo. Assert on real group indices, not on the pattern's text.
+  const host = new RegExp(`(x)${ANY_PLAN_ID_PATTERN}(y)`);
+  const m = host.exec(`x${NEW_ID}y`);
+  assert.ok(m, "host regex should match");
+  assert.equal(m[1], "x");
+  assert.equal(m[2], "y", "the union must not consume a capture-group index");
+  assert.equal(m.length, 3, "exactly 2 capture groups — the union adds none");
+
+  const m2 = host.exec(`x${LEGACY_ID}y`);
+  assert.ok(m2);
+  assert.equal(m2[2], "y");
+  assert.equal(m2.length, 3);
+});
+
+test("the three patterns are string sources, and the union is built from the other two", () => {
+  // No re-typing: ANY is literally `(?:NEW|LEGACY)` (D-003 / D-005 — one definition each).
+  assert.equal(typeof PLAN_ID_PATTERN, "string");
+  assert.equal(typeof LEGACY_PLAN_ID_PATTERN, "string");
+  assert.equal(ANY_PLAN_ID_PATTERN, `(?:${PLAN_ID_PATTERN}|${LEGACY_PLAN_ID_PATTERN})`);
+});
+
+test("ANY_PLAN_ID_PATTERN: is the unanchored source, embeddable in a larger regex", () => {
+  // The anchor scanners compose it into `(?:(<pattern>)\/)?D-...` — one explicit capture
+  // group wrapping the union, so m[1] is the plan-id and m[2] the decision number.
+  const composed = new RegExp(`^# DECISION (?:(${ANY_PLAN_ID_PATTERN})\\/)?D-(\\d{3,})$`);
+
+  // Legacy qualified anchor — the 18 committed ones in this repo. MUST still match.
+  // Spelled out as a LITERAL (not `${LEGACY_ID}`) on purpose: this line is the byte-exact
+  // shape of a real committed anchor, so it is also what the repo-wide anchor-count
+  // tripwire greps for.
+  const m = composed.exec("# DECISION plan_2026-07-14_79ee0f59/D-001");
+  assert.ok(m, "composed anchor regex should match a legacy-qualified anchor");
+  assert.equal(m[1], LEGACY_ID);
+  assert.equal(m[2], "001");
+
+  // New-format qualified anchor.
+  const mNew = composed.exec(`# DECISION ${NEW_ID}/D-042`);
+  assert.ok(mNew, "composed anchor regex should match a new-format-qualified anchor");
+  assert.equal(mNew[1], NEW_ID);
+  assert.equal(mNew[2], "042");
+
+  // Pre-v2.14.0 unqualified form still matches with a null plan-id.
+  const m2 = composed.exec("# DECISION D-002");
+  assert.ok(m2);
+  assert.equal(m2[1], undefined);
+});
+
+test("PLAN_DIR_PREFIX_RE: cheap prefix filter matches both grammars", () => {
+  assert.ok(PLAN_DIR_PREFIX_RE.test(NEW_ID));
+  assert.ok(PLAN_DIR_PREFIX_RE.test(LEGACY_ID));
+  assert.ok(!PLAN_DIR_PREFIX_RE.test("plans"));
+  assert.ok(!PLAN_DIR_PREFIX_RE.test("notaplan_2026-07-14_79ee0f59"));
+  assert.ok(!PLAN_DIR_PREFIX_RE.test(".current_plan"));
+});
+
+test("PLAN_SECTION_PATTERN: finds `## <plan-id>` section headers of both grammars", () => {
+  const re = () => new RegExp(PLAN_SECTION_PATTERN, "gm");
+  const content = `# Findings\n\n## ${LEGACY_ID}\nold\n\n## ${NEW_ID}\nnew\n`;
+  assert.equal([...content.matchAll(re())].length, 2);
+  assert.equal(content.search(re()), content.indexOf(`## ${LEGACY_ID}`));
+  // A section at offset 0 (no leading newline) is still found — `m` flag, not `\n##`.
+  assert.equal(`## ${NEW_ID}\nx`.search(re()), 0);
+  // Non-section headings are not plan sections.
+  assert.equal("## Index\n## Notes\n".search(re()), -1);
+});
+
+// The hazard this export exists to prevent: a module-level `/gm` regex is stateful, and
+// `matchAll` does NOT rescue it — it clones the regex *with* `lastIndex`. Under the old
+// `PLAN_SECTION_RE` export, two `.test()` calls before a `matchAll` returned `[]`, and
+// `trimConsolidatedWindow` then silently stopped trimming forever. A string pattern
+// cannot carry state, so the failure is structurally unreachable rather than
+// prose-guarded. This test would have FAILED against the old export.
+test("PLAN_SECTION_PATTERN: is a string — no shared lastIndex to poison", () => {
+  assert.equal(typeof PLAN_SECTION_PATTERN, "string");
+  assert.ok(!("lastIndex" in Object(PLAN_SECTION_PATTERN)), "a string has no lastIndex");
+
+  const content = `# Findings\n\n## ${LEGACY_ID}\nold\n\n## ${NEW_ID}\nnew\n`;
+  // Hostile idiom: exhaust a `g` instance built from the pattern, THEN scan. Under a
+  // shared instance this poisoned every later consumer; here it cannot escape the caller.
+  const hostile = new RegExp(PLAN_SECTION_PATTERN, "gm");
+  assert.ok(hostile.test(content));
+  assert.ok(hostile.test(content));
+  assert.ok(hostile.lastIndex > 0, "the local instance IS stateful — that is the point");
+  assert.equal([...content.matchAll(new RegExp(PLAN_SECTION_PATTERN, "gm"))].length, 2);
+  assert.equal(content.search(new RegExp(PLAN_SECTION_PATTERN, "gm")), content.indexOf(`## ${LEGACY_ID}`));
+});
+
+test("PLAN_SECTION_RE: the stateful shared instance is gone (not re-exported)", async () => {
+  const mod = await import("./shared.mjs");
+  assert.equal(mod.PLAN_SECTION_RE, undefined, "a shared `g` regex must not be re-introduced");
+  const src = readFileSync(SHARED, "utf-8");
+  assert.ok(!/export const PLAN_SECTION_RE\b/.test(src), "no shared PLAN_SECTION_RE export");
+});
+
+test("planDateFromId: extracts YYYY-MM-DD from both grammars", () => {
+  assert.equal(planDateFromId(NEW_ID), "2026-07-14");
+  assert.equal(planDateFromId(LEGACY_ID), "2026-07-14");
+  assert.equal(planDateFromId("plan-1999-01-01T000000-deadbeef"), "1999-01-01");
+  assert.equal(planDateFromId("plan_2099-12-31_00000000"), "2099-12-31");
+});
+
+test("planDateFromId: returns null for non-plan-ids (caller supplies the fallback)", () => {
+  assert.equal(planDateFromId("not-a-plan"), null);
+  assert.equal(planDateFromId("plan-2026-07-14"), null); // no separator after the date
+  assert.equal(planDateFromId(""), null);
+  assert.equal(planDateFromId(null), null);
+  assert.equal(planDateFromId(undefined), null);
+});
+
+// ---------------------------------------------------------------------------
+// DECISION_ID_NUM_PATTERN (defect #6 — ids were hard-capped at exactly 3 digits,
+// so D-1000+ neither parsed nor got stamped [STALE] by `retire`)
+// ---------------------------------------------------------------------------
+
+test("DECISION_ID_NUM_PATTERN: 3-digit padding is the MINIMUM, not the maximum", () => {
+  const re = new RegExp(`^D-${DECISION_ID_NUM_PATTERN}$`);
+  // Canonical + past the old 3-digit cap.
+  for (const ok of ["D-001", "D-099", "D-999", "D-1000", "D-12345"]) {
+    assert.ok(re.test(ok), `${ok} must be a valid decision id`);
+  }
+  // Padding minimum preserved: under-padded ids stay INVALID, so `D-1` and
+  // `D-001` can never become two names for the same decision.
+  for (const bad of ["D-1", "D-99", "D-", "D-abc", "D001"]) {
+    assert.ok(!re.test(bad), `${bad} must NOT be a valid decision id`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// unterminatedCommentOpener — the [state-comment-anomaly] balance probe (D-009).
+// ---------------------------------------------------------------------------
+
+test("unterminatedCommentOpener: finds an opener with no closer, and agrees with htmlCommentSpans", () => {
+  assert.equal(unterminatedCommentOpener(""), -1);
+  assert.equal(unterminatedCommentOpener(null), -1);
+  assert.equal(unterminatedCommentOpener("no comments here at all"), -1);
+  assert.equal(unterminatedCommentOpener("<!-- balanced -->"), -1);
+  assert.equal(unterminatedCommentOpener("<!-- one --> text <!-- two -->"), -1);
+
+  // The unterminated cases: the offset points AT the `<`.
+  assert.equal(unterminatedCommentOpener("<!-- stray"), 0);
+  const s = "line\n<!-- stray, never closed\nmore";
+  assert.equal(unterminatedCommentOpener(s), s.indexOf("<!--"));
+  // A closed comment followed by a stray one — the probe must see PAST the closed region.
+  const t = "<!-- closed -->\ntext\n<!-- stray";
+  assert.equal(unterminatedCommentOpener(t), t.lastIndexOf("<!--"));
+
+  // Code spans are PROSE: a backticked delimiter can neither open nor close (D-010).
+  assert.equal(unterminatedCommentOpener("a backticked `<!--` is not an opener"), -1);
+  assert.equal(unterminatedCommentOpener("```\n<!-- inside a fence\n```"), -1);
+
+  // HTML comments do not nest: the first `-->` closes, so this BALANCES.
+  assert.equal(unterminatedCommentOpener("<!-- outer <!-- inner -->"), -1);
+});
+
+test("unterminatedCommentOpener: a stray opener PAIRED with bootstrap's template trailer BALANCES (why D-009 does not build the cap on this probe)", () => {
+  // This is the review's exact shape. The markers balance perfectly — left-to-right pairing
+  // matches the stray opener with the template's closer — so the probe is SILENT here, and a
+  // balance check could never have been the iteration cap's fail-safe. The cap protects itself
+  // by counting the RAW block; this probe is a diagnostic, and the [state-comment-anomaly]
+  // check pairs it with a raw-vs-stripped count comparison precisely to cover this shape.
+  const state = [
+    "## Transition History:",
+    "<!-- note: stray opener, an authoring accident",
+    "- EXECUTE → REFLECT (1)",
+    "- EXECUTE → REFLECT (2)",
+    "<!-- When logging EXPLORE → PLAN, add Exploration Confidence, e.g.:",
+    "- EXPLORE → PLAN (gathered enough context)",
+    "See references/planning-rigor.md for definitions. -->",
+  ].join("\n");
+  assert.equal(unterminatedCommentOpener(state), -1, "the markers balance — this is the trap D-009 documents");
+  // And the proof that the region really was swallowed: both records vanish from the strip.
+  assert.ok(!/EXECUTE → REFLECT \(1\)/.test(stripHtmlComments(state)));
+  assert.ok(!/EXECUTE → REFLECT \(2\)/.test(stripHtmlComments(state)));
+});
+
+// ---------------------------------------------------------------------------
+// maskLiteralRegions (iter-3 CRITICAL B, D-012) — indented code blocks + the
+// unterminated fence. Exercised through `htmlCommentSpans` / `stripHtmlComments`,
+// which is the only way any consumer sees the mask.
+//
+// The failure direction is asymmetric and the tests are written to pin BOTH sides:
+//   under-mask → a doc example is reported as a live anchor, and `bootstrap.mjs
+//                retire` EDITS the documentation file (loud, but a wrong write).
+//   over-mask  → a REAL comment's markers vanish, so bootstrap's schema example
+//                parses as a phantom `D-001` and a stale anchor never gets stamped
+//                (SILENT, and strictly worse — Pre-Mortem #2).
+// ---------------------------------------------------------------------------
+
+test("maskLiteralRegions: a 4-space INDENTED code block is literal — a DECISION example in one is NOT a comment", () => {
+  // The iter-3 CRITICAL B red run, in miniature. Pre-fix this yielded a span, so the
+  // validator emitted a false [anchor-unknown-plan] and retire wrote [STALE] into the doc.
+  const doc = "# Doc\n\nExample:\n\n    <!-- DECISION plan_2026-01-01_deadbeef/D-001 example -->\n\nEnd.\n";
+  assert.deepEqual(htmlCommentSpans(doc), [], "an indented-code example must yield NO comment span");
+  assert.equal(stripHtmlComments(doc), doc, "and the text must come back byte-identical");
+});
+
+test("maskLiteralRegions: an indented block starting at SOF is literal", () => {
+  assert.deepEqual(htmlCommentSpans("    <!-- DECISION x/D-001 -->\n\ntext\n"), []);
+});
+
+test("maskLiteralRegions: an indented block runs through interior blank lines but stops at the first flush-left line", () => {
+  const doc = "para\n\n    <!-- one -->\n\n    <!-- two -->\n\n<!-- REAL -->\n";
+  const spans = htmlCommentSpans(doc);
+  assert.equal(spans.length, 1, "only the flush-left comment is real");
+  assert.equal(doc.slice(spans[0].start, spans[0].end), "<!-- REAL -->");
+});
+
+test("maskLiteralRegions: OVER-MASK GUARD — an indented run cannot interrupt a paragraph (no preceding blank line)", () => {
+  // CommonMark: an indented code block cannot interrupt a paragraph. This is the rule
+  // that keeps bootstrap's decisions.md schema-example comment a COMMENT: its 5-space
+  // continuation lines follow the non-blank `<!-- Schema example …` opener line.
+  const doc = "<!-- Schema example\n     See references/file-formats.md\n     more prose\n-->\n";
+  const spans = htmlCommentSpans(doc);
+  assert.equal(spans.length, 1, "the schema-example comment must still be ONE comment span");
+  assert.equal(doc.slice(spans[0].start, spans[0].end), doc.trimEnd());
+});
+
+test("maskLiteralRegions: OVER-MASK GUARD — indented text under a LIST marker is item continuation, not code", () => {
+  // A checklist item (CLAUDE.md's own shape) whose continuation is indented 4+.
+  const doc = "- [ ] a checklist item\n\n    <!-- REAL comment under a list -->\n";
+  const spans = htmlCommentSpans(doc);
+  assert.equal(spans.length, 1, "a list continuation must NOT be masked — the comment stays visible");
+  assert.equal(doc.slice(spans[0].start, spans[0].end), "<!-- REAL comment under a list -->");
+  // Ordered lists too, and the list survives blank lines.
+  assert.equal(htmlCommentSpans("1. step one\n\n    <!-- c -->\n").length, 1);
+  // …but a flush-left paragraph CLOSES the list, and the block after it is real code.
+  assert.deepEqual(htmlCommentSpans("- item\n\nA plain paragraph.\n\n    <!-- c -->\n"), []);
+});
+
+test("maskLiteralRegions: OVER-MASK GUARD — a TAB-indented block is not recognized (under-mask, deliberately)", () => {
+  assert.equal(htmlCommentSpans("para\n\n\t<!-- c -->\n").length, 1);
+});
+
+test("maskLiteralRegions: an UNTERMINATED fence masks NOTHING (it does not swallow to EOF)", () => {
+  // Review WARNING 3 / Pre-Mortem #2: pre-fix, the opener masked every remaining line,
+  // so bootstrap's template comment stopped being a comment and the validator emitted a
+  // FALSE [decisions-schema] ERROR on the schema example it had just un-hidden.
+  const doc = "```\n<!-- REAL comment below an unclosed fence -->\ntext\n";
+  const spans = htmlCommentSpans(doc);
+  assert.equal(spans.length, 1, "an unclosed fence is ordinary text; the comment below it is REAL");
+  assert.equal(doc.slice(spans[0].start, spans[0].end), "<!-- REAL comment below an unclosed fence -->");
+});
+
+test("maskLiteralRegions: a CLOSED fence still masks (the unterminated fix did not disable fences)", () => {
+  assert.deepEqual(htmlCommentSpans("```\n<!-- example -->\n```\n"), []);
+  assert.deepEqual(htmlCommentSpans("~~~\n<!-- example -->\n~~~\n"), []);
+  // A longer closer closes; a shorter one does not.
+  assert.deepEqual(htmlCommentSpans("```\n<!-- e -->\n`````\n"), []);
+  // A fence closed only by a DIFFERENT char is unterminated → masks nothing.
+  assert.equal(htmlCommentSpans("```\n<!-- REAL -->\n~~~\n").length, 1);
+});
+
+test("maskLiteralRegions: stripHtmlComments stays EXACTLY line-count preserving across the new constructs", () => {
+  const docs = [
+    "para\n\n    <!-- indented -->\n\nafter\n",
+    "```\n<!-- unclosed fence -->\nmore\n",
+    "- item\n\n    <!-- list continuation -->\n",
+    "    <!-- sof indented -->\n",
+    "<!-- real -->\n\n    indented code\n\n<!-- real2 -->\n",
+    "\r\npara\r\n\r\n    <!-- crlf indented -->\r\n",
+  ];
+  for (const d of docs) {
+    assert.equal(
+      stripHtmlComments(d).split("\n").length,
+      d.split("\n").length,
+      `line count must be preserved for:\n${JSON.stringify(d)}`,
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// blockCommentSpans (A3 / D-007) — the `/* */` twin of htmlCommentSpans.
+//
+// The API CONTRACT under test is BYTE OFFSETS into the original text, not line
+// indices: the `slice(start, end)` assertions below are what pin it. Pairing offsets
+// from one representation with text from another is the exact mistake D-005 records
+// (`stripHtmlComments` preserves line COUNT, never byte offsets).
+// ---------------------------------------------------------------------------
+
+const spanText = (t) => blockCommentSpans(t).map((s) => t.slice(s.start, s.end));
+
+test("blockCommentSpans: returns BYTE offsets into the original text (markers included)", () => {
+  const t = "a();\n/* one */\nb();\n";
+  const spans = blockCommentSpans(t);
+  assert.equal(spans.length, 1);
+  assert.equal(t.slice(spans[0].start, spans[0].end), "/* one */");
+  assert.equal(spans[0].start, t.indexOf("/*"));
+  assert.equal(spans[0].end, t.indexOf("*/") + 2);
+});
+
+test("blockCommentSpans: a phantom OPENER inside a string literal opens nothing", () => {
+  const t = 'const g = "plans/*";\n// DECISION p/D-002\nconst h = "a */ b";\n';
+  assert.deepEqual(spanText(t), []);
+});
+
+test("blockCommentSpans: a phantom OPENER inside a `//` line comment opens nothing", () => {
+  const t = "// a basename in prose inside plans/*/changelog.md\n// DECISION p/D-002\n";
+  assert.deepEqual(spanText(t), []);
+});
+
+test("blockCommentSpans: a prose CLOSER inside a real comment does not truncate the span (silent-loss fix)", () => {
+  const t = "/*\n mentions the regex ending in star-slash: */\n DECISION x/D-077\n*/\n";
+  const got = spanText(t);
+  assert.equal(got.length, 1, `expected one span, got ${JSON.stringify(got)}`);
+  assert.ok(got[0].includes("D-077"), `the anchor below the prose closer must be INSIDE the span, got:\n${got[0]}`);
+});
+
+test("blockCommentSpans: an escaped closer in a regex literal is not a stray closer", () => {
+  // The live shape from validate-plan.mjs: `/\*\*Complexity Assessment\*\*/`. Without
+  // backslash handling this reads as a stray closer and swallows ~500 lines of the file.
+  // This never depended on regex LEXING — `nextStrayBlockCloser` skips an escaped
+  // character outright — which is why it survives the D-032 deletion unchanged.
+  const t = "try { x(); } catch { /* best-effort */ }\nif (/\\*\\*Complexity Assessment\\*\\*/.test(b)) {}\n";
+  const got = spanText(t);
+  assert.deepEqual(got, ["/* best-effort */"], `got:\n${JSON.stringify(got)}`);
+});
+
+test("blockCommentSpans: two independent comments stay two spans (no over-extension)", () => {
+  const t = "/* a */\ncode();\n/* b */\n";
+  assert.deepEqual(spanText(t), ["/* a */", "/* b */"]);
+});
+
+test("blockCommentSpans: a `//` inside a real block comment does not end it", () => {
+  const t = "/* a // b */\n";
+  assert.deepEqual(spanText(t), ["/* a // b */"]);
+});
+
+test("blockCommentSpans: an UNTERMINATED opener yields NO span (fail safe, never throws)", () => {
+  assert.deepEqual(spanText("/* DECISION x/D-003 and then nothing\n"), []);
+});
+
+test("blockCommentSpans: falsy content returns an empty array", () => {
+  assert.deepEqual(blockCommentSpans(""), []);
+  assert.deepEqual(blockCommentSpans(null), []);
+  assert.deepEqual(blockCommentSpans(undefined), []);
+});
+
+test("blockCommentSpans: an UNBALANCED quote masks nothing (under-mask, the loud direction)", () => {
+  const t = "it's fine\n/* DECISION x/D-004 */\n";
+  assert.deepEqual(spanText(t), ["/* DECISION x/D-004 */"]);
+});
+
+// ---------------------------------------------------------------------------
+// The regex-literal lexer is GONE (D-031 3-strike, D-032), and so is the backtick
+// string skip (D-033). This block is the pinned record of the trade that made:
+//
+//   REMOVED  a SILENT LOSS — an ordinary JSX comment (`</div> {/* … */}`) returned NO
+//            span at all, so every anchor inside it was invisible to `validate-plan.mjs`
+//            AND to `bootstrap.mjs retire`, i.e. to the whole durable-audit path.
+//   ACCEPTED a VISIBLE OVER-REPORT — `/[*/]/` and friends end a span they never opened,
+//            so the anchor above them is reported twice, in the validator's own output.
+//
+// The over-report tests below are therefore PINS OF CHOSEN BEHAVIOUR, not tolerated
+// defects. If one of them starts failing because someone taught the scanner about regex
+// literals again, that is strike 4 — revert the lexer, do not re-green the pin.
+//
+// PROVENANCE (D-023 / LESSONS [I:5]): every shape here is quoted from ip-reviewer
+// pass-2 Concern 1 (the two JSX probes), Concern 3 (`/[*/]/`, `throw /[*/]/;`, and the
+// two live victims in this repo's own source) or D-025's differential (the backtick
+// shape). None was authored by the pass that designed this change.
+// ---------------------------------------------------------------------------
+
+test("blockCommentSpans: [JSX-1] a `</div>` before a same-line `{/* … */}` no longer eats the opener (D-032)", () => {
+  // ip-reviewer pass-2 Concern 1, verbatim. At the pre-deletion commit 48ac075 this
+  // returned [] — the whole multi-line comment, and any anchor in it, was invisible to
+  // BOTH anchor tools. That silent loss is what deleting the lexer buys back.
+  const t = "  <div>{x}</div> {/* DECISION p/D-901 why\n more\n  */}\n";
+  assert.deepEqual(spanText(t), ["/* DECISION p/D-901 why\n more\n  */"],
+    "a JSX comment must be a span again; if this is [] the regex lexer is back (see D-031/D-032)");
+});
+
+test("blockCommentSpans: [JSX-2] a self-closing `<Foo b={x} />` before `{/* … */}` likewise (D-032)", () => {
+  // Concern 1's second probe, verbatim. End-to-end it made a `.jsx` file carrying an
+  // unknown-plan anchor report `0 error(s)`, while the SAME file with `b={x}` removed
+  // reported the ERROR — the asymmetry that identified the lexer as the cause.
+  const t = "<Foo b={x} /> {/* DECISION p/D-902 jsx selfclose */}\n";
+  assert.deepEqual(spanText(t), ["/* DECISION p/D-902 jsx selfclose */"]);
+});
+
+test("blockCommentSpans: [OVER-REPORT PIN] `/[*/]/` extends a span it never opened — DELIBERATE (D-032)", () => {
+  // ip-reviewer pass-1 strike 2, reinstated ON PURPOSE. The `*/` inside the character
+  // class is read as a stray closer, so the docblock's span runs through live code and
+  // the anchor on line 2 is reported by the per-line scan AND the block scan.
+  const t = "/* real comment */\n// DECISION p/D-903 first\nconst re = /[*/]/;\n";
+  const got = spanText(t);
+  assert.equal(got.length, 1, `expected one over-extended span, got ${JSON.stringify(got)}`);
+  assert.ok(got[0].includes("D-903"),
+    "D-032: this OVER-REPORT IS THE CHOSEN BEHAVIOUR, not an unnoticed defect. It is the "
+  + "price of deleting the regex-literal lexer, which silently removed whole JSX comment "
+  + "regions from BOTH the validator and `retire`. An over-report is visible in output; a "
+  + "silent loss is not. Do NOT 'fix' this by lexing regex literals again — that is strike "
+  + "4 on a component that has already produced three defects (D-031). See decisions.md D-032.");
+});
+
+test("blockCommentSpans: [OVER-REPORT PIN] `throw /[*/]/;` behaves the same — DELIBERATE (D-032)", () => {
+  // Concern 3 noted this shape over-reported even WITH the lexer (`throw` was absent
+  // from REGEX_PREV_KEYWORDS), which is itself evidence that the heuristic could not be
+  // completed by adding one more keyword. Its behaviour is unchanged by the deletion.
+  const t = "/* real comment */\n// DECISION p/D-904 first\nthrow /[*/]/;\n";
+  const got = spanText(t);
+  assert.equal(got.length, 1, `expected one over-extended span, got ${JSON.stringify(got)}`);
+  assert.ok(got[0].includes("D-904"),
+    "D-032: chosen over-report, same rationale as the `/[*/]/` pin above. Unchanged by the "
+  + "lexer deletion — it over-reported before it too. Do not re-lex. See decisions.md D-032.");
+});
+
+test("blockCommentSpans: [OVER-REPORT PIN] the two live victims in this repo over-report again (D-032)", () => {
+  // D-025 named these two by file and line: `/^\*Plan:\s*/` at bootstrap.mjs:974-1009
+  // (35 lines) and `/§\s*/g` at check-agent-wiring.mjs:194-211 (17 lines). They are the
+  // measured cost of the trade, recorded here so the inventory is a test, not a claim.
+  const a = "/**\n * doc\n */\nfunction f(t) {\n  if (/^\\*Plan:\\s*/.test(t)) return 1;\n}\n";
+  const b = "/**\n * doc\n */\nfor (const m of line.matchAll(/§\\s*/g)) { }\n";
+  assert.ok(spanText(a)[0].includes("function f"),
+    "D-032: bootstrap.mjs's `/^\\*Plan:\\s*/` over-extends its docblock again, by design.");
+  assert.ok(spanText(b)[0].includes("matchAll"),
+    "D-032: check-agent-wiring.mjs's `/§\\s*/g` over-extends its docblock again, by design.");
+});
+
+test("blockCommentSpans: a DIVISION is not mistaken for anything — no expression-position heuristic remains", () => {
+  // Kept from the D-025 corpus, inverted in meaning: it used to prove the discriminator
+  // classified `a / b` correctly. There is no discriminator now; a bare `/` is just text,
+  // which is why this passes for a simpler reason than it used to.
+  const t = "/* one */\nconst q = a / b;\nconst w = xs[0] / n;\n/* two */\n";
+  assert.deepEqual(spanText(t), ["/* one */", "/* two */"]);
+});
+
+test("blockCommentSpans: [D-033] an odd backtick inside a regex masks NOTHING — the backtick skip is gone", () => {
+  // D-025 closed this shape for free by lexing the regex; the deletion re-opens the
+  // question, and D-033 answers it by removing `` ` `` from BLOCK_STRING_DELIMS instead.
+  // The comment after the odd backtick must still be found: this is the LOSS direction,
+  // and the whole point of the step is that the loss direction stays closed.
+  const t = "const m = /^(`{3,}|~{3,})/.exec(s);\n/** DECISION p/D-907 must NOT be masked */\nconst t2 = `x`;\n";
+  assert.deepEqual(spanText(t), ["/** DECISION p/D-907 must NOT be masked */"],
+    "D-033: if this is [] the backtick is back in BLOCK_STRING_DELIMS and a template "
+  + "literal is masking real comment regions again — the silent direction. See decisions.md D-033.");
+});
+
+test("blockCommentSpans: [D-033 COST PIN] a `/* */` inside a real template literal now opens a span — DELIBERATE", () => {
+  // The accepted cost of the line above: genuine multi-line template literals are no
+  // longer masked, so comment syntax inside one is taken at face value. A visible
+  // over-report, the same currency D-032 spends. Do not re-add the backtick to buy it back.
+  const t = "const t = `a /* b */ c`;\n";
+  assert.deepEqual(spanText(t), ["/* b */"],
+    "D-033: chosen over-report. Re-adding `` ` `` to BLOCK_STRING_DELIMS trades it for a "
+  + "runaway mask, which is the silent direction. See decisions.md D-033.");
+});
+
+test("blockCommentSpans: [D-037 COST PIN] an UNBALANCED `/*` inside a template literal swallows the anchor below it — the C-family half of the D-032 over-report", () => {
+  // ip-reviewer iteration-2 Concern 2, orchestrator-reproduced at HEAD. The pin above
+  // covers the BALANCED form (`` `a /* b */ c` ``), which is the benign case; this is the
+  // form that actually turns up in JS — a shell glob in a template literal supplying a
+  // lone `/*`, with the closer arriving from a real comment further down. The span then
+  // runs ACROSS the anchor line, so the validator reports that anchor twice while
+  // `retire` stamps it once: the identical 2-vs-1 desync release 2.62.0 closed for the
+  // hash family, relocated into the C family. It is measured here rather than assumed to
+  // be the balanced case, and the cross-tool counts are asserted end to end in
+  // bootstrap.test.mjs. See decisions.md D-033, D-037.
+  const t = "const clean = `rm -rf build/*`;\n// DECISION plan-x/D-001 why\nconst t = 1;\n/* real */\n";
+  const got = spanText(t);
+  assert.equal(got.length, 1, `expected one over-extended span, got ${JSON.stringify(got)}`);
+  assert.ok(got[0].includes("D-001"),
+    "D-037: the anchor sits INSIDE the phantom span, which is what makes this an "
+  + "over-report rather than a loss. Re-adding `` ` `` to BLOCK_STRING_DELIMS would "
+  + "remove it and buy back the runaway mask D-033 rejected — do not re-green this pin "
+  + "that way. See decisions.md D-033, D-037.");
+});
+
+test("blockCommentSpans: a `\"` or `\'` string still masks a phantom opener (those skips were NOT deleted)", () => {
+  // Only the backtick left the set. Single/double quotes cannot cross a newline, so a
+  // mis-read is bounded to one line, and they still do their job.
+  assert.deepEqual(spanText('const s = "a /* b";\n/* real */\n'), ["/* real */"]);
+});
+
+// ---------------------------------------------------------------------------
+// BLOCK_COMMENT_EXTS (D-032) — the family gate. `blockCommentSpans` itself is
+// language-agnostic: it will happily read `build/*` … `src/*/lib` as a comment,
+// because in C it IS one. What decides correctness is WHERE it is allowed to run,
+// and that is this set. The two consumers import it; these pins are what make a
+// silent widening (or a silent narrowing) of the family visible.
+// ---------------------------------------------------------------------------
+
+test("BLOCK_COMMENT_EXTS: contains only, and all of, the C-family extensions the scanners walk", () => {
+  assert.deepEqual([...BLOCK_COMMENT_EXTS].sort(), [
+    ".c", ".cc", ".cjs", ".cpp", ".cs", ".go", ".h", ".hpp", ".java", ".js",
+    ".jsx", ".kt", ".mjs", ".php", ".rs", ".scala", ".swift", ".ts", ".tsx",
+  ], "the allowlist is the whole gate — a member added here starts a block scan in that language, "
+   + "and one removed silently stops finding /* */ anchors there");
+});
+
+test("BLOCK_COMMENT_EXTS: excludes .md — HTML-style files keep the <!-- --> path", () => {
+  assert.ok(!BLOCK_COMMENT_EXTS.has(".md"));
+});
+
+test("BLOCK_COMMENT_EXTS: excludes .tf and .sql, the DISCLOSED hole (they do have /* */)", () => {
+  // Not an oversight: an anchor in their native `#` / `--` line style stays visible,
+  // one inside `/* */` does not. Stated in the set's own comment and in
+  // references/decision-anchoring.md. Change this pin only with a decision entry.
+  assert.ok(!BLOCK_COMMENT_EXTS.has(".tf"));
+  assert.ok(!BLOCK_COMMENT_EXTS.has(".sql"));
+});
+
+test("the gate, not the lexer, is what protects hash-family files: the shell shape still parses as a span", () => {
+  // The reviewer's Concern 2 bytes, fed straight to the primitive. It STILL returns one
+  // span — correctly, since in C those bytes are a comment. This pins the division of
+  // labour: `blockCommentSpans` is not where the hash-family fix lives, so a future
+  // reader does not go looking for it here (or "fix" it here and break C).
+  const t = "rm -rf build/*\n# DECISION plan/D-777 why\ncp src/*/lib dest/\n";
+  assert.equal(blockCommentSpans(t).length, 1,
+    "the primitive is language-agnostic by design; BLOCK_COMMENT_EXTS decides where it runs");
+});
+
+// ---------------------------------------------------------------------------
+// COUNTED_BUDGET_RE — the plan.md budget-cap grammar, declared exactly ONCE.
+// Mirrors the "six field regexes are DELETED" pin in validate-plan.test.mjs:
+// scar-scan.mjs used to carry a second, stricter copy of this line's grammar,
+// and the disagreement between the two produced a live false all-clear on this
+// repo's own plan (D-018). A source grep is the only thing that keeps a third
+// copy from being written at the next call site that needs to read a cap.
+// ---------------------------------------------------------------------------
+
+test("COUNTED_BUDGET_RE: exactly one declaration across src/scripts, and it is shared.mjs's", () => {
+  const dir = import.meta.dirname;
+  const declarers = readdirSync(dir)
+    .filter((f) => f.endsWith(".mjs") && !f.endsWith(".test.mjs"))
+    .filter((f) => /(?:Files added\|New abstractions)/.test(readFileSync(resolve(dir, f), "utf-8")));
+  assert.deepEqual(declarers, ["shared.mjs"],
+    `the budget-cap grammar must be declared once, in shared.mjs, and imported everywhere else (D-018); found in: ${declarers.join(", ")}`);
+});
+
+test("COUNTED_BUDGET_RE: parses the tolerated shapes and refuses the target line", () => {
+  const cap = (line) => { const m = COUNTED_BUDGET_RE.exec(line); return m ? [m[1], Number(m[2]), Number(m[3])] : null; };
+  assert.deepEqual(cap("- **Files added: 4/3 max** — OVER BUDGET (justified: ...)"), ["Files added", 4, 3],
+    "trailing text after `max` must parse — the D-018 regression");
+  assert.deepEqual(cap("**Files added: 4/3 max**"), ["Files added", 4, 3]);
+  assert.deepEqual(cap("  * New abstractions (classes/modules): 1 / 2 max"), ["New abstractions", 1, 2]);
+  assert.equal(cap("- **Lines added vs removed: +900/-150**"), null, "a target line is not a counted cap");
+  assert.equal(cap("- Files added: four of three max"), null, "a prose count states no readable cap");
+  assert.equal(cap("prose mentioning Files added: 4/3 max mid-sentence"), null, "the grammar is line-anchored");
+  // Non-global: a shared instance carries no lastIndex, so repeated execs agree.
+  assert.deepEqual(cap("**Files added: 4/3 max**"), ["Files added", 4, 3]);
+});
+
+// --- isMain ---------------------------------------------------------------
+
+test("isMain: real path, symlinked path, other file, missing argv1", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "ismain-"));
+  try {
+    const url = pathToFileURL(SHARED).href;
+    const link = resolve(dir, "link.mjs");
+    symlinkSync(SHARED, link);
+    assert.equal(isMain(url, SHARED), true, "real path");
+    assert.equal(isMain(url, link), true, "symlinked path");
+    assert.equal(isMain(url, resolve(import.meta.dirname, "shared.test.mjs")), false, "different file");
+    assert.equal(isMain(url, resolve(dir, "nope.mjs")), false, "nonexistent argv1");
+    assert.equal(isMain(url, undefined), false, "missing argv1");
+    assert.equal(isMain(url, ""), false, "empty argv1");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("isMain: never throws on bad input", () => {
+  assert.doesNotThrow(() => isMain("not a url", "/x"));
+  assert.equal(isMain("not a url", "/x"), false);
+  assert.doesNotThrow(() => isMain(undefined, undefined));
+  assert.equal(isMain(undefined, undefined), false);
+  assert.equal(isMain(pathToFileURL(SHARED).href, 42), false);
+});
+
+test("isMain: fixture script runs main directly and through a symlink", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "ismain-fx-"));
+  try {
+    const fx = resolve(dir, "fx.mjs");
+    writeFileSync(fx, `import { isMain } from ${JSON.stringify(pathToFileURL(SHARED).href)};\nif (isMain(import.meta.url)) console.log("MAIN");\n`);
+    const link = resolve(dir, "fx-link.mjs");
+    symlinkSync(fx, link);
+    for (const p of [fx, link]) {
+      const r = spawnSync(process.execPath, [p], { encoding: "utf8" });
+      assert.equal(r.status, 0, p);
+      assert.equal(r.stdout.trim(), "MAIN", p);
+    }
+    // Imported (not entry point): prints nothing.
+    const imp = resolve(dir, "imp.mjs");
+    writeFileSync(imp, `import ${JSON.stringify(pathToFileURL(fx).href)};\n`);
+    const r = spawnSync(process.execPath, [imp], { encoding: "utf8" });
+    assert.equal(r.stdout.trim(), "", "imported module is not main");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// --- every CLI still runs when reached through a symlink --------------------
+
+const SCRIPTS_DIR = import.meta.dirname;
+const CLI_TABLE = [
+  ["validate-plan.mjs", ["--help"]],
+  ["bootstrap.mjs", ["banner"]],
+  ["emit-state.mjs", ["--state", "plan"]],
+  ["emit-template.mjs", ["--name", "plan"]],
+  ["check-agent-wiring.mjs", []],
+  ["check-changelog-parity.mjs", []],
+  ["check-doc-parity.mjs", []],
+  ["check-readme-parity.mjs", []],
+  ["check-register.mjs", []],
+  ["check-template-parity.mjs", []],
+  ["scar-scan.mjs", ["--self-check"]],
+  ["dashboard.mjs", ["--help"]],
+  // check-test-count.mjs is covered by the source-grep test below only:
+  // running it re-runs the whole suite.
+];
+
+test("symlinked scripts dir: every CLI prints output and exits like the direct path", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "symlink-cli-"));
+  try {
+    const linkDir = resolve(dir, "scripts-link");
+    symlinkSync(SCRIPTS_DIR, linkDir);
+    for (const [name, args] of CLI_TABLE) {
+      const run = (base) => spawnSync(process.execPath, [resolve(base, name), ...args], { encoding: "utf8", cwd: dir });
+      const direct = run(SCRIPTS_DIR);
+      const viaLink = run(linkDir);
+      assert.notEqual(viaLink.stdout.trim(), "", `${name}: empty stdout through symlink (stderr: ${viaLink.stderr})`);
+      assert.equal(viaLink.status, direct.status, `${name}: exit code differs through symlink`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("source grep: no script but shared.mjs (and session-title.mjs) compares process.argv[1] with import.meta.url", () => {
+  const offenders = [];
+  for (const f of readdirSync(SCRIPTS_DIR)) {
+    if (!f.endsWith(".mjs") || f.endsWith(".test.mjs")) continue;
+    if (f === "shared.mjs" || f === "session-title.mjs") continue;
+    const src = readFileSync(resolve(SCRIPTS_DIR, f), "utf8");
+    if (/fileURLToPath\(import\.meta\.url\)\s*===\s*(?:path\.)?(?:resolve\()?process\.argv\[1\]/.test(src) ||
+        /process\.argv\[1\]\)?\s*===\s*fileURLToPath\(import\.meta\.url\)/.test(src)) offenders.push(f);
+  }
+  assert.deepEqual(offenders, [], "use isMain(import.meta.url) from shared.mjs");
+});
+
+import { CHAR_LITERAL_ONLY_EXTS } from "./shared.mjs";
+{
+  const texts = (c, ext) => blockCommentSpans(c, ext).map((s) => c.slice(s.start, s.end));
+
+  test("blockCommentSpans ext: Rust lifetimes no longer hide a real block comment on the same line", () => {
+    const src = "let x: &'a T = y; /* c */ let z: &'b U;";
+    assert.deepEqual(texts(src, ".rs"), ["/* c */"]);
+  });
+  test("blockCommentSpans ext: without the extension (JS default) the old string-pairing behaviour is unchanged", () => {
+    const src = "let x: &'a T = y; /* c */ let z: &'b U;";
+    assert.deepEqual(texts(src, ".js"), []);
+    assert.deepEqual(texts(src), []);
+  });
+  test("blockCommentSpans ext: real char literals in Rust still shield a comment opener inside them", () => {
+    assert.deepEqual(texts("let c = '/'; /* c */ let d = '\\n'; /* d */", ".rs"), ["/* c */", "/* d */"]);
+    assert.deepEqual(texts("let s = '*'; // '/*' not an opener\n/* real */", ".rs"), ["/* real */"]);
+  });
+  test("blockCommentSpans ext: C++ digit separators do not pair into a string", () => {
+    assert.deepEqual(texts("int n = 1'000'000; /* c */ int m = 2;", ".cpp"), ["/* c */"]);
+  });
+  test("blockCommentSpans ext: the set names every char-literal-only extension and no block-less extension", () => {
+    for (const e of CHAR_LITERAL_ONLY_EXTS) assert.ok(/^\.[a-z]+$/.test(e));
+  });
+  test("blockCommentSpans ext: PINNED over-report (D-025/D-032): a regex literal ending in `*/` swallows the line up to it", () => {
+    const src = "/* a */\nconst r = /a*/;\n/* DECISION x */\n";
+    assert.deepEqual(texts(src, ".js"), ["/* a */\nconst r = /a*/", "/* DECISION x */"]);
+  });
+  test("blockCommentSpans ext: PINNED: a quote inside a regex literal hides a same-line block comment (bounded to the line)", () => {
+    assert.deepEqual(texts('const re = /"/; /* c */ const s = "x";', ".js"), []);
+  });
+}
+
+test("anchor walk tables live in shared.mjs only (scripts-core #9)", async () => {
+  const { ANCHOR_SOURCE_EXTS, ANCHOR_SKIP_DIRS } = await import("./shared.mjs");
+  const v = await import("./validate-plan.mjs");
+  const b = await import("./bootstrap.mjs");
+  assert.equal(v.ANCHOR_SOURCE_EXTS, ANCHOR_SOURCE_EXTS);
+  assert.equal(b.ANCHOR_SOURCE_EXTS, ANCHOR_SOURCE_EXTS);
+  assert.ok(ANCHOR_SKIP_DIRS.has("node_modules") && ANCHOR_SKIP_DIRS.has("plans"));
+  for (const f of ["validate-plan.mjs", "bootstrap.mjs"]) {
+    const src = readFileSync(new URL(`./${f}`, import.meta.url), "utf-8");
+    assert.ok(!/new Set\(\[\s*"\.py"/.test(src), `${f} re-declares the extension table`);
+    assert.ok(!/new Set\(\[\s*"node_modules"/.test(src), `${f} re-declares the skip-dir table`);
+  }
+});
+
+test("proseOnly blanks fenced blocks and HTML comments, keeps line count and ordinary prose", () => {
+  const src = "keep\n```\nfenced\n```\n<!-- hidden\nmore -->\ntail";
+  const out = proseOnly(src);
+  assert.equal(out.split("\n").length, src.split("\n").length);
+  assert.ok(out.includes("keep") && out.includes("tail"));
+  assert.ok(!out.includes("fenced") && !out.includes("hidden") && !out.includes("more"));
+  assert.equal(proseOnly(""), "");
+  assert.equal(proseOnly(undefined), "");
+});
+
+test("VERSION_RE accepts exactly X.Y.Z", () => {
+  assert.ok(VERSION_RE.test("2.70.0"));
+  for (const bad of ["", "2.69", "v2.70.0", "2.70.0-rc1", "2.70.0\n", " 2.70.0"]) assert.ok(!VERSION_RE.test(bad), bad);
+});

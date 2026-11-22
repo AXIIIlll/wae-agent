@@ -1,0 +1,16 @@
+﻿# 開關狀態詞（資料驅動；供「讀狀態 → 決定是否動作 → 驗證」使用）
+# 格式: word \t desired_state \t note
+開啟	ON	
+打開	ON	
+啟用	ON	
+啟動	ON	
+開	ON	
+enable	ON	
+turn_on	ON	
+關閉	OFF	
+關掉	OFF	
+關	OFF	
+停用	OFF	
+取消	OFF	
+disable	OFF	
+turn_off	OFF	

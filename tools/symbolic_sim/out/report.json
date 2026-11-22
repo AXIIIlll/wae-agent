@@ -1,0 +1,255 @@
+{
+  "config": {
+    "episodes": 2500,
+    "max_steps": 120,
+    "seed": 7,
+    "out": "E:\\NewAndroidApp\\tools\\symbolic_sim\\out"
+  },
+  "env": {
+    "screens_discovered": 19,
+    "screens_total": 19,
+    "toggle_flips": 14000,
+    "effective_scrolls": 2896,
+    "taps_total": 237880,
+    "taps_with_change": 172113,
+    "valid_actions": 300000,
+    "invalid_actions": 0
+  },
+  "agent": {
+    "q_states": 618,
+    "pairs_seen": 3282,
+    "obs_counts": 619
+  },
+  "gate": {
+    "checks": {
+      "screens": true,
+      "toggles": true,
+      "scrolls": true,
+      "tap_change": true,
+      "invalid_rate": true,
+      "novelty_saturated": true
+    },
+    "detail": {
+      "screens": "19/19",
+      "toggle_flips": 14000,
+      "effective_scrolls": 2896,
+      "tap_change_rate": 0.724,
+      "invalid_action_rate": 0.0,
+      "novelty_rate_early": 0.0086,
+      "novelty_rate_tail": 0.0008
+    }
+  },
+  "gate_passed": true,
+  "curve": [
+    {
+      "episode": 1,
+      "epsilon": 0.999,
+      "screens": 12,
+      "toggle_flips": 0,
+      "scrolls": 0,
+      "new_obs_rate": 0.1917,
+      "q_states": 23,
+      "avg_reward": 76.87
+    },
+    {
+      "episode": 125,
+      "epsilon": 0.905,
+      "screens": 19,
+      "toggle_flips": 71,
+      "scrolls": 37,
+      "new_obs_rate": 0.0077,
+      "q_states": 185,
+      "avg_reward": 13.03
+    },
+    {
+      "episode": 250,
+      "epsilon": 0.81,
+      "screens": 19,
+      "toggle_flips": 126,
+      "scrolls": 87,
+      "new_obs_rate": 0.0041,
+      "q_states": 256,
+      "avg_reward": 4.01
+    },
+    {
+      "episode": 375,
+      "epsilon": 0.715,
+      "screens": 19,
+      "toggle_flips": 389,
+      "scrolls": 218,
+      "new_obs_rate": 0.0037,
+      "q_states": 308,
+      "avg_reward": 8.13
+    },
+    {
+      "episode": 500,
+      "epsilon": 0.62,
+      "screens": 19,
+      "toggle_flips": 715,
+      "scrolls": 393,
+      "new_obs_rate": 0.0049,
+      "q_states": 383,
+      "avg_reward": 3.19
+    },
+    {
+      "episode": 625,
+      "epsilon": 0.525,
+      "screens": 19,
+      "toggle_flips": 1221,
+      "scrolls": 664,
+      "new_obs_rate": 0.0029,
+      "q_states": 423,
+      "avg_reward": 9.08
+    },
+    {
+      "episode": 750,
+      "epsilon": 0.43,
+      "screens": 19,
+      "toggle_flips": 1557,
+      "scrolls": 732,
+      "new_obs_rate": 0.0025,
+      "q_states": 472,
+      "avg_reward": 7.19
+    },
+    {
+      "episode": 875,
+      "epsilon": 0.335,
+      "screens": 19,
+      "toggle_flips": 1971,
+      "scrolls": 850,
+      "new_obs_rate": 0.0023,
+      "q_states": 507,
+      "avg_reward": 1.88
+    },
+    {
+      "episode": 1000,
+      "epsilon": 0.24,
+      "screens": 19,
+      "toggle_flips": 2409,
+      "scrolls": 942,
+      "new_obs_rate": 0.0008,
+      "q_states": 517,
+      "avg_reward": 6.19
+    },
+    {
+      "episode": 1125,
+      "epsilon": 0.145,
+      "screens": 19,
+      "toggle_flips": 3268,
+      "scrolls": 1109,
+      "new_obs_rate": 0.0015,
+      "q_states": 537,
+      "avg_reward": 4.04
+    },
+    {
+      "episode": 1250,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 3883,
+      "scrolls": 1214,
+      "new_obs_rate": 0.0006,
+      "q_states": 550,
+      "avg_reward": 3.55
+    },
+    {
+      "episode": 1375,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 5176,
+      "scrolls": 1435,
+      "new_obs_rate": 0.0001,
+      "q_states": 551,
+      "avg_reward": 5.64
+    },
+    {
+      "episode": 1500,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 6438,
+      "scrolls": 1653,
+      "new_obs_rate": 0.0007,
+      "q_states": 558,
+      "avg_reward": 9.0
+    },
+    {
+      "episode": 1625,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 7540,
+      "scrolls": 1799,
+      "new_obs_rate": 0.0004,
+      "q_states": 564,
+      "avg_reward": 7.09
+    },
+    {
+      "episode": 1750,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 10345,
+      "scrolls": 2236,
+      "new_obs_rate": 0.0,
+      "q_states": 564,
+      "avg_reward": 3.62
+    },
+    {
+      "episode": 1875,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 10920,
+      "scrolls": 2276,
+      "new_obs_rate": 0.0003,
+      "q_states": 567,
+      "avg_reward": 2.9
+    },
+    {
+      "episode": 2000,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 11955,
+      "scrolls": 2350,
+      "new_obs_rate": 0.0003,
+      "q_states": 571,
+      "avg_reward": 4.49
+    },
+    {
+      "episode": 2125,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 12116,
+      "scrolls": 2358,
+      "new_obs_rate": 0.001,
+      "q_states": 582,
+      "avg_reward": 4.53
+    },
+    {
+      "episode": 2250,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 12637,
+      "scrolls": 2656,
+      "new_obs_rate": 0.0013,
+      "q_states": 598,
+      "avg_reward": 6.24
+    },
+    {
+      "episode": 2375,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 14000,
+      "scrolls": 2892,
+      "new_obs_rate": 0.0006,
+      "q_states": 604,
+      "avg_reward": 6.14
+    },
+    {
+      "episode": 2500,
+      "epsilon": 0.05,
+      "screens": 19,
+      "toggle_flips": 14000,
+      "scrolls": 2896,
+      "new_obs_rate": 0.0008,
+      "q_states": 618,
+      "avg_reward": 7.54
+    }
+  ]
+}

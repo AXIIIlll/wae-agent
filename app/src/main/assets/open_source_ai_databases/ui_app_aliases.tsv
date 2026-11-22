@@ -1,0 +1,25 @@
+# App 別名表（別名<TAB>系統標籤）
+# 用途：使用者怎麼叫它，跟系統怎麼標它常常不一樣（例：說「電話」，系統標籤可能是 Phone）。
+# 這裡只放「叫法 → 標籤」，實際套件仍由 PackageManager 解析（跨裝置可移植）。
+撥號	電話
+手機	電話
+Phone	電話
+Dialer	電話
+Contacts	聯絡人
+通訊錄	聯絡人
+Calendar	日曆
+Calendar	行事曆
+Clock	時鐘
+鬧鐘	時鐘
+Photos	相簿
+相片	相簿
+圖庫	相簿
+Settings	設定
+設定值	設定
+Camera	相機
+Maps	地圖
+地圖導航	地圖
+Chrome	Chrome
+瀏覽器	Chrome
+Messages	訊息
+簡訊	訊息

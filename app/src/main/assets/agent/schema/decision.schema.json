@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Decision",
+  "type": "object",
+  "required": [
+    "action",
+    "confidence"
+  ],
+  "properties": {
+    "action": {
+      "enum": [
+        "tap",
+        "type",
+        "scroll",
+        "back",
+        "open_app",
+        "wait",
+        "ask_user",
+        "replan",
+        "done"
+      ]
+    },
+    "index": {
+      "type": "integer"
+    },
+    "text": {
+      "type": "string"
+    },
+    "appName": {
+      "type": "string"
+    },
+    "direction": {
+      "enum": [
+        "up",
+        "down"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "reason": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

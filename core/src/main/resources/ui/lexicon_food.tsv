@@ -1,0 +1,6 @@
+# FOOD 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+ADD_CART	加入購物車|add
+CHECKOUT	結帳|checkout
+RESERVE	訂位|預約|reserve
+RATING	評分|評價|rating

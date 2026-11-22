@@ -1,0 +1,2 @@
+# path	max_sites（只能減少，不能增加）
+app\src\main\java\com\wae\agent\gen5\DeviceIO.kt	2

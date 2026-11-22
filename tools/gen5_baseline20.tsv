@@ -1,0 +1,46 @@
+# Gen-5 能力基線（I3）：35 條可重跑指令
+# 欄位：指令<TAB>預期<TAB>類別
+# 預期只有兩種：SUCCESS（真的做到）或 ABSTAIN（誠實棄權）
+#
+# 設計原則：**每條都能從任何畫面跑**，開 App 之後用「回到主頁」歸零，
+# 避免「上一條留下的畫面」讓下一條看起來不穩（實測踩過：在訊息裡分享截圖會失敗）。
+# 例外：`返回` 需要「有上一頁」，所以排在 `打開設定` 之後。
+打開設定	SUCCESS	app
+返回	SUCCESS	system
+回到主頁	SUCCESS	system
+打開相機	SUCCESS	app
+回到主頁	SUCCESS	system
+打開相簿	SUCCESS	app
+回到主頁	SUCCESS	system
+打開地圖	SUCCESS	app
+回到主頁	SUCCESS	system
+打開日曆	SUCCESS	app
+回到主頁	SUCCESS	system
+打開時鐘	SUCCESS	app
+回到主頁	SUCCESS	system
+打開聯絡人	SUCCESS	app
+回到主頁	SUCCESS	system
+打開電話	SUCCESS	app
+回到主頁	SUCCESS	system
+打開Chrome	SUCCESS	app
+回到主頁	SUCCESS	system
+打開通知列	SUCCESS	system
+最近任務	SUCCESS	system
+回到主頁	SUCCESS	system
+調高音量	SUCCESS	volume
+調低音量	SUCCESS	volume
+調高音量3次	SUCCESS	batch
+調低音量5次	SUCCESS	batch
+調亮	SUCCESS	brightness
+調暗	SUCCESS	brightness
+分享截圖給訊息	SUCCESS	share
+回到主頁	SUCCESS	system
+分享照片給訊息	SUCCESS	share
+回到主頁	SUCCESS	system
+分享你好給訊息	SUCCESS	share
+回到主頁	SUCCESS	system
+打開Wi-Fi	ABSTAIN	panel
+打開藍牙	ABSTAIN	panel
+打開飛航模式	ABSTAIN	panel
+傳訊息給媽媽	ABSTAIN	contact
+今天天氣如何	ABSTAIN	query

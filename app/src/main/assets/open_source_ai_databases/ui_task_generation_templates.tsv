@@ -1,0 +1,13 @@
+﻿# S14 任務生成模板（資料驅動；架構書 §16 S14）
+# 任務 = 模板（動詞類別）× 目標（畫面上可操作的物件）× 修飾（量詞/數值）
+# 限制: 只產生「圖上可驗證」的任務（後置條件可由 S3 編譯）
+# 格式: template \t action \t post_hint \t difficulty
+點開{obj}	TAP	ELEM_PRESENT	EASY
+打開{obj}	LAUNCH_APP	PKG_EQ	EASY
+搜尋{obj}	TYPE	TEXT_PRESENT	MEDIUM
+在{app}搜尋{obj}	TYPE	TEXT_PRESENT	MEDIUM
+把{attr}調高	TAP	SPINE_CHANGED	MEDIUM
+把{attr}打開	TAP	SPINE_CHANGED	MEDIUM
+回到上一頁	BACK	SPINE_CHANGED	EASY
+向下捲動	SCROLL_DOWN	SPINE_CHANGED	EASY
+往上捲動	SCROLL_UP	SPINE_CHANGED	EASY

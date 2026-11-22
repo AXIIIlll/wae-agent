@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Observation",
+  "type": "object",
+  "required": [
+    "elements"
+  ],
+  "properties": {
+    "app": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "i",
+          "text"
+        ],
+        "properties": {
+          "i": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "clickable": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scrollTop": {
+      "type": "number"
+    },
+    "scrollBottom": {
+      "type": "number"
+    }
+  }
+}

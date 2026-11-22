@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+  WAE 懸浮窗（極簡白底 v3）
+  只有四件事：狀態、步驟、輸入、停止。沒有分頁、沒有卡片、沒有裝飾色。
+  離線執行：不連網，資源全在 assets。
+-->
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>WAE</title>
+  <link rel="stylesheet" href="overlay.css" />
+</head>
+<body class="wae-body">
+
+<svg width="0" height="0" style="position:absolute;left:-9999px" aria-hidden="true">
+  <defs>
+    <linearGradient id="waeGFill" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".68"/>
+      <stop offset="55%" stop-color="#DCE9FF" stop-opacity=".46"/>
+      <stop offset="100%" stop-color="#B9CDF7" stop-opacity=".30"/>
+    </linearGradient>
+    <linearGradient id="waeGRim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="34%" stop-color="#DCEBFF" stop-opacity=".82"/>
+      <stop offset="62%" stop-color="#BED6FF" stop-opacity=".22"/>
+      <stop offset="88%" stop-color="#BED6FF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="waeGSheen" cx="0.34" cy="0.2" r="0.55">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".78"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+
+<div id="panel" class="wae-panel">
+  <header class="wae-head" id="dragZone">
+    <span class="wae-mark"><svg class="wae-mascot" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+          fill="url(#waeGFill)" stroke="url(#waeGRim)" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+          fill="url(#waeGSheen)"/>
+    <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0B1220"/>
+    <ellipse cx="73" cy="57" rx="6" ry="10" fill="#0B1220"/>
+    <circle cx="45" cy="53" r="2" fill="#FFFFFF" opacity=".9"/>
+    <circle cx="71" cy="53" r="2" fill="#FFFFFF" opacity=".9"/>
+  </svg></span>
+    <span class="wae-name">WAE</span>
+    <span id="statusText" class="wae-status">待命</span>
+    <span id="busyDot" class="wae-dot"></span>
+    <span class="wae-spacer"></span>
+    <button id="btnCollapse" class="wae-icon-btn" aria-label="收起">–</button>
+    <button id="btnClose" class="wae-icon-btn" aria-label="關閉">×</button>
+  </header>
+
+  <div class="wae-progress"><div id="progressBar" class="wae-progress-bar"></div></div>
+
+  <div class="wae-meta">
+    <span id="metaContext">—</span>
+    <span id="metaElapsed"></span>
+  </div>
+
+  <div class="wae-steps" id="stepList">
+    <div class="wae-empty" id="taskEmpty">輸入指令開始</div>
+  </div>
+
+  <form id="composer" class="wae-composer" autocomplete="off">
+    <input id="cmdInput" class="wae-input" placeholder="要做什麼？" aria-label="指令" />
+    <button id="btnSend" class="wae-send" type="submit" aria-label="執行">→</button>
+    <button id="btnStop" class="wae-send wae-send-stop" type="button" aria-label="停止" hidden>■</button>
+  </form>
+</div>
+
+<button id="bubble" class="wae-bubble" hidden aria-label="展開 WAE">
+  <svg class="wae-mascot" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+          fill="url(#waeGFill)" stroke="url(#waeGRim)" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+          fill="url(#waeGSheen)"/>
+    <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0B1220"/>
+    <ellipse cx="73" cy="57" rx="6" ry="10" fill="#0B1220"/>
+    <circle cx="45" cy="53" r="2" fill="#FFFFFF" opacity=".9"/>
+    <circle cx="71" cy="53" r="2" fill="#FFFFFF" opacity=".9"/>
+  </svg>
+  <span id="bubbleDot" class="wae-bubble-dot"></span>
+</button>
+
+<script src="overlay.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+:root {
+  /* 品牌與介面色（從設計稿抽出） */
+  --color-bg: #FAFAFB;
+  --color-panel: #FFFFFF;
+  --color-ink: #111117;
+  --color-text: #3A4150;
+  --color-muted: #8A8A96;
+  --color-line: #E7E6EC;
+
+  --accent: #6D28D9;
+  --accent-soft: #F3EEFF;
+  --accent-line: #C4B5FD;
+  --accent-deep: #5B21B6;
+  --brand-gradient: linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%);
+
+  /* 群組色（與心智圖分支一致） */
+  --g1: #6D28D9;
+  --g2: #0F766E;
+  --g3: #B45309;
+  --g4: #1D4ED8;
+
+  /* 字體 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC",
+    "Noto Sans TC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;
+
+  /* 圓角與陰影 */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(17, 17, 23, 0.06);
+  --shadow-2: 0 2px 10px rgba(17, 17, 23, 0.06);
+  --shadow-3: 0 2px 2.2px rgba(17, 17, 23, 0.10);
+
+  /* 版面 */
+  --canvas-w: 4178;
+  --canvas-h: 4803;
+}

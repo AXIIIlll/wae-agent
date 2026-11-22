@@ -1,0 +1,10 @@
+# SHOPPING 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+CART	購物車|加入購物車|cart|add to cart
+BUY	立即購買|buy now|購買
+WISHLIST	願望清單|收藏|wishlist
+COUPON	優惠券|折扣|coupon
+CHECKOUT	結帳|checkout
+TRACK_ORDER	查訂單|訂單追蹤|track order
+FILTER	篩選|filter
+SORT	排序|sort

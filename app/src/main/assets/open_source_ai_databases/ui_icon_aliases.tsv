@@ -1,0 +1,92 @@
+# 圖示 → 文字 對照表（資料驅動；程式碼不得內建圖示語意）
+#
+# 格式: pattern \t text \t note
+#   pattern：比對「view id 的結尾名稱」或「class 名稱」，小寫、包含即可
+#   text   ：換成的文字（述詞的 label 會用它）
+# 比對順序：pattern 長度由長到短（越具體越優先）
+#
+# 排除清單（以 ! 開頭）：這些是「通用容器 id」，每列都有，不能當成圖示語意
+!icon
+!title
+!summary
+!widget_frame
+!text1
+!text2
+!image
+!img
+!background
+!divider
+#
+# ── 連線 / 網路 ──
+airplane	飛航
+airplanemode	飛航
+wifi	Wi-Fi
+wlan	Wi-Fi
+bluetooth	藍牙
+hotspot	tethering_hotspot	熱點
+tethering	熱點
+nfc	NFC
+mobile_data	行動數據
+mobile_network	行動網路
+sim	SIM 卡
+vpn	VPN
+cast	投放
+#
+# ── 顯示 / 音效 ──
+brightness	亮度
+display	顯示
+dark_mode	深色模式
+darktheme	深色模式
+night	夜間模式
+font	字型
+rotate	自動旋轉
+volume	音量
+sound	音效
+vibrate	震動
+silent	靜音
+#
+# ── 電池 / 儲存 / 系統 ──
+battery	電池
+power	電源
+storage	儲存空間
+memory	記憶體
+location	定位
+security	安全性
+privacy	隱私
+account	帳號
+system	系統
+about	關於手機
+update	軟體更新
+language	語言
+keyboard	鍵盤
+accessibility	無障礙
+developer	開發人員選項
+#
+# ── 通用動作圖示 ──
+search	搜尋
+back	返回
+arrow_back	返回
+more	更多
+overflow	更多
+add	新增
+close	關閉
+cancel	取消
+delete	刪除
+edit	編輯
+share	分享
+favorite	我的最愛
+star	收藏
+camera	相機
+photo	相片
+mic	麥克風
+play	播放
+pause	暫停
+stop	停止
+next	下一首
+previous	上一首
+refresh	重新整理
+settings	設定
+menu	選單
+home	主頁
+notifications	通知
+flashlight	手電筒

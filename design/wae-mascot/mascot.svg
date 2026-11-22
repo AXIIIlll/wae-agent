@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- WAE 小助手：主標誌（線稿版，透明底）。配色取自 App 介面：藍色描邊、深 slate 眼睛。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z"
+        fill="#eff6ff" stroke="#1d4ed8" stroke-width="5" stroke-linejoin="round"/>
+  <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0f172a"/>
+  <ellipse cx="73" cy="57" rx="6" ry="10" fill="#0f172a"/>
+</svg>

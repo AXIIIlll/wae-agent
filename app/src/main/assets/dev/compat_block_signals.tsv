@@ -1,0 +1,23 @@
+﻿# 相容性掃描的阻擋訊號（畫面文字比對；只用來「偵測」，不會自動操作）
+# level: BLOCK = 直接阻擋；WARN = 有警告但仍可用
+# 格式: pattern \t level \t note
+無障礙	WARN	App 提到無障礙服務
+輔助使用	WARN	App 提到輔助使用
+辅助功能	WARN	App 提到輔助功能（簡體）
+螢幕分享	BLOCK	要求關閉螢幕分享
+螢幕錄影	BLOCK	要求關閉螢幕錄影
+遠端控制	BLOCK	要求關閉遠端控制
+遠端連線	BLOCK	要求關閉遠端連線
+偵測到	WARN	App 偵測到異常
+檢測到	WARN	App 偵測到異常（簡體）
+風險	WARN	出現風險提示
+不安全	BLOCK	判定環境不安全
+不支援	BLOCK	判定裝置/環境不支援
+已開啟無障礙	BLOCK	明確提到無障礙已開啟
+請關閉無障礙	BLOCK	要求關閉無障礙
+root	WARN	提到 root
+模擬器	BLOCK	提到模擬器
+accessibility	WARN	英文提到無障礙
+screen sharing	BLOCK	英文螢幕分享
+unsupported	BLOCK	英文不支援
+security	WARN	英文安全提示

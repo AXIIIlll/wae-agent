@@ -1,0 +1,12 @@
+# 評測套件清單（name<TAB>case 檔<TAB>標籤<TAB>大約秒數）
+# 標籤用途：只跑「這次改動可能影響」的套件，把回歸時間從 30 分鐘降到幾分鐘。
+#
+# 對照規則（改什麼 → 跑什麼）：
+#   改句型／詞庫／禮貌詞  → lexicon
+#   改 Planner／手段／後置 → planner
+#   改 Actuator／App 層    → device
+#   改記憶體／儲存        → memory
+baseline	tools/gen5_baseline20.tsv	planner,device,memory	285
+phrasings	tools/gen5_phrasings.tsv	lexicon	110
+long	tools/gen5_longphrases.tsv	lexicon	80
+extra	tools/gen5_suite4.tsv	planner,device	270

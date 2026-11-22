@@ -1,0 +1,22 @@
+# 保留句（B9）：詞庫裡沒有的說法，只用角色組裝也要能編對
+# 格式：句子<TAB>預期效果鍵（Effect.key()）
+幫我打開相機	NAVIGATE:app:相機
+把藍牙關掉	SET:toggle:藍牙
+請開啟設定	NAVIGATE:app:設定
+關閉 Wi-Fi	SET:toggle:Wi-Fi
+搜尋台北101	SELECT:query:台北101
+幫我搜尋附近的咖啡	SELECT:query:附近的咖啡
+尋找訂單	SELECT:query:訂單
+播放音樂	SUBMIT:media:playing=play
+暫停播放	SET:media:playing=pause
+調高音量	SET:volume:master=up
+調低音量	SET:volume:master=down
+回到主頁	NAVIGATE:page:home
+請回到主頁	NAVIGATE:page:home
+打開設定頁面	NAVIGATE:app:設定頁面
+傳訊息給媽媽	SUBMIT:contact:媽媽
+發給爸爸	SUBMIT:contact:爸爸
+查一下天氣	SELECT:query:天氣
+開啟地圖	NAVIGATE:app:地圖
+關掉飛航模式	SET:toggle:飛航模式
+把 Wi-Fi 關掉	SET:toggle:Wi-Fi

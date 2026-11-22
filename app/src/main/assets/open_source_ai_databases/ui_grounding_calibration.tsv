@@ -1,0 +1,16 @@
+# ui_grounding_calibration.tsv — 元素定位信心校準（S32）
+# 格式：point<TAB>score<TAB>prob（分數 → P(正確)；載入後會強制單調化）
+#       meta<TAB>key<TAB>value（決策門檻）
+# 這份是 bootstrap 校準（保守、寧可低估）；真機資料累積後
+# 可用 tools/grounding/evaluate_grounding.py 產生的分箱資料重新產生。
+meta	min_act_prob	0.70
+meta	min_act_margin	0.15
+meta	min_reperceive_prob	0.40
+point	0.00	0.02
+point	0.15	0.08
+point	0.30	0.20
+point	0.45	0.40
+point	0.60	0.62
+point	0.75	0.80
+point	0.90	0.93
+point	1.00	0.99

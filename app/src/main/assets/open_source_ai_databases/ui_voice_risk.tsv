@@ -1,0 +1,25 @@
+# 語音指令風險分級（Phase 0 / A5）
+# 格式：keyword<TAB>level
+#   BLOCK    = 語音不可自動執行（一律轉打字，使用者自己按）
+#   CONFIRM  = 語音可執行，但必須先跳出「我聽到：…」確認卡
+# 未列出的指令 = SAFE（仍需通過信心門檻與安全模式）
+付款	BLOCK
+轉帳	BLOCK
+匯款	BLOCK
+格式化	BLOCK
+解除安裝	BLOCK
+恢復原廠設定	BLOCK
+購買	CONFIRM
+下單	CONFIRM
+送出	CONFIRM
+提交	CONFIRM
+發布	CONFIRM
+發文	CONFIRM
+刪除	CONFIRM
+清除	CONFIRM
+傳送	CONFIRM
+分享	CONFIRM
+撥打	CONFIRM
+封鎖	CONFIRM
+退出	CONFIRM
+登出	CONFIRM

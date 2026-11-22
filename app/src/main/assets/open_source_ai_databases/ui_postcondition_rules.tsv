@@ -1,0 +1,18 @@
+# 後置條件編譯規則（資料驅動；架構書 §5.3）
+# 用途: 動作種類 → 後置條件規則名稱；規則名稱在 GoalCompiler 中實作
+# 原則: 只有「能用畫面事實驗證」的規則會標示為可驗證；其餘不可作為成功判定依據
+# 格式: action_kind \t rule \t note
+LAUNCH_APP	PKG_EQ	開啟 App → 前景套件必須是目標
+DEEP_LINK	PKG_EQ	直達連結 → 前景套件必須是目標
+TYPE	TYPE_TEXT	輸入內容必須真的出現在畫面上（弱時退回結構改變）
+REPLACE_TEXT	TYPE_TEXT	同上
+CLEAR_TEXT	SPINE_CHANGED	清空 → 畫面必須改變
+TAP	SPINE_OR_ELEM	點擊 → 結構改變或目標元素出現
+SUBMIT	SPINE_OR_ELEM	送出 → 結構改變或目標元素出現
+LONG_PRESS	SPINE_OR_ELEM	長按 → 結構改變或目標元素出現
+BACK	SPINE_OR_PKG	返回 → 結構改變或套件改變
+SCROLL_DOWN	SPINE_CHANGED	捲動 → 結構改變
+SCROLL_UP	SPINE_CHANGED	捲動 → 結構改變
+SWIPE_HORIZONTAL	SPINE_CHANGED	橫向滑動 → 結構改變
+ADJUST_VALUE	DISPATCH_VERIFIED	數值調整由動作契約（RangeInfo 讀回）驗證
+WAIT	ALWAYS	等待沒有可驗證效果

@@ -1,0 +1,11 @@
+# pkg<TAB>uri_template<TAB>note（{q} 會換成查詢字）
+com.google.android.apps.maps	geo:0,0?q={q}	地圖搜尋
+com.google.android.youtube	https://www.youtube.com/results?search_query={q}	YouTube 搜尋
+com.android.chrome	https://www.google.com/search?q={q}	Chrome 搜尋
+com.android.vending	market://search?q={q}	Play 商店搜尋
+com.spotify.music	spotify:search:{q}	Spotify 搜尋
+com.google.android.googlequicksearchbox	https://www.google.com/search?q={q}	搜尋引擎
+com.sec.android.app.sbrowser	https://www.google.com/search?q={q}	搜尋引擎
+org.mozilla.firefox	https://www.google.com/search?q={q}	搜尋引擎
+com.brave.browser	https://www.google.com/search?q={q}	搜尋引擎
+com.duckduckgo.mobile.android	https://duckduckgo.com/?q={q}	搜尋引擎

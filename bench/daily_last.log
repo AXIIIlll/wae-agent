@@ -1,0 +1,16 @@
+selftest 9/9
+
+對話劇本：
+  PASS  打開設定       基準動作｜打開設定	SUCCESS frames=139 silent=0 steps=1 tx=1
+  PASS  再做一次       重跑上一次｜再做一次	SUCCESS frames=139 silent=0 steps=1 tx=1
+  PASS  不是這個       糾正生效｜不是這個	ABSTAIN reason=info correction=applied
+  PASS  打開設定       被自己的糾正擋住｜打開設定	ABSTAIN reason=no_candidate options=retry,teach frames=140 silent
+  PASS  __clear_refutations__ 清掉禁令
+  PASS  打開設定       恢復｜打開設定	SUCCESS frames=141 silent=0 steps=1 tx=1
+  PASS  傳訊息        缺對象 → 反問｜傳訊息	ABSTAIN reason=missing_slot steps=0 question=要傳給誰
+  PASS  給小明        「給小明」正規化後接回原句 → 安全閘門｜給小明	ABSTAIN reason=sensitive_operation options=confirm,cancel frames=1
+  PASS  取消         取消｜取消	ABSTAIN reason=cancelled steps=0
+  PASS  打開設定       取消後仍可正常操作｜打開設定	SUCCESS frames=143 silent=0 steps=1 tx=1
+  PASS  複製結果       把上一次結果放進剪貼簿｜複製結果	ABSTAIN reason=info copy=ok chars=40
+
+總計：11/11

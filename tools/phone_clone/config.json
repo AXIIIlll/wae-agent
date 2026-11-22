@@ -1,0 +1,33 @@
+﻿{
+  "_comment": "手機複製設定：include 是要複製的 App；exclude 是開發工具/不要的 App（子字串比對 package）",
+  "device": {
+    "adb": "C:\\Users\\Wade\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe",
+    "wait_after_launch_ms": 3500,
+    "scroll_captures": 2
+  },
+  "exclude_packages": [
+    "com.wae.agent",
+    "mmrl",
+    "com.termux",
+    "com.android.shell",
+    "com.android.settings.intelligence.test",
+    "com.google.android.apps.nbu.files.test"
+  ],
+  "include_packages": [
+    "com.android.settings",
+    "com.google.android.gm",
+    "com.google.android.apps.maps",
+    "com.sec.android.app.popupcalculator",
+    "com.android.chrome",
+    "com.google.android.youtube",
+    "com.google.android.calendar",
+    "com.google.android.deskclock",
+    "com.sec.android.gallery3d",
+    "com.android.documentsui",
+    "com.samsung.android.app.notes",
+    "com.samsung.android.messaging",
+    "com.samsung.android.dialer",
+    "com.sec.android.app.camera",
+    "com.google.android.apps.photos"
+  ]
+}

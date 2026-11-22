@@ -1,0 +1,17 @@
+# 統一詞庫（所有 App 共用的角色）
+# role<TAB>term1|term2|...
+SEARCH	搜尋|搜索|找|查|look up|search
+SUBMIT	送出|送出表單|發表|發布|確認|確定|完成|submit|send
+CANCEL	取消|cancel|算了
+BACK	返回|回上一頁|上一頁|back
+NEXT	下一頁|下一張|next|繼續
+MORE	更多|更多選項|more|⋮
+CLOSE	關閉|close|×|✕
+SHARE	分享|share
+SETTINGS	設定|設定值|settings|齒輪
+PROFILE	個人|我的|帳號|profile|account
+NOTIFICATION	通知|通知中心|notifications|鈴鐺
+DOWNLOAD	下載|download
+FAVORITE	收藏|我的最愛|favorite|bookmark|書籤
+REFRESH	重新整理|更新|refresh
+MENU	選單|導覽選單|menu|☰

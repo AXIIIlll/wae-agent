@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "type": "logistic",
+  "features": [
+    "exact",
+    "contains",
+    "char_overlap",
+    "len_ratio",
+    "bigram_jaccard",
+    "clickable",
+    "editable",
+    "is_row",
+    "is_edit"
+  ],
+  "weights": {
+    "exact": 2.867016466164464,
+    "contains": 1.4096307976369802,
+    "char_overlap": 1.3003618792872444,
+    "len_ratio": 1.1047341904113726,
+    "bigram_jaccard": 1.962175876278818,
+    "clickable": 0.1870583299132627,
+    "editable": 0.0,
+    "is_row": 0.0,
+    "is_edit": 0.0
+  },
+  "bias": -5.116646033933729,
+  "trainedPairs": 258,
+  "valAccuracy": 1.0,
+  "valAuc": 1.0
+}

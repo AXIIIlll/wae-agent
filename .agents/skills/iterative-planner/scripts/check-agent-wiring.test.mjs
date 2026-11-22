@@ -1,0 +1,849 @@
+// Tests for check-agent-wiring.mjs — the prose-layer wiring gate.
+// Run: node --test src/scripts/check-agent-wiring.test.mjs
+
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  tagLines,
+  norm,
+  headingCore,
+  parseHeadings,
+  resolveTarget,
+  scanScriptPaths,
+  scanReferenceCitations,
+  canonicalDocPath,
+  scanSectionPointers,
+  scanSkillPathResolution,
+  report,
+} from "./check-agent-wiring.mjs";
+
+// --- fixtures ---------------------------------------------------------------
+
+// The real python-software.md shape: C.11 is Toolchain, C.12 is the checklist.
+// This is the F-001 trap — an existence-only checker passes a pointer to C.11.
+const PYTHON_DOC = [
+  "# Python Caveat",
+  "## C. Python style + anti-patterns",
+  "### C.11 Toolchain",
+  "### C.12 Anti-pattern checklist (REVIEW GATE — run all 20 in REFLECT)",
+  "### B.16 When NOT to apply these patterns (read first)",
+].join("\n");
+
+const REFS = new Set(["python-software.md", "file-formats.md"]);
+const refExists = (name) => REFS.has(name);
+const headingsFor = (rel) =>
+  rel === "src/references/python-software.md" ? parseHeadings(PYTHON_DOC) : null;
+
+const msgs = (issues) => issues.map((i) => i.message).join(" | ");
+
+// --- primitives -------------------------------------------------------------
+
+test("tagLines marks fenced regions (fence delimiters included)", () => {
+  const lines = tagLines("a\n```\nb\n```\nc");
+  assert.deepEqual(
+    lines.map((l) => l.fenced),
+    [false, true, true, true, false],
+  );
+  assert.equal(lines[2].no, 3);
+});
+
+test("norm strips markdown emphasis, quotes, and case", () => {
+  assert.equal(norm('**"Anti-pattern`  Checklist"**'), "anti-pattern checklist");
+});
+
+test("headingCore cuts trailing em-dash and parenthetical qualifiers", () => {
+  assert.equal(
+    headingCore("Anti-pattern checklist (REVIEW GATE — run all 20)"),
+    "anti-pattern checklist",
+  );
+  assert.equal(
+    headingCore("Revert procedures — manifest-touching reverts"),
+    "revert procedures",
+  );
+});
+
+test("parseHeadings splits section code from title, and skips fenced headings", () => {
+  const hs = parseHeadings("### C.12 Anti-pattern checklist\n```\n# Not A Heading\n```\n## Format");
+  assert.deepEqual(hs, [
+    { code: "C.12", title: "Anti-pattern checklist" },
+    { code: null, title: "Format" },
+  ]);
+});
+
+test("resolveTarget maps citation prefixes to repo paths; unknown -> null", () => {
+  assert.equal(resolveTarget("references/x.md", "self.md"), "src/references/x.md");
+  assert.equal(resolveTarget("agents/ip-x.md", "self.md"), "src/agents/ip-x.md");
+  assert.equal(resolveTarget("scripts/modules/state-x.md", "self.md"), "src/scripts/modules/state-x.md");
+  assert.equal(resolveTarget("SKILL.md", "self.md"), "src/SKILL.md");
+  assert.equal(resolveTarget("{plan-dir}/changelog.md", "self.md"), null);
+  assert.equal(resolveTarget(null, "src/references/self.md"), "src/references/self.md");
+});
+
+// --- (a) script-path --------------------------------------------------------
+
+test("(a) catches a bare relative script path (F-004's class)", () => {
+  const issues = scanScriptPaths("a.md", "Run `node src/scripts/validate-plan.mjs` to audit.");
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "script-path");
+  assert.equal(issues[0].line, 1);
+  assert.match(issues[0].message, /src\/scripts\/validate-plan\.mjs/);
+});
+
+test("(a) catches a path-less script invocation", () => {
+  assert.equal(scanScriptPaths("a.md", "node scripts/blast-radius.mjs <file>").length, 1);
+});
+
+test("(a) passes a <skill-path> invocation", () => {
+  assert.deepEqual(
+    scanScriptPaths("a.md", "Run `node <skill-path>/scripts/emit-state.mjs --state plan`."),
+    [],
+  );
+});
+
+test("(a) ignores module-import paths — only `node` invocations count", () => {
+  // state-plan.md:2 cites bootstrap.mjs as an import source, not a CLI call.
+  assert.deepEqual(
+    scanScriptPaths("a.md", "helpers exported from `src/scripts/bootstrap.mjs` are imported"),
+    [],
+  );
+  assert.deepEqual(
+    scanScriptPaths("a.md", "await import('<skill-path>/scripts/bootstrap.mjs')"),
+    [],
+  );
+});
+
+// --- (b) reference-citation -------------------------------------------------
+
+test("(a) THE EVASION (C1): an interposed node flag no longer exempts a bare path", () => {
+  // Reproduced pre-fix: this exact line PASSed while the flag-less form FAILed,
+  // because SCRIPT_ARG_RE required the path to be the token right after `node`.
+  const issues = scanScriptPaths("a.md", "Run `node --experimental src/scripts/bootstrap.mjs status`.");
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "script-path");
+  assert.match(msgs(issues), /src\/scripts\/bootstrap\.mjs/);
+  // Any option shape, and runs of them.
+  assert.equal(scanScriptPaths("a.md", "node -e scripts/blast-radius.mjs").length, 1);
+  assert.equal(scanScriptPaths("a.md", "node --loader=x --test scripts/x.mjs").length, 1);
+});
+
+test("(a) KNOWN HOLE (D-012), pinned deliberately: a flag whose VALUE is a separate token still evades rule (a) — THIS TEST ASSERTS THE WRONG BEHAVIOUR AND MUST GO RED THE DAY THE HOLE IS CLOSED", () => {
+  // Read this before "fixing" the failure: the assertions below are NOT the
+  // desired behaviour. They record the one form D-012 deliberately left open,
+  // because closing it needs a table of which node flags take values, and that
+  // table goes stale. The hole was previously discoverable only in prose, so
+  // whoever closed it would have learned nothing from the suite. If you closed
+  // it on purpose: delete this test, move the forms into the C1 evasion test
+  // above, and update D-012 plus the CLAUDE.md checklist bullet in the same
+  // commit.
+  //
+  // The option run stops at `ts-node/esm` (no leading `-`), so the bare
+  // repo-relative path that follows is never examined — the same class of
+  // silently-disabled check the rule exists to catch.
+  assert.deepEqual(
+    scanScriptPaths("a.md", "Run `node --loader ts-node/esm src/scripts/bootstrap.mjs status`."),
+    [],
+    "hole closed? see the comment above before changing this",
+  );
+  assert.deepEqual(
+    scanScriptPaths("a.md", "Run `node --experimental-loader ./l.mjs scripts/blast-radius.mjs x`."),
+    [],
+    "hole closed? see the comment above before changing this",
+  );
+  // The boundary is exactly the separated VALUE: the joined `--flag=value`
+  // spelling of the same command IS caught, and so is the flag-less form. If
+  // one of these two ever stops failing, the grammar regressed rather than
+  // improved.
+  assert.equal(
+    scanScriptPaths("a.md", "Run `node --loader=ts-node/esm src/scripts/bootstrap.mjs status`.").length,
+    1,
+  );
+  assert.equal(
+    scanScriptPaths("a.md", "Run `node src/scripts/bootstrap.mjs status`.").length,
+    1,
+  );
+});
+
+test("(a) flags do not break the passing <skill-path> form (no new false positive)", () => {
+  const edges = [];
+  const issues = scanScriptPaths(
+    "a.md",
+    "Run `node --test <skill-path>/scripts/emit-state.mjs --state plan`.",
+    edges,
+  );
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/scripts/emit-state.mjs", type: "script-path", line: 1 },
+  ]);
+});
+
+test("(a) the option run does NOT swallow ordinary prose (over-fire guard)", () => {
+  // Forms taken from real shipped prose, not invented: ip-orchestrator.md's
+  // `node -e "import(...)"` snippet, and module-reference sentences.
+  const shipped =
+    'COMPRESS_OUT=$(node -e "import(\'<skill-path>/scripts/bootstrap.mjs\').then(m => m.x())")';
+  assert.deepEqual(scanScriptPaths("a.md", shipped), []);
+  assert.deepEqual(
+    scanScriptPaths("a.md", "Requires Node.js 18+; helpers live in `src/scripts/shared.mjs`."),
+    [],
+  );
+  assert.deepEqual(
+    scanScriptPaths("a.md", "node and the module `src/scripts/schema.mjs` are unrelated here"),
+    [],
+  );
+});
+
+test("(b) THE EVASION (C2): the `src/references/…` spelling is validated too", () => {
+  // Reproduced pre-fix: the `src/`-prefixed spelling was skipped outright by a
+  // startsWith("references/") guard, so a dangling citation PASSed.
+  const issues = scanReferenceCitations("a.md", "See `src/references/nope.md` for details.", refExists);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "reference-citation");
+  assert.match(msgs(issues), /`src\/references\/nope\.md` does not resolve/);
+});
+
+test("(b) a resolving `src/references/…` citation passes and normalizes its edge dst", () => {
+  const edges = [];
+  assert.deepEqual(
+    scanReferenceCitations("a.md", "See `src/references/file-formats.md`.", refExists, edges),
+    [],
+  );
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/references/file-formats.md", type: "reference-citation", line: 1 },
+  ]);
+});
+
+test("canonicalDocPath collapses the two spellings; resolveTarget follows it", () => {
+  assert.equal(canonicalDocPath("src/references/x.md"), "references/x.md");
+  assert.equal(canonicalDocPath("references/x.md"), "references/x.md");
+  assert.equal(canonicalDocPath("src/SKILL.md"), "SKILL.md");
+  assert.equal(canonicalDocPath(""), "");
+  assert.equal(canonicalDocPath(undefined), "");
+  // Not a `src/`-prefixed doc path: untouched.
+  assert.equal(canonicalDocPath("{plan-dir}/plan.md"), "{plan-dir}/plan.md");
+  assert.equal(resolveTarget("src/references/x.md", "self.md"), "src/references/x.md");
+  assert.equal(resolveTarget("src/agents/ip-x.md", "self.md"), "src/agents/ip-x.md");
+  assert.equal(resolveTarget("src/SKILL.md", "self.md"), "src/SKILL.md");
+});
+
+const scriptExists = (n) => ["emit-state.mjs", "bootstrap.mjs", "validate-plan.mjs"].includes(n);
+const docExists = (p) => ["agents/ip-executor.md", "agents/ip-verifier.md", "scripts/modules/state-plan.md", "scripts/modules/state-pivot.md"].includes(p);
+
+test("(a) a missing <skill-path> script is flagged, MIDDLE of a multi-entry fixture", () => {
+  const text = [
+    "Run `node <skill-path>/scripts/emit-state.mjs --state plan`.",
+    "Run `node <skill-path>/scripts/ghost.mjs`.",
+    "Run `node <skill-path>/scripts/bootstrap.mjs status`.",
+  ].join("\n");
+  const issues = scanScriptPaths("a.md", text, undefined, scriptExists);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].line, 2);
+  assert.match(msgs(issues), /ghost\.mjs.*does not exist/);
+});
+
+test("(a) a QUOTED missing script is flagged; a quoted existing one passes", () => {
+  const text = [
+    "node '<skill-path>/scripts/bootstrap.mjs' status",
+    'node "<skill-path>/scripts/ghost.mjs" x',
+    "node <skill-path>/scripts/validate-plan.mjs",
+  ].join("\n");
+  const issues = scanScriptPaths("a.md", text, undefined, scriptExists);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].line, 2);
+});
+
+test("(a) without a scriptExists callback the old 3-arg call still passes (no existence check)", () => {
+  assert.deepEqual(scanScriptPaths("a.md", "node <skill-path>/scripts/ghost.mjs", []), []);
+});
+
+test("(a) a missing script is not emitted as a verified edge", () => {
+  const edges = [];
+  scanScriptPaths("a.md", "node <skill-path>/scripts/ghost.mjs", edges, scriptExists);
+  assert.deepEqual(edges, []);
+});
+
+test("(b) missing agent and module citations are flagged, bad entry in the MIDDLE", () => {
+  const text = [
+    "See `agents/ip-executor.md`.",
+    "See `agents/ip-ghost.md`.",
+    "See `scripts/modules/state-plan.md`.",
+    "See `scripts/modules/state-ghost.md`.",
+    "See `src/agents/ip-verifier.md` and `scripts/modules/state-<state>.md`.",
+  ].join("\n");
+  const issues = scanReferenceCitations("a.md", text, refExists, undefined, docExists);
+  assert.deepEqual(issues.map((i) => i.line), [2, 4]);
+});
+
+test("(b) without a docExists callback agent/module citations are not checked", () => {
+  assert.deepEqual(scanReferenceCitations("a.md", "See `agents/ip-ghost.md`.", refExists), []);
+});
+
+test("(b) catches a dangling references/ citation", () => {
+  const issues = scanReferenceCitations("a.md", "See `references/nope.md` for details.", refExists);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "reference-citation");
+  assert.match(issues[0].message, /references\/nope\.md/);
+});
+
+test("(b) passes a resolving citation and ignores non-references paths", () => {
+  assert.deepEqual(
+    scanReferenceCitations("a.md", "See `references/file-formats.md` and `{plan-dir}/plan.md`.", refExists),
+    [],
+  );
+});
+
+test("(b) does not fire inside a fenced code block", () => {
+  const text = "```\nsee `references/nope.md`\n```\n";
+  assert.deepEqual(scanReferenceCitations("a.md", text, refExists), []);
+});
+
+// --- (c) section-pointer ----------------------------------------------------
+
+test("(c) THE TRAP: a pointer whose code names a real heading but whose title disagrees is CAUGHT", () => {
+  // C.11 EXISTS (Toolchain) — an existence-only check would pass this.
+  const text = "checklist in `references/python-software.md` § C.11 Anti-pattern checklist.";
+  const issues = scanSectionPointers("a.md", text, headingsFor);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "section-pointer");
+  assert.match(issues[0].message, /toolchain/i);
+});
+
+test("(c) the correct code+title pointer passes (title may be a prefix of the heading)", () => {
+  const text = "checklist in `references/python-software.md` § C.12 Anti-pattern checklist is the gate.";
+  assert.deepEqual(scanSectionPointers("a.md", text, headingsFor), []);
+});
+
+test("(c) a bare section letter `§ C` is reported as unverifiable", () => {
+  const text = "check code against the checklist in `references/python-software.md` § C.";
+  const issues = scanSectionPointers("a.md", text, headingsFor);
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /unverifiable/);
+});
+
+test("(c) a bare section code in prose (no §) is reported — F-001's live form", () => {
+  const text = "The 20-item checklist in C.11 is the REVIEW GATE.";
+  const issues = scanSectionPointers("src/references/python-software.md", text, headingsFor);
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /bare section code `C\.11`/);
+});
+
+test("(c) a sentence-final bare code is still caught (`see Section B.10.`)", () => {
+  const issues = scanSectionPointers(
+    "src/references/python-software.md",
+    "(Class vs function: see Section B.10.)",
+    headingsFor,
+  );
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /B\.10/);
+});
+
+test("(c) `§B.16` without a title is caught; with its title it passes", () => {
+  const bad = scanSectionPointers("src/references/python-software.md", "**Read §B.16 (when NOT to apply) first**", headingsFor);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].message, /must be followed by its heading title/);
+  const good = scanSectionPointers("src/references/python-software.md", "Read § B.16 When NOT to apply these patterns first.", headingsFor);
+  assert.deepEqual(good, []);
+});
+
+test("(c) an unknown section code is caught", () => {
+  const text = "see `references/python-software.md` § C.99 Ghost section.";
+  const issues = scanSectionPointers("a.md", text, headingsFor);
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /names no heading/);
+});
+
+test("(c) title-only pointers resolve against the target's headings", () => {
+  const doc = "## Intra-plan compression\n";
+  const hf = (rel) => (rel === "src/references/file-formats.md" ? parseHeadings(doc) : null);
+  assert.deepEqual(
+    scanSectionPointers("a.md", "See `references/file-formats.md` § Intra-plan compression.", hf),
+    [],
+  );
+  const issues = scanSectionPointers("a.md", "See `references/file-formats.md` § Ghost Section.", hf);
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /matches no heading/);
+});
+
+test("(c) does NOT fire on a heading that IS the section code (### C.11 Toolchain)", () => {
+  assert.deepEqual(scanSectionPointers("a.md", PYTHON_DOC, headingsFor), []);
+});
+
+test("(c) does NOT fire inside a fenced code block", () => {
+  const text = "```\nThe checklist in C.11 and § C are examples\n```\n";
+  assert.deepEqual(scanSectionPointers("src/references/python-software.md", text, headingsFor), []);
+});
+
+test("(c) skips pointers whose target cannot be read (unverifiable, not an error)", () => {
+  const text = "See `{plan-dir}/changelog.md` § Whatever Section.";
+  assert.deepEqual(scanSectionPointers("a.md", text, headingsFor), []);
+});
+
+test("(c) picks the nearest preceding citation when a line holds two pointers", () => {
+  const doc = "## PLAN State\n";
+  const hf = (rel) =>
+    rel === "src/references/python-software.md"
+      ? parseHeadings(PYTHON_DOC)
+      : rel === "src/agents/ip-orchestrator.md"
+        ? parseHeadings(doc)
+        : null;
+  const text =
+    "See `references/python-software.md` § C.12 Anti-pattern checklist and `agents/ip-orchestrator.md` § PLAN State.";
+  assert.deepEqual(scanSectionPointers("a.md", text, hf), []);
+});
+
+// --- (d) skill-path-resolution ----------------------------------------------
+
+test("(d) catches an agent that invokes <skill-path> with no resolution pointer", () => {
+  const issues = scanSkillPathResolution("src/agents/ip-x.md", "Run `node <skill-path>/scripts/x.mjs`.");
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "skill-path-resolution");
+});
+
+test("(d) passes when a resolution pointer line is present", () => {
+  const withResolving =
+    "Resolving `<skill-path>`: see SKILL.md.\nRun `node <skill-path>/scripts/x.mjs`.";
+  assert.deepEqual(scanSkillPathResolution("src/agents/ip-x.md", withResolving), []);
+  const withPreamble =
+    "Every spawn prompt carries `SKILL PATH: <abs>` — that is `<skill-path>`.\nRun `node <skill-path>/scripts/x.mjs`.";
+  assert.deepEqual(scanSkillPathResolution("src/agents/ip-x.md", withPreamble), []);
+});
+
+test("(d) is silent for a file that never invokes a skill-path script", () => {
+  assert.deepEqual(scanSkillPathResolution("src/agents/ip-x.md", "No scripts here."), []);
+});
+
+// --- report -----------------------------------------------------------------
+
+test("report renders file:line [rule] message", () => {
+  const issues = scanScriptPaths("src/agents/ip-archivist.md", "run `node src/scripts/validate-plan.mjs`");
+  assert.match(report(issues)[0], /^ {2}src\/agents\/ip-archivist\.md:1 \[script-path\] /);
+});
+
+// --- edge collection + serializeEdges + --emit-edges CLI ---------------------
+// FEATURE 1 coverage: the optional trailing `edges` param on the three scan
+// functions (edges pushed at verified-OK points only), the pure serializer,
+// and the opt-in CLI file write. Spawn style precedent for this repo:
+// check-readme-parity.test.mjs.
+
+import { serializeEdges, EXPECTED_MIN_PROSE_FILES } from "./check-agent-wiring.mjs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const EDGE_TYPES = new Set(["script-path", "reference-citation", "section-pointer"]);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(__dirname, "..", "..");
+const checkerPath = join(__dirname, "check-agent-wiring.mjs");
+
+// --- (a) edges ----------------------------------------------------------------
+
+test("(a) edge: a <skill-path> invocation pushes {src, dst, type, line}, dst normalized to src/scripts/", () => {
+  const edges = [];
+  const issues = scanScriptPaths(
+    "src/agents/ip-x.md",
+    "intro\n\nRun `node <skill-path>/scripts/emit-state.mjs --state plan`.",
+    edges,
+  );
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "src/agents/ip-x.md", dst: "src/scripts/emit-state.mjs", type: "script-path", line: 3 },
+  ]);
+});
+
+test("(a) edge: a violating bare path yields an issue and NO edge", () => {
+  const edges = [];
+  const issues = scanScriptPaths("a.md", "Run `node src/scripts/validate-plan.mjs` to audit.", edges);
+  assert.equal(issues.length, 1);
+  assert.deepEqual(edges, []);
+});
+
+test("(a) edge: omitting the edges array is safe and leaves issues unchanged", () => {
+  const text = "Run `node src/scripts/validate-plan.mjs` then `node <skill-path>/scripts/emit-state.mjs`.";
+  const withEdges = scanScriptPaths("a.md", text, []);
+  const without = scanScriptPaths("a.md", text);
+  assert.deepEqual(without, withEdges);
+  assert.equal(without.length, 1);
+});
+
+test("(a) edge: collected inside fenced code blocks too (rule (a) scans fences)", () => {
+  const edges = [];
+  const issues = scanScriptPaths("a.md", "```\nnode <skill-path>/scripts/blast-radius.mjs <file>\n```", edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/scripts/blast-radius.mjs", type: "script-path", line: 2 },
+  ]);
+});
+
+// --- (b) edges ----------------------------------------------------------------
+
+test("(b) edge: a resolving citation pushes dst src/references/<f>.md", () => {
+  const edges = [];
+  const issues = scanReferenceCitations("a.md", "See `references/file-formats.md`.", refExists, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/references/file-formats.md", type: "reference-citation", line: 1 },
+  ]);
+});
+
+test("(b) edge: a dangling citation yields an issue and NO edge", () => {
+  const edges = [];
+  const issues = scanReferenceCitations("a.md", "See `references/nope.md`.", refExists, edges);
+  assert.equal(issues.length, 1);
+  assert.deepEqual(edges, []);
+});
+
+test("(b) edge: non-references citations yield no edge (rule (b) does not validate them)", () => {
+  const edges = [];
+  const issues = scanReferenceCitations("a.md", "See `{plan-dir}/plan.md` and `agents/ip-x.md`.", refExists, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, []);
+});
+
+test("(b) edge: none from inside a fenced code block (rule (b) skips fences)", () => {
+  const edges = [];
+  const issues = scanReferenceCitations("a.md", "```\nsee `references/file-formats.md`\n```\n", refExists, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, []);
+});
+
+// --- (c) edges ----------------------------------------------------------------
+
+test("(c) edge: a verifying code+title pointer pushes the resolved dst", () => {
+  const edges = [];
+  const text = "checklist in `references/python-software.md` § C.12 Anti-pattern checklist is the gate.";
+  const issues = scanSectionPointers("a.md", text, headingsFor, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/references/python-software.md", type: "section-pointer", line: 1 },
+  ]);
+});
+
+test("(c) edge: a verifying title-only pointer pushes the resolved dst", () => {
+  const doc = "## Intra-plan compression\n";
+  const hf = (rel) => (rel === "src/references/file-formats.md" ? parseHeadings(doc) : null);
+  const edges = [];
+  const issues = scanSectionPointers("a.md", "See `references/file-formats.md` § Intra-plan compression.", hf, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, [
+    { src: "a.md", dst: "src/references/file-formats.md", type: "section-pointer", line: 1 },
+  ]);
+});
+
+test("(c) edge: a title-disagree violation yields an issue and NO edge", () => {
+  const edges = [];
+  const text = "checklist in `references/python-software.md` § C.11 Anti-pattern checklist.";
+  const issues = scanSectionPointers("a.md", text, headingsFor, edges);
+  assert.equal(issues.length, 1);
+  assert.deepEqual(edges, []);
+});
+
+test("(c) edge: an unverifiable target (resolveTarget null) yields no edge and no issue", () => {
+  const edges = [];
+  const issues = scanSectionPointers("a.md", "See `{plan-dir}/changelog.md` § Whatever Section.", headingsFor, edges);
+  assert.deepEqual(issues, []);
+  assert.deepEqual(edges, []);
+});
+
+// --- serializeEdges -----------------------------------------------------------
+
+test("serializeEdges emits fixed key order src,dst,type,line regardless of input key order", () => {
+  const out = serializeEdges([{ line: 5, type: "script-path", dst: "src/scripts/x.mjs", src: "a.md" }]);
+  assert.equal(out, '{"src":"a.md","dst":"src/scripts/x.mjs","type":"script-path","line":5}\n');
+});
+
+test("serializeEdges sorts by (src, line, dst, type) — line compared numerically", () => {
+  const e = (src, dst, type, line) => ({ src, dst, type, line });
+  const input = [
+    e("b.md", "a", "script-path", 1), // src tier: sorts after every a.md despite lowest line
+    e("a.md", "a", "script-path", 10), // line tier: 10 after 2 (numeric — string compare would put "10" first)
+    e("a.md", "z", "script-path", 2), // dst tier: z after a at the same line
+    e("a.md", "a", "section-pointer", 2), // type tier: after reference-citation at same src/line/dst
+    e("a.md", "a", "reference-citation", 2),
+  ];
+  const got = serializeEdges(input).trim().split("\n").map((l) => JSON.parse(l));
+  assert.deepEqual(got, [
+    e("a.md", "a", "reference-citation", 2),
+    e("a.md", "a", "section-pointer", 2),
+    e("a.md", "z", "script-path", 2),
+    e("a.md", "a", "script-path", 10),
+    e("b.md", "a", "script-path", 1),
+  ]);
+});
+
+test("serializeEdges dedupes identical edges", () => {
+  const edge = { src: "a.md", dst: "src/SKILL.md", type: "section-pointer", line: 3 };
+  const out = serializeEdges([edge, { ...edge }]);
+  assert.equal(out, '{"src":"a.md","dst":"src/SKILL.md","type":"section-pointer","line":3}\n');
+});
+
+test("serializeEdges: empty/missing input -> empty string; non-empty ends with exactly one newline", () => {
+  assert.equal(serializeEdges([]), "");
+  assert.equal(serializeEdges(undefined), "");
+  const out = serializeEdges([{ src: "a", dst: "b", type: "script-path", line: 1 }]);
+  assert.ok(out.endsWith("}\n"));
+  assert.ok(!out.endsWith("\n\n"));
+});
+
+// --- --emit-edges CLI (spawn) ---------------------------------------------------
+
+test("CLI --emit-edges: exit 0, JSONL file with 4 ordered keys and known types", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "caw-edges-"));
+  try {
+    const out = join(tmp, "kg.jsonl");
+    const r = spawnSync(process.execPath, [checkerPath, "--emit-edges", out], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    assert.strictEqual(r.status, 0, `exit ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(r.stdout, /emit-edges: wrote \d+ edge\(s\) to /);
+    assert.ok(existsSync(out), "edge file was not written");
+    const content = readFileSync(out, "utf8");
+    assert.ok(content.endsWith("\n"));
+    const lines = content.slice(0, -1).split("\n");
+    assert.ok(lines.length > 0, "real repo should produce a non-empty edge set");
+    for (const l of lines) {
+      const o = JSON.parse(l);
+      assert.deepEqual(Object.keys(o), ["src", "dst", "type", "line"]);
+      assert.ok(EDGE_TYPES.has(o.type), `unknown edge type: ${o.type}`);
+      assert.equal(typeof o.line, "number");
+    }
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("CLI --emit-edges: two runs on an unchanged tree are byte-identical", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "caw-edges-"));
+  try {
+    const a = join(tmp, "a.jsonl");
+    const b = join(tmp, "b.jsonl");
+    for (const p of [a, b]) {
+      const r = spawnSync(process.execPath, [checkerPath, "--emit-edges", p], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      });
+      assert.strictEqual(r.status, 0, `exit ${r.status}\nstderr: ${r.stderr}`);
+    }
+    const bufA = readFileSync(a);
+    assert.ok(bufA.length > 0);
+    assert.ok(bufA.equals(readFileSync(b)), "emit-edges output differs between runs");
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("CLI --emit-edges FAIL [emit-edges-write-failed]: missing parent dir -> exit 1, named slug, no file, no mkdir", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "caw-edges-"));
+  try {
+    const missingDir = join(tmp, "no-such-dir");
+    const out = join(missingDir, "x.jsonl");
+    const r = spawnSync(process.execPath, [checkerPath, "--emit-edges", out], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    assert.strictEqual(r.status, 1, `exit ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(r.stderr, /check-agent-wiring: FAIL \[emit-edges-write-failed\] /);
+    assert.ok(r.stderr.includes(out), "stderr must name the failed path");
+    assert.match(r.stderr, /\(ENOENT\)/, "stderr must report err.code verbatim");
+    assert.ok(!r.stdout.includes("emit-edges: wrote"), "a failed write must not claim success");
+    assert.ok(!existsSync(out), "no edge file may be created on failure");
+    assert.ok(!existsSync(missingDir), "the guard must NOT mkdir the missing parent (D-001)");
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// --- scan floor + IP_CHECK_AGENT_WIRING_ROOT (plan-2026-07-21-38d0cd87 step 2) --
+
+/**
+ * Build a temp fixture root with the three scanned dirs (+ src/SKILL.md) and
+ * the given number of trivial .md files per dir. Caller removes it.
+ */
+function makeWiringFixtureRoot({ agents = 0, modules = 0, references = 0 } = {}) {
+  const root = mkdtempSync(join(tmpdir(), "caw-fixture-"));
+  const dirs = [
+    ["src/agents", agents],
+    ["src/scripts/modules", modules],
+    ["src/references", references],
+  ];
+  for (const [rel, n] of dirs) {
+    mkdirSync(join(root, rel), { recursive: true });
+    for (let i = 0; i < n; i++) {
+      writeFileSync(join(root, rel, `f${i}.md`), "# Fixture\n\nNo wiring here.\n");
+    }
+  }
+  writeFileSync(join(root, "src", "SKILL.md"), "# Fixture SKILL\n");
+  return root;
+}
+
+/** Spawn the REAL CLI against a root via the opt-in env override. */
+function runWiringCliAgainst(root) {
+  return spawnSync(process.execPath, [checkerPath], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    timeout: 30_000,
+    env: { ...process.env, IP_CHECK_AGENT_WIRING_ROOT: root },
+  });
+}
+
+test("real CLI PASS: IP_CHECK_AGENT_WIRING_ROOT pointing at the real repo -> exit 0 (override path itself works)", () => {
+  const res = runWiringCliAgainst(repoRoot);
+  assert.strictEqual(res.status, 0, `exit ${res.status}\nstdout: ${res.stdout}\nstderr: ${res.stderr}`);
+  assert.match(res.stdout, /^check-agent-wiring: PASS \(\d+ prose files/);
+});
+
+test("real CLI FAIL [scan-floor]: an emptied scan dir -> exit 1 naming the empty source", () => {
+  const root = makeWiringFixtureRoot({ agents: 0, modules: 1, references: 1 });
+  try {
+    const res = runWiringCliAgainst(root);
+    assert.strictEqual(res.status, 1, `exit ${res.status}\nstdout: ${res.stdout}\nstderr: ${res.stderr}`);
+    assert.match(res.stderr, /check-agent-wiring: FAIL \[scan-floor\]/);
+    assert.match(res.stderr, /src\/agents contributed 0 \.md files/);
+    assert.ok(!res.stdout.includes("PASS"), "a floored run must not print PASS");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("real CLI FAIL [scan-floor]: all dirs contribute but total is below EXPECTED_MIN_PROSE_FILES", () => {
+  const root = makeWiringFixtureRoot({ agents: 1, modules: 1, references: 1 });
+  try {
+    const res = runWiringCliAgainst(root);
+    assert.strictEqual(res.status, 1, `exit ${res.status}\nstdout: ${res.stdout}\nstderr: ${res.stderr}`);
+    assert.match(
+      res.stderr,
+      new RegExp(
+        `scanned only 4 prose file\\(s\\), below EXPECTED_MIN_PROSE_FILES = ${EXPECTED_MIN_PROSE_FILES}`,
+      ),
+    );
+    assert.ok(!res.stderr.includes("contributed 0"), "no per-dir failure expected when every dir contributes");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("pin: EXPECTED_MIN_PROSE_FILES equals the live prose-file count discovered from the real repo", () => {
+  // The floor is EXACT, not headroom-tolerant (the check-register.mjs /
+  // check-template-parity.mjs idiom). Discovery is replicated the way the CLI
+  // does it (check-agent-wiring.mjs isEntryPoint): .md files from the three
+  // scanned dirs, plus src/SKILL.md.
+  const mds = (rel) => readdirSync(join(repoRoot, rel)).filter((f) => f.endsWith(".md"));
+  const live =
+    mds("src/agents").length +
+    mds("src/scripts/modules").length +
+    mds("src/references").length +
+    1; // src/SKILL.md
+  assert.strictEqual(
+    EXPECTED_MIN_PROSE_FILES,
+    live,
+    `EXPECTED_MIN_PROSE_FILES (${EXPECTED_MIN_PROSE_FILES}) != live prose-file count (${live}). ` +
+      "Adding or removing an agent/module/reference is a deliberate change: update the constant " +
+      "and its 'Real count today' comment in check-agent-wiring.mjs in the same commit. Do NOT " +
+      "make the gate derive its floor at runtime — a self-derived floor ratifies whatever is on " +
+      "disk, which is the vacuity the floor exists to prevent.",
+  );
+});
+
+test("CLI no-flag purity: exit 0, PASS line, no emission output, default artifact state unchanged", () => {
+  // Never delete or write working-tree files from tests: record the default
+  // path's state BEFORE the run and assert it is unchanged after.
+  const defaultPath = join(repoRoot, "src", "references", "kg-edges.jsonl");
+  const existedBefore = existsSync(defaultPath);
+  const bytesBefore = existedBefore ? readFileSync(defaultPath) : null;
+  const r = spawnSync(process.execPath, [checkerPath], { cwd: repoRoot, encoding: "utf8" });
+  assert.strictEqual(r.status, 0, `exit ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.match(r.stdout, /^check-agent-wiring: PASS \(\d+ prose files/);
+  assert.ok(!r.stdout.includes("emit-edges:"), "no-flag run must not mention emission");
+  assert.strictEqual(r.stderr, "");
+  assert.strictEqual(existsSync(defaultPath), existedBefore, "no-flag run changed default artifact existence");
+  if (existedBefore) {
+    assert.ok(readFileSync(defaultPath).equals(bytesBefore), "no-flag run changed default artifact bytes");
+  }
+});
+
+// --- agent capability contract ------------------------------------------------
+// Concern 6 (iteration-1 review): no gate read `disallowedTools` at all, and
+// nothing pinned the orchestrator's Agent(...) grant, so deleting
+// `disallowedTools: Edit, Agent` from an agent, or dropping an agent from the
+// grant, passed both `make validate` and `make test`. Lives here because this
+// file already owns the agent-prose invariants and already discovers
+// `src/agents/` from disk (the EXPECTED_MIN_PROSE_FILES pin).
+//
+// Both rules are DERIVED from the filesystem — no roster of seven or eight
+// names is written down, so a ninth agent is checked rather than ignored. The
+// read-only set is not enumerated either: requiring every agent to declare
+// Edit exactly once means a read-only agent can only satisfy it by carrying
+// `disallowedTools: Edit`.
+
+const AGENTS_DIR = join(repoRoot, "src", "agents");
+const agentNames = () =>
+  readdirSync(AGENTS_DIR)
+    .filter((f) => f.startsWith("ip-") && f.endsWith(".md"))
+    .map((f) => f.slice(0, -3));
+
+const frontmatterField = (agent, key) => {
+  const text = readFileSync(join(AGENTS_DIR, `${agent}.md`), "utf8");
+  const m = text.match(new RegExp(`^${key}:(.*)$`, "m"));
+  return m ? m[1] : "";
+};
+
+// `Agent(ip-a, ip-b)` is one grant token, not one token per grantee.
+const toolTokens = (line) =>
+  line
+    .replace(/Agent\([^)]*\)/g, "Agent")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+test("agent contract: the orchestrator's Agent(...) grant names every ip-* agent except itself, both directions", () => {
+  const grant = frontmatterField("ip-orchestrator", "tools").match(/Agent\(([^)]*)\)/);
+  assert.ok(grant, "src/agents/ip-orchestrator.md frontmatter carries no Agent(...) grant");
+  const granted = grant[1].split(",").map((s) => s.trim()).filter(Boolean);
+  const expected = agentNames().filter((n) => n !== "ip-orchestrator");
+  for (const name of expected) {
+    assert.ok(
+      granted.includes(name),
+      `src/agents/${name}.md exists but ${name} is not in the orchestrator's Agent(...) grant — ` +
+        "the orchestrator cannot spawn it, and no other gate notices",
+    );
+  }
+  for (const name of granted) {
+    assert.ok(
+      expected.includes(name),
+      `Agent(...) grants ${name}, which is not a src/agents/ip-*.md agent`,
+    );
+  }
+});
+
+test("agent contract: every agent declares Edit and Agent exactly once — granted in tools: or refused in disallowedTools:", () => {
+  for (const name of agentNames()) {
+    const tools = toolTokens(frontmatterField(name, "tools"));
+    const denied = toolTokens(frontmatterField(name, "disallowedTools"));
+    for (const cap of ["Edit", "Agent"]) {
+      const granted = tools.includes(cap);
+      const refused = denied.includes(cap);
+      assert.notStrictEqual(
+        granted,
+        refused,
+        `src/agents/${name}.md ${granted ? "both grants and refuses" : "neither grants nor refuses"} ` +
+          `${cap}. Every agent states each capability once: list it in tools: or in disallowedTools:. ` +
+          "A read-only agent that loses its disallowedTools line silently gains the capability.",
+      );
+    }
+  }
+});
+
+test("agent-facing prose never names dashboard.mjs or session-title.mjs (viewer and hook helper stay out of the protocol)", () => {
+  const src = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const files = [join(src, "SKILL.md")];
+  for (const d of ["agents", "scripts/modules", "references"]) {
+    for (const f of readdirSync(join(src, d))) if (f.endsWith(".md")) files.push(join(src, d, f));
+  }
+  // Pinned EQUAL to the live count (SKILL.md + 8 agents + 5 modules + 9 references): a new prose file must move this floor.
+  assert.strictEqual(files.length, 23, `scanned ${files.length} files, expected 23; glob likely changed`);
+  for (const name of ["dashboard.mjs", "session-title.mjs"]) {
+    const hits = files.filter((f) => readFileSync(f, "utf8").includes(name));
+    assert.deepEqual(hits, [], `${name} must not appear in agent-facing prose`);
+  }
+});

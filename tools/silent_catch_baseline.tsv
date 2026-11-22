@@ -1,0 +1,27 @@
+# path	count
+app\src\main\java\com\wae\agent\MainActivity.kt	7
+app\src\main\java\com\wae\agent\WaeApp.kt	1
+app\src\main\java\com\wae\agent\core\WaeDeepLinkCapabilityManager.kt	2
+app\src\main\java\com\wae\agent\core\WaeOpenSourceDatabaseRegistry.kt	6
+app\src\main\java\com\wae\agent\core\WaePatternMiningEngine.kt	1
+app\src\main\java\com\wae\agent\core\WaeV26PipelineOrchestrator.kt	1
+app\src\main\java\com\wae\agent\core\WaeVisionAccessibilityService.kt	38
+app\src\main\java\com\wae\agent\core\action\ActionTelemetry.kt	2
+app\src\main\java\com\wae\agent\core\action\NegativeEdgeStore.kt	2
+app\src\main\java\com\wae\agent\core\app\AppInstallResolver.kt	2
+app\src\main\java\com\wae\agent\core\automaton\AutomatonModels.kt	1
+app\src\main\java\com\wae\agent\core\automaton\AutomatonStore.kt	2
+app\src\main\java\com\wae\agent\core\automaton\GraphBudget.kt	2
+app\src\main\java\com\wae\agent\core\capability\AppCapabilityIndex.kt	5
+app\src\main\java\com\wae\agent\core\capability\CapabilityModels.kt	1
+app\src\main\java\com\wae\agent\core\component\ValueAdjust.kt	1
+app\src\main\java\com\wae\agent\core\component\WidgetCapability.kt	2
+app\src\main\java\com\wae\agent\core\grounding\ElementGraph.kt	2
+app\src\main\java\com\wae\agent\core\grounding\GroundingReplay.kt	1
+app\src\main\java\com\wae\agent\core\nlu\ActionSelectorTable.kt	1
+app\src\main\java\com\wae\agent\core\nlu\GrammarParticles.kt	1
+app\src\main\java\com\wae\agent\core\posture\PostureModel.kt	1
+app\src\main\java\com\wae\agent\core\safety\SystemSafetyPackages.kt	1
+app\src\main\java\com\wae\agent\dev\CompatibilityScanner.kt	1
+app\src\main\java\com\wae\agent\dev\PromptSuiteRunner.kt	1
+app\src\main\java\com\wae\agent\voice\AssistActivity.kt	1

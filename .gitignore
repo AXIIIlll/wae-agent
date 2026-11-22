@@ -19,6 +19,20 @@ keystore/
 # External large research datasets (1.7GB+)
 external_datasets/
 
+# 外部專案與研究資料（不屬於本 App；phone_llm 內含 378MB GGUF，已決定不採用）
+phone_llm/
+music_graduation/
+.tmp_zenodo/
+
+# 單檔 113MB，超過 GitHub 100MB 硬限，不進版控（缺少時 CrossEncoder 自動降級）
+app/src/full/assets/models/mmarco-minilm-cross-int8.onnx
+
+# 根目錄的真機除錯暫存
+/_*.txt
+/_*.xml
+/_*.jsonl
+/shot_now.png
+
 # Temporary runtime & debug logs
 replay_pid*.log
 yt_live.xml
@@ -29,3 +43,5 @@ _
 *.iml
 .DS_Store
 Thumbs.db
+plans/*
+!plans/ANCHORS.md

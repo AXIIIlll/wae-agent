@@ -1,0 +1,4 @@
+# ui_intent_slots.tsv — 意圖槽位抽取（FuzzyIntent 用）
+# 格式：slot<TAB>regex（第 1 個捕獲組是值）<TAB>ask
+destination	(?:導航到|導航去|帶我去|我要去|怎麼去)([^，。！？\s]{1,20})	要去哪裡？
+query	(?:搜尋|上網查|查一下|查查)([^，。！？\s]{1,30})	要查什麼？

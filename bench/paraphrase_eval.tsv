@@ -1,0 +1,37 @@
+# 時間	id	意圖	句子	split	期望	規則命中	檢索命中	judge	檢索第一
+2026-11-20T10:50:29	I01	開設定	打開設定	seen	A1.1	True	True	!judge 打開設定 JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.85) commands=1 via= 	P-A1.1-135
+2026-11-20T10:50:29	I01	開設定	幫我開一下設定	seen	A1.1	False	True	!judge 幫我開一下設定 JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-90
+2026-11-20T10:50:29	I01	開設定	設定開起來	heldout	A1.1	True	True	!judge 設定開起來 JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.75) commands=1 via= 	P-A1.1-135
+2026-11-20T10:50:29	I02	開相機	打開相機	seen	A1.1	True	True	!judge 打開相機 JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.85) commands=1 via= 	P-A1.1-133
+2026-11-20T10:50:29	I02	開相機	幫我開相機	seen	A1.1	False	True	!judge 幫我開相機 JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-133
+2026-11-20T10:50:29	I02	開相機	相機開一下	heldout	A1.1	False	True	!judge 相機開一下 JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-90
+2026-11-20T10:50:29	I03	開地圖	打開地圖	seen	A1.1	True	True	!judge 打開地圖 JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.85) commands=1 via= 	P-A1.1-137
+2026-11-20T10:50:29	I03	開地圖	地圖幫我打開	seen	A1.1	False	True	!judge 地圖幫我打開 JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-137
+2026-11-20T10:50:29	I03	開地圖	我要看地圖	heldout	A1.1	False	True	!judge 我要看地圖 JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-137
+2026-11-20T10:50:29	I04	找餐廳	找餐廳	seen	G2.2	True	True	!judge 找餐廳 JUDGE PLAN purpose=G2.2 method=search.place.uri spec=SPECIFIC(0.75) commands=1 via= 	P-G2.2-53
+2026-11-20T10:50:29	I04	找餐廳	幫我找餐廳	seen	G2.2	True	True	!judge 幫我找餐廳 JUDGE PLAN purpose=G2.2 method=search.place.uri spec=SPECIFIC(0.75) commands=1 via= 	P-G2.2-53
+2026-11-20T10:50:29	I04	找餐廳	我想找個吃飯的地方	heldout	G2.2	True	True	!judge 我想找個吃飯的地方 JUDGE PLAN purpose=G2.2 method=search.place.uri spec=SPECIFIC(0.75) commands=1 via= 	P-G2.2-102
+2026-11-20T10:50:29	I05	找醫院	找醫院	seen	G2.2	False	True	!judge 找醫院 JUDGE NO_MATCH spec=UNKNOWN 	P-G2.2-102
+2026-11-20T10:50:29	I05	找醫院	幫我找醫院	seen	G2.2	False	False	!judge 幫我找醫院 JUDGE NO_MATCH spec=UNKNOWN 	P-G2.1-101
+2026-11-20T10:50:29	I05	找醫院	附近哪裡有醫院	heldout	G2.2	True	True	!judge 附近哪裡有醫院 JUDGE PLAN purpose=G2.2 method=search.place.uri spec=SPECIFIC(0.75) commands=1 via= 	P-G2.2-104
+2026-11-20T10:50:29	I06	找資料	我想找AI資料	seen	G2.2	False	False	!judge 我想找AI資料 JUDGE NO_MATCH spec=UNKNOWN 	P-A5.1-97
+2026-11-20T10:50:29	I06	找資料	幫我查AI資料	seen	G2.2	False	False	!judge 幫我查AI資料 JUDGE NO_MATCH spec=UNKNOWN 	P-A5.1-96
+2026-11-20T10:50:29	I06	找資料	AI 資料查一下	heldout	G2.2	False	False	!judge AI 資料查一下 JUDGE NO_MATCH spec=UNKNOWN 	P-A5.1-95
+2026-11-20T10:50:29	I07	看影片	我想看影片	seen	D1.1	False	True	!judge 我想看影片 JUDGE NEED_MODEL reason=vague_or_missing_slots purpose=D1.1 missing=缺槽位：app 	P-D1.1-115
+2026-11-20T10:50:29	I07	看影片	幫我開影片	seen	D1.1	False	True	!judge 幫我開影片 JUDGE NO_MATCH spec=UNKNOWN 	P-D1.1-33
+2026-11-20T10:50:29	I07	看影片	想看一下影片	heldout	D1.1	False	True	!judge 想看一下影片 JUDGE NO_MATCH spec=UNKNOWN 	P-D1.1-115
+2026-11-20T10:50:29	I08	聽音樂	我想聽音樂	seen	D2.1	False	True	!judge 我想聽音樂 JUDGE NEED_MODEL reason=vague_or_missing_slots purpose=D2.1 missing=缺槽位：app 	P-D2.1-117
+2026-11-20T10:50:29	I08	聽音樂	放音樂	seen	D2.1	False	True	!judge 放音樂 JUDGE NO_MATCH spec=UNKNOWN 	P-D2.1-119
+2026-11-20T10:50:29	I08	聽音樂	想聽點音樂	heldout	D2.1	False	True	!judge 想聽點音樂 JUDGE NO_MATCH spec=UNKNOWN 	P-D2.1-117
+2026-11-20T10:50:29	I09	調亮	調亮一點	seen	E2.1	True	True	!judge 調亮一點 JUDGE PLAN purpose=E2.1 method=brightness spec=SPECIFIC(0.75) commands=1 via= 	P-E2.1-21
+2026-11-20T10:50:29	I09	調亮	螢幕變亮	seen	E2.1	False	True	!judge 螢幕變亮 JUDGE NO_MATCH spec=UNKNOWN 	P-E2.1-111
+2026-11-20T10:50:29	I09	調亮	太暗了，亮一點	heldout	E2.1	True	True	!judge 太暗了，亮一點 JUDGE PLAN purpose=E2.1 method=brightness spec=SPECIFIC(0.75) commands=1 via= 	P-E2.1-21
+2026-11-20T10:50:29	I10	導航	導航到台北車站	seen	G2.1	True	True	!judge 導航到台北車站 JUDGE PLAN purpose=G2.1 method=navigate spec=SPECIFIC(0.85) commands=1 via= 	P-G2.1-51
+2026-11-20T10:50:29	I10	導航	帶我去台北車站	seen	G2.1	True	True	!judge 帶我去台北車站 JUDGE PLAN purpose=G2.1 method=navigate spec=SPECIFIC(0.75) commands=1 via= 	P-G2.1-101
+2026-11-20T10:50:29	I10	導航	怎麼去台北車站	heldout	G2.1	True	True	!judge 怎麼去台北車站 JUDGE PLAN purpose=G2.1 method=navigate spec=SPECIFIC(0.75) commands=1 via= 	P-G2.1-98
+2026-11-20T10:50:29	I11	傳訊息	傳訊息給媽媽	seen	C1.1	False	False	!judge 傳訊息給媽媽 JUDGE CONFIRM purpose=C1.2 risk=HIGH 	P-C1.2-48
+2026-11-20T10:50:29	I11	傳訊息	跟媽媽說一聲	seen	C1.1	False	False	!judge 跟媽媽說一聲 JUDGE NO_MATCH spec=UNKNOWN 	P-C1.2-122
+2026-11-20T10:50:29	I11	傳訊息	幫我密媽媽	heldout	C1.1	False	False	!judge 幫我密媽媽 JUDGE NO_MATCH spec=UNKNOWN 	P-C1.2-120
+2026-11-20T10:50:29	I12	開Chrome	打開Chrome	seen	A1.1	True	True	!judge 打開Chrome JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.85) commands=1 via= 	P-A1.1-134
+2026-11-20T10:50:29	I12	開Chrome	開一下Chrome	seen	A1.1	False	True	!judge 開一下Chrome JUDGE NO_MATCH spec=UNKNOWN 	P-A1.1-134
+2026-11-20T10:50:29	I12	開Chrome	Chrome 開起來	heldout	A1.1	True	True	!judge Chrome 開起來 JUDGE PLAN purpose=A1.1 method=open_app.intent spec=SPECIFIC(0.75) commands=1 via= 	P-A1.1-134

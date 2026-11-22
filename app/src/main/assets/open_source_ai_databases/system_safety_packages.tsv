@@ -1,0 +1,14 @@
+# 系統安全套件（權限／安裝器）：這些畫面一律不操作，避免代替使用者授權
+# 用途: 取代程式碼中的硬編碼；OEM 變體可直接新增一列，不需改程式
+# 來源: AOSP 公開元件名稱 + 各 OEM 公開套件名稱
+# 格式: package \t role \t note
+com.android.permissioncontroller	PERMISSION_DIALOG	AOSP（Android 10+）
+com.google.android.permissioncontroller	PERMISSION_DIALOG	Google 版（Pixel / 原生）
+com.android.packageinstaller	PERMISSION_DIALOG	舊版 AOSP 安裝器
+com.google.android.packageinstaller	PERMISSION_DIALOG	舊版 Google 安裝器
+com.lbe.security.miui	PERMISSION_DIALOG	MIUI 權限管理
+com.coloros.securitypermission	PERMISSION_DIALOG	ColorOS 權限管理
+com.oplus.securitypermission	PERMISSION_DIALOG	ColorOS / OPPO 權限管理
+com.samsung.android.permissioncontroller	PERMISSION_DIALOG	One UI 部分機型
+com.huawei.systemmanager	PERMISSION_DIALOG	EMUI 權限管理
+com.vivo.permissionmanager	PERMISSION_DIALOG	Funtouch 權限管理

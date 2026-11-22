@@ -1,0 +1,12 @@
+# Gen-5 跨 App 基準（有順序、有前置狀態）：command<TAB>expect
+#
+# 這份的順序是刻意的：先開設定（讓搜尋有欄位），再搜尋。
+# 它測的是「換一支 App 也能用」，不是「每支 App 都能用」。
+打開地圖	SUCCESS
+打開相簿	SUCCESS
+打開訊息	SUCCESS
+打開設定	SUCCESS
+搜尋台北101	SUCCESS
+回到主頁	SUCCESS
+傳訊息給媽媽	ABSTAIN
+今天天氣如何	ABSTAIN

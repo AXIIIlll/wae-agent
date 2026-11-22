@@ -1,0 +1,57 @@
+# 可調參數（Tunables）
+# 格式：key \t value \t 說明
+# 用途：所有「會被微調的數值」都放這裡，不要在程式碼裡寫魔術數字。
+# 執行時可被 SharedPreferences（wae_tunables）覆寫，方便真機除錯不必重編。
+#
+# 命名規則：<領域>.<用途>；單位寫在說明裡。
+# 讀取：com.wae.agent.core.runtime.Tunables.getInt/getFloat/getLong/getBool(context, key)
+
+# ── 任務預算（單一定義：Gen5 的 ContractBudget 與舊路徑的 AgentLimits 都讀這三個鍵）──
+# 一個概念只能有一個鍵；改名或改值都在這裡，不要在程式碼或別的 TSV 另立一份。
+budget.max_steps	20	單一任務最多步數（舊路徑原本 12，統一後兩條路徑共用；要回 12 只改這一行）
+budget.max_wallclock_ms	120000	單一任務最長時間（毫秒）
+budget.max_high_risk	1	單一任務最多高風險操作次數
+
+# ── Agent 迴圈 ─────────────────────────────────────────────
+agent.max_retries_per_step	1	每一步失敗後原地重試幾次（待收斂到 step.max_attempts）
+agent.max_replans	1	整份計畫最多重規劃幾次（待收斂到 plan.max_replans）
+agent.wait_after_launch_ms	1200	開 App 後先等多久再觀察（毫秒）
+agent.wait_content_timeout_ms	4000	等畫面出現內容的上限（毫秒）
+agent.wait_content_min_elements	6	元素數達到多少才算「畫面有內容」
+agent.idle_quiet_ms	300	無障礙事件靜默多久才算畫面靜止（毫秒）
+agent.idle_timeout_ms	2000	等靜止的最長時間（毫秒）
+agent.stall_limit	2	連續幾次沒有變化就放棄
+
+# ── 感知／OCR ──────────────────────────────────────────────
+perception.ocr_a11y_threshold	6	a11y 元素少於這個數量就補 OCR
+perception.ocr_max_lines	30	一次 OCR 最多取幾行
+perception.ocr_cache_per_screen	1	同一螢幕指紋最多 OCR 幾次
+perception.ocr_scale_hint	1080	座標換算參考寬度（像素）
+perception.icon_detect_enabled	1	是否啟用圖示偵測（1/0）
+
+# ── 元素決策 ──────────────────────────────────────────────
+decision.auto_act_threshold	0.55	文字匹配分數超過這個就直接動作
+decision.scroll_when_below	0.30	低於這個分數先捲動找
+decision.ask_when_nothing	1	什麼都找不到時是否反問（1/0）
+decision.role_min_length	2	角色關鍵詞最短長度
+
+# ── App 選擇 ──────────────────────────────────────────────
+app.confident_score	1.5	App 選擇的絕對信心門檻
+app.tie_gap	0.25	第一名與第二名的最小差距
+app.like_bonus	0.8	使用者標記「記住這個」的加分
+app.dislike_penalty	-2.0	使用者標記「不是這個」的扣分
+
+# ── 別名／正規化 ──────────────────────────────────────────
+alias.fuzzy_threshold	0.34	模糊比對的最低相似度
+alias.fuzzy_gap	0.05	模糊比對要贏第二名多少
+alias.max_aliases_per_app	6	每個 App 最多保留幾個別名
+alias.generate_per_run	12	每輪背景別名生成最多處理幾個 App
+
+# ── 語音 ──────────────────────────────────────────────────
+voice.wake_word_enabled	1	喚醒詞預設是否開啟（1/0）
+voice.confirm_first_n	20	前幾次高風險操作要確認
+perception.launch_settle_timeout_ms	12000	開 App 的等待上限（ms）；冷啟動比換頁慢很多，只等到畫面變了為止
+llm.temperature.plan	0.4	思考模型（任務拆解）的溫度：唯一允許有溫度的決策層
+llm.temperature.select	0.1	App 選擇的溫度（幾乎確定）
+llm.temperature.extract	0.0	槽位／別名抽取：必須完全可重現
+llm.temperature.copy	0.6	給人看的文字（摘要／草稿）才用高溫

@@ -1,0 +1,39 @@
+# ui_dynamic_ui_words.tsv — 動態 UI 關鍵詞（S32）
+# 格式：state<TAB>keyword
+#   state ∈ loading / ad / permission / snackbar / keyboard
+# 只放「使用者看得到的字」；view id / class 這類機器標籤不要放（會被誤判）。
+loading	載入中
+loading	正在載入
+loading	載入更多
+loading	請稍候
+loading	處理中
+loading	請等待
+loading	loading
+loading	please wait
+loading	正在處理
+ad	廣告
+ad	贊助
+ad	sponsored
+ad	立即下載
+ad	略過廣告
+ad	跳過
+ad	skip ad
+ad	關閉廣告
+permission	允許
+permission	拒絕
+permission	權限
+permission	僅在使用時允許
+permission	僅此一次
+permission	allow
+permission	deny
+permission	don't allow
+permission	存取權
+snackbar	已儲存
+snackbar	已複製
+snackbar	已刪除
+snackbar	已加入
+snackbar	已封存
+snackbar	復原
+snackbar	undo
+snackbar	已傳送
+keyboard	輸入法

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="dsh-design" content="app">
+  <title>語音助理 · WAE</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="status-right">
+        <svg><use href="icons.svg#i-signal"/></svg>
+        <svg><use href="icons.svg#i-wifi"/></svg>
+        <svg><use href="icons.svg#i-battery"/></svg>
+      </span>
+    </div>
+
+    <header class="appbar">
+      <div class="brand-mark">W</div>
+      <span class="brand-name">WAE</span>
+      <span class="spacer"></span>
+    </header>
+
+    <main class="content" style="gap: var(--space-5)">
+      <section class="greeting">
+        <h1>今天想完成什麼？</h1>
+        <p>說一句話，讓 WAE 在你手機上把事做完。</p>
+      </section>
+    </main>
+
+    <div class="sheet-backdrop"></div>
+
+    <a class="sheet-close" href="home.html" aria-label="關閉語音助理">
+      <svg><use href="icons.svg#i-close"/></svg>
+    </a>
+
+    <section class="sheet" aria-label="語音輸入">
+      <div class="sheet-handle"></div>
+
+      <div class="sheet-status">
+        <span class="wave" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </span>
+        <span>在聽…　中文（台灣）</span>
+      </div>
+
+      <div class="sheet-heard">
+        幫我把藍牙關掉<span class="caret" aria-hidden="true"></span>
+      </div>
+
+      <div class="sheet-input">
+        <button class="pill-icon" type="button" aria-label="切換語音">
+          <svg><use href="icons.svg#i-mic"/></svg>
+        </button>
+        <input type="text" placeholder="打字或按住說話" aria-label="輸入指令">
+        <a class="send" href="home.html" aria-label="送出">
+          <svg><use href="icons.svg#i-send"/></svg>
+        </a>
+      </div>
+
+      <p class="footer-note" style="margin: var(--space-3) 0 0">只在你說話時錄音，音訊不會離開這支手機。</p>
+    </section>
+  </div>
+</body>
+</html>

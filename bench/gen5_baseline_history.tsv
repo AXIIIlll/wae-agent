@@ -1,0 +1,84 @@
+# timestamp	cases	pass	note
+2026-11-18T02:42:07	24	24	single-device-entry; reordered for state independence
+2026-11-18T02:58:52	24	24	input read-back + app-family verification
+2026-11-18T03:35:34	24	23	search-via-intent landed; share-screenshot flaky in sequence (standalone 2/2)
+2026-11-18T03:48:58	24	24	screenshot retry x3 (was 23/24)
+2026-11-18T03:48:58	24	24	second consecutive run after screenshot retry
+2026-11-18T04:05:36	24	24	icon channel live (lazy model load + screenshot TTL cache)
+2026-11-18T04:24:04	24	24	icon boxes logged; PERMISSION_WALL posture added
+2026-11-18T04:38:33	24	24	share photo from MediaStore (READ_MEDIA_IMAGES)
+2026-11-18T04:48:15	27	27	added back + share-photo cases
+2026-11-18T05:35:34	37	37	expanded: calendar/clock/contacts/chrome/airplane/long batch
+2026-11-18T05:47:57	39	39	app alias table (電話/Phone/通訊錄) landed
+2026-11-18T06:02:08	39	39	service slimmed: twin click recorder extracted (-200 lines)
+2026-11-18T06:17:53	39	39	passive recording alive (viewClicked subscribed + receipt seed)
+2026-11-18T06:40:23	39	39	frame ledger rotation (12.8MB→1.5MB) + capability index live
+2026-11-18T06:53:58	39	39	receipts/transitions capped via AppendLog
+2026-11-18T07:03:02	54	54	39 baseline + 15 phrasing variants (synonyms)
+2026-11-18T07:20:11	66	66	39 baseline + 15 phrasings + 12 long phrases (politeness strip)
+2026-11-18T08:24:36	100	101	full eval: baseline 39 + phrasings 15 + long 12 + extra 35 (1 known flake: settings search)
+2026-11-18T08:36:35	101	101	search post fixed (frameChanged); extra 35/35
+2026-11-18T09:14:22	39	39	service -192 lines (AgentDebugWatcher extracted); smoke --out added
+2026-11-18T09:42:47	39	39	3x consecutive baseline (no flake detected); flake_report tool added
+2026-11-18T11:42:21	39	39	backoff cap 800ms + already-satisfied shortcut (contacts login-wall fixed)
+2026-11-18T12:05:53	39	39	settle quiet window 300ms (0 silent failures in 38 steps)
+2026-11-18T12:18:39	39	39	follow-up slot filling (B11); extra suite +2 cases
+2026-11-18T12:31:30	39	39	cancel/negation gate (B10); extra suite +2 cases
+2026-11-18T12:35:56	39	39	card coverage: 20/20 reasons have specific text (+tests)
+2026-11-18T12:36:36	39	39	silent-catch guard (baseline 86 legacy, 0 in core/gen5)
+2026-11-18T13:11:54	39	39	notification query + harness readiness wait (first-command ABSTAIN fixed)
+2026-11-18T13:24:29	39	39	repeat-last-command (H6 minimal); extra suite +2 cases
+2026-11-18T13:27:41	39	39	device checklist one-command flow (--full --with-eval, auto-record R8)
+2026-11-18T13:32:32	9	9	selftest after diagnostics probe (H9 partial)
+2026-11-18T13:36:50	9	9	G7 prerequisite: RefutationLog.ban + 3 tests (no device change)
+2026-11-18T13:57:55	39	39	G7 correction wired (global-scope ban) + verified block/restore
+2026-11-18T14:02:22	10	10	dialogue script (ask/remember/cancel/repeat/correct)
+2026-11-18T14:14:19	5	5	health now 5 items (guards + R1-R7 + dialogue 10/10)
+2026-11-18T14:16:16	service slim 6: RuntimeSignalsBuilder extracted (4120 lines now)
+2026-11-18T14:26:05	service slim 6 + guard fix; device 7/7 dialogue 10/10 guards 3/3
+2026-11-18T14:41:20	5	5	service slim 7: NodeContextCollector; health 5/5
+2026-11-18T14:53:44	5	5	service slim 8: ExplorationScheduler (service now 3953 lines)
+2026-11-18T15:01:15	9	9	service slim 9: ValueAdjustIo (service 3937 lines)
+2026-11-18T15:02:41	7	7	ValueAdjustDecider + 7 tests (behavior pinned before extraction)
+2026-11-18T15:07:46	7	7	performAdjustValue guards now use ValueAdjustDecider (service 3951 lines)
+2026-11-18T15:15:36	11	11	conditional phrasing (C8 minimal) + 4 tests
+2026-11-18T15:33:24	19	19	daily.py: selftest 9/9 + dialogue 10/10 in one command (353s)
+2026-11-18T16:16:05	39	39	fresh-result polling in smoke/daily; eval writes per-suite UTF-8 results
+2026-11-18T16:28:38	109	109	full eval with fresh-result polling (731s total, was ~1575s)
+2026-11-18T16:34:23	10	10	dialogue 75s / checklist 106s / daily 107s after fresh-result polling
+2026-11-18T16:35:11	doc-facts guard added: 109 checks, capabilities 59/13/25, service 3951 lines
+2026-11-18T16:50:07	37	39	simplified-input support (B14); 打開聯絡人/回到主頁 flaked after daily load, both pass individually
+2026-11-18T16:54:03	H9 diagnostics share (!diagshare -> chooser verified); doc_facts strict in health
+2026-11-18T17:07:20	G9 export/import round-trip verified (ban restored, 打開日曆 ABSTAIN) + 5 checksum tests
+2026-11-18T17:13:02	27	27	device_probe.py shared by dialogue/checklist/daily (10/10, 7/7, PASS)
+2026-11-18T17:15:26	4	4	smoke uses Device + install/rebind centralized + warm-up (install path 1/1)
+2026-11-18T17:58:22	111	111	launch settle timeout (12s) fixes Chrome cold-start flake; full 111 pass
+2026-11-18T18:01:46	coldstart baseline measured (Chrome 5.1s, Maps 8.3-11.3s, Camera 4.1s, Settings 4.6s)
+2026-11-18T18:11:38	D14 clipboard verified (copy result -> !clip round-trip)
+2026-11-18T18:34:29	113	113	smoke cp950 crash fixed; extra 47/47, total 113/113
+2026-11-18T18:36:39	15	15	eval keeps per-suite stdout+stderr log (bench/last_<suite>.log)
+2026-11-18T18:38:56	11	11	daily keeps daily_last.log + --verbose (PASS 119s)
+2026-11-18T18:44:48	D15 image picker verified (photo picker activity in foreground)
+2026-11-18T20:09:32	two-model plan implemented (schema/memories/click resolver/step policy/escalation/model A routing/Qwen planner); compile+core tests only, no device test
+2026-11-18T20:17:01	two-model plan round 2: high-risk gate, content postcondition, !plan probe, no-LLM structural guard (core tests green)
+2026-11-18T20:21:51	two-model plan code complete: model A + step policy + click resolver + ladder + planner probe + icon switch (build & core tests green)
+2026-11-18T22:07:18	rule system v1: 169 purposes / 73 patterns / methods; G2 95% G3 100%; APK rebuilt
+2026-11-18T22:13:15	rule system v1 round2: preset slot filling (app via category) + decision counters; core tests green; APK rebuilt
+2026-11-19T09:13:52	op layer v1: op DSL + PostSpec(169 posts) + OpExecutor(15 ops) + !rules ops on/off; core tests green; release APK rebuilt 09:13
+2026-11-19T10:14:05	LLM temperature split: plan=0.4 select=0.1 extract=0.0 copy=0.6 in ui_tunables; LlmStats + !llm probe/set; APK rebuilt
+2026-11-19T10:34:16	lexicon v1: OpenCC simp_trad(3881) + Play categories(66) + pkg_category(18940) + common(15 roles) + 20 family lexicons; RoleLexicon tests green; APK rebuilt
+2026-11-19T10:42:03	semantic roles wired into StepActor/StepPolicy/ClickResolver (+role: targets, !digest); core tests green; APK rebuilt
+2026-11-19T10:56:43	generic slot fix: canonical slots+aliases+wildcards, single boundSlots, schema problems/warnings; 找餐廳 now plans G2.2; coverage 95/100 unchanged
+2026-11-19T12:03:27	facts layer: AppCapabilityTable/Store + DeviceProbe + applies_when capability tokens + !facts probe; core tests green; APK rebuilt
+2026-11-19T12:09:47	facts layer v2: routes carry purpose, capability filter + outcome recording, core tests green, APK built 12:07
+2026-11-19T13:42:18	launch fixes: fast pkg-match wait, no rollback-BACK for launches, fast-fail missing app, post slot substitution. Device: settings 1004ms, camera 1104ms, missing calendar 823ms (was 42s)
+2026-11-19T13:51:39	find-restaurant via URI search: single launch, no voice tap, no self-close; device 3.3s SUCCESS. Also fast-fail missing app (823ms)
+2026-11-19T14:11:10	noun fallback: object_types(16827, THUOCL MIT+hand)+type_apps(14)+verb_types(45); NounResolver tests green; !noun probe; APK rebuilt
+2026-11-19T14:29:18	noun fallback fix: prefer URI-capable apps, launch by pkg (no legacy pipeline), await foreground; device 我想找AI資料 -> SUCCESS via=uri 2.1s
+2026-11-19T15:13:44	mascot rebrand: adaptive icon, minimal home (long-press 好了/設定/語音, inverted when text, tap=execute), overlay mascot bubble. Device verified.
+2026-11-19T15:19:09	minimal home hint: idle='長按輸入，或說出來', has text='雙擊執行 · 長按修改'; double-tap executes. Device verified.
+2026-11-19T16:07:05	chat mode v1: ChatActivity (enter animation mascot->header), ConversationMemory (6 turns, no disk), templates for greeting/capability/last/why, raw execution summary, quick chips. Device verified.
+2026-11-19T19:47:31	v1.1 batch: chat polish (empty category filter, switch app), facts block into planner prompt (FactsBlock + tests), +71 nouns, regression script, docs; APK built
+2026-11-19T20:10:25	v1.1 verified on emulator: regression 11/11 PASS (chat manual), transition frames captured, noun fixes (place priority, direct app, uri preference), plan verify settle 700ms
+2026-11-20T08:10:21	retrieval v1.2: KnowledgeBase (bigram tf-idf) + KnowledgeHost (per-pattern docs, ops, apps, corrections) + always-retrieve in planner + Citation parser + correction store; !kb verified on emulator
+2026-11-20T09:32:37	v1.2 snapshot + paraphrase baseline: rules seen 38%/heldout 0%; retrieval seen 21%/heldout 25%; chat mic inline; version2 saved

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="dsh-design" content="app">
+  <title>首頁 · WAE</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="status-right">
+        <svg><use href="icons.svg#i-signal"/></svg>
+        <svg><use href="icons.svg#i-wifi"/></svg>
+        <svg><use href="icons.svg#i-battery"/></svg>
+      </span>
+    </div>
+
+    <header class="appbar">
+      <div class="brand-mark">W</div>
+      <span class="brand-name">WAE</span>
+      <span class="spacer"></span>
+      <a class="icon-btn" href="settings.html" aria-label="設定">
+        <svg><use href="icons.svg#i-gear"/></svg>
+      </a>
+    </header>
+
+    <main class="content">
+      <section class="greeting">
+        <h1>今天想完成什麼？</h1>
+        <p>說一句話，讓 WAE 在你手機上把事做完。</p>
+      </section>
+
+      <section class="command-card" aria-label="指令輸入">
+        <div class="command-input">
+          <svg><use href="icons.svg#i-sparkle"/></svg>
+          <input type="text" placeholder="例如：幫我把藍牙關掉" aria-label="輸入指令">
+        </div>
+        <div class="command-actions">
+          <a class="mic-btn" href="assistant.html" aria-label="語音輸入">
+            <svg><use href="icons.svg#i-mic"/></svg>
+          </a>
+          <button class="btn-primary" type="button">
+            執行
+            <svg><use href="icons.svg#i-send"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <section aria-label="常用指令">
+        <div class="section-head">
+          <h2>常用指令</h2>
+          <a href="assistant.html">更多</a>
+        </div>
+        <div class="chips">
+          <a class="chip" href="assistant.html">
+            <svg><use href="icons.svg#i-gear"/></svg>打開設定
+          </a>
+          <a class="chip" href="assistant.html">
+            <svg><use href="icons.svg#i-battery"/></svg>查電池電量
+          </a>
+          <a class="chip" href="assistant.html">
+            <svg><use href="icons.svg#i-search"/></svg>搜尋台北一零一
+          </a>
+          <a class="chip" href="assistant.html">
+            <svg><use href="icons.svg#i-photo"/></svg>找最近的照片
+          </a>
+        </div>
+      </section>
+
+      <section aria-label="最近">
+        <div class="section-head">
+          <h2>最近</h2>
+          <a href="assistant.html">全部</a>
+        </div>
+        <div class="list-card">
+          <a class="list-row" href="assistant.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-check"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">打開設定</span>
+              <span class="row-sub">2 分鐘前 · 離線完成</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>成功</span>
+          </a>
+          <a class="list-row" href="assistant.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-battery"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">看看現在電池剩多少</span>
+              <span class="row-sub">今天 14:06 · 導航到電池頁</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>成功</span>
+          </a>
+          <a class="list-row" href="assistant.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-clock"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">用瀏覽器搜尋台北一零一</span>
+              <span class="row-sub">昨天 21:40 · 等待確認</span>
+            </span>
+            <span class="status-pill neutral"><span class="dot"></span>待確認</span>
+          </a>
+        </div>
+      </section>
+
+      <section aria-label="系統狀態">
+        <div class="section-head">
+          <h2>系統狀態</h2>
+          <a href="settings.html">設定</a>
+        </div>
+        <div class="list-card">
+          <a class="list-row" href="settings.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-mic"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">離線語音</span>
+              <span class="row-sub">sherpa · 中文（台灣）</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>就緒</span>
+          </a>
+          <a class="list-row" href="settings.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-shield"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">無障礙服務</span>
+              <span class="row-sub">畫面感知與安全執行</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>已開啟</span>
+          </a>
+        </div>
+      </section>
+
+      <p class="footer-note">WAE 不需要網路，也不會上傳你的資料。</p>
+    </main>
+
+    <div class="home-indicator"><span></span></div>
+  </div>
+</body>
+</html>

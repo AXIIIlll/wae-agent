@@ -1,0 +1,18 @@
+# 動作目標偏好（資料驅動）：決定「同一種動作下，哪個候選更適合」
+# 用途: 修正 B3（設定頁三個搜尋入口 0.97 同分 → 直接放棄）
+# 原則: 偏好只加在「與動作相關的特徵」上；歧義也用它判定，而不是用原始相似度
+# 格式: action_kind \t feature \t weight \t note
+TYPE	flag:isEditable	2.6	真正的輸入框
+TYPE	token:src_text	2.2	Android 搜尋框的標準 id
+TYPE	token:search_src	2.0	
+TYPE	token:edit	1.2	
+TYPE	token:input	1.0	
+TYPE	flag:hasSearchIdHint	0.6	搜尋入口（可點開，但不能直接打字）
+TYPE	flag:isSearchAffordance	0.4	
+TYPE	flag:isClickable	0.1	
+TYPE	flag:isBottomNavigationTab	-3.0	底部導覽頁籤絕不是輸入框
+TAP	flag:isClickable	1.0	
+TAP	flag:isEditable	-1.5	點擊時避開純輸入框
+TAP	flag:isBottomNavigationTab	-1.0	
+ADJUST_VALUE	flag:isEditable	-2.0	
+ADJUST_VALUE	flag:isClickable	-0.5	

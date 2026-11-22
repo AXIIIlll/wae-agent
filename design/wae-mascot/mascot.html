@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="dsh-design" content="web">
+<title>小助手標誌 · WAE</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 32px 96px; }
+
+  .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  h1 { font-size: 44px; line-height: 1.04; letter-spacing: -0.03em; font-weight: 650; margin: 0 0 14px; }
+  .lede { font-size: 16px; color: var(--muted); max-width: 34em; margin: 0; }
+
+  .hero { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; padding: 48px 0 64px; border-bottom: 1px solid var(--line); }
+  .mark-stage { display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-l); padding: 36px; }
+  .lockup { display: flex; align-items: center; gap: 22px; }
+  .wordmark { font-size: 44px; font-weight: 650; letter-spacing: -0.035em; }
+  .wordmark small { display: block; font-size: 12px; font-weight: 500; letter-spacing: .08em; color: var(--muted); margin-top: 6px; }
+
+  .section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  .section:last-of-type { border-bottom: 0; }
+  .section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px; }
+  .index { font-size: 12px; color: var(--muted); letter-spacing: .14em; }
+  h2 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .note { color: var(--muted); font-size: 14px; margin: 0 0 28px; max-width: 40em; }
+
+  .grid { display: grid; gap: 16px; }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 22px; }
+  .card .cap { font-size: 12px; color: var(--muted); letter-spacing: .06em; margin-top: 14px; }
+  .stage { display: grid; place-items: center; min-height: 132px; }
+  .stage.dark { background: var(--ink); border-radius: var(--radius-s); }
+
+  .sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 28px 40px; }
+  .size { text-align: center; color: var(--muted); font-size: 12px; }
+  .size svg { display: block; margin: 0 auto 10px; }
+
+  .state { text-align: center; }
+  .state svg { display: block; margin: 0 auto; }
+  .state .label { font-size: 14px; margin-top: 12px; }
+  .state .sub { font-size: 12px; color: var(--muted); }
+  .dots { display: inline-flex; gap: 4px; margin-top: 8px; }
+  .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: .35; animation: pulse 1.2s infinite; }
+  .dots i:nth-child(2) { animation-delay: .15s; }
+  .dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes pulse { 0%, 100% { opacity: .2; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+  .blink { animation: blink 5.2s infinite; transform-origin: center; }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+
+  .phone-wrap { display: flex; justify-content: center; }
+  .phone { width: 300px; height: 620px; border-radius: 40px; background: var(--bg); border: 1px solid var(--line); position: relative; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(15,23,42,.22); }
+  .phone .status { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 12px; color: var(--muted); }
+  .phone .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 14px; padding: 18px 20px; }
+  .phone .app { aspect-ratio: 1; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
+  .phone .dock { position: absolute; left: 20px; right: 20px; bottom: 18px; height: 58px; border-radius: 20px; background: rgba(255,255,255,.8); border: 1px solid var(--line); }
+  .bubble { position: absolute; right: 16px; bottom: 84px; width: 76px; height: 76px; display: grid; place-items: center; filter: drop-shadow(0 12px 18px rgba(15,23,42,.28)); animation: float 4.5s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .bubble, .dots i, .blink { animation: none; } }
+
+  /* 動作示範 */
+  .motion-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .motion { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 20px 20px 18px; text-align: center; }
+  .motion .label { font-size: 14px; margin-top: 10px; }
+  .motion .sub { font-size: 12px; color: var(--muted); }
+  .motion .use { font-size: 12px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 8px; display: inline-block; margin-top: 8px; }
+  @media (max-width: 860px) { .motion-grid { grid-template-columns: 1fr; } }
+
+  .foot { padding-top: 40px; color: var(--muted); font-size: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .foot b { display: block; color: var(--ink); font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+  code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 6px; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 28px; }
+    .sizes { gap: 20px 28px; }
+    .g4 { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: 1fr; }
+    h1 { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mate" viewBox="0 0 120 120">
+      <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z"
+            fill="var(--brand-body, #eff6ff)" stroke="var(--brand-stroke, #1d4ed8)" stroke-width="5" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="eyes" viewBox="0 0 120 120">
+      <ellipse class="blink" cx="47" cy="57" rx="6" ry="10" fill="var(--ink, #0f172a)"/>
+      <ellipse class="blink" cx="73" cy="57" rx="6" ry="10" fill="var(--ink, #0f172a)"/>
+    </symbol>
+    <symbol id="eyes-squint" viewBox="0 0 120 120">
+      <ellipse cx="47" cy="57" rx="6" ry="10" fill="var(--ink, #0f172a)"/>
+      <rect x="66" y="54" width="14" height="6" rx="3" fill="var(--ink, #0f172a)"/>
+    </symbol>
+    <symbol id="eyes-wide" viewBox="0 0 120 120">
+      <ellipse cx="47" cy="57" rx="7" ry="11.5" fill="var(--ink, #0f172a)"/>
+      <ellipse cx="73" cy="57" rx="7" ry="11.5" fill="var(--ink, #0f172a)"/>
+      <circle cx="49" cy="53" r="2" fill="#ffffff"/>
+      <circle cx="75" cy="53" r="2" fill="#ffffff"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <p class="eyebrow">WAE · 品牌標誌</p>
+  <h1>小助手</h1>
+  <p class="lede">照你的草稿重新描成對稱、可縮放的形狀：圓頂、兩顆直立橢圓的眼睛、裙擺三段圓弧。顏色直接用 App 目前的介面色——白底、slate 文字、藍色主色。</p>
+
+  <div class="hero">
+    <div class="mark-stage">
+      <svg width="220" height="220" viewBox="0 0 120 120" role="img" aria-label="WAE 小助手標誌">
+        <use href="#mate"/>
+        <use href="#eyes"/>
+      </svg>
+    </div>
+    <div>
+      <div class="lockup">
+        <svg width="64" height="64" viewBox="0 0 120 120" aria-hidden="true">
+          <use href="#mate"/>
+          <use href="#eyes"/>
+        </svg>
+        <div class="wordmark">WAE<small>手機 AI 代理人</small></div>
+      </div>
+      <p class="note" style="margin-top:28px">主色 <code>#1d4ed8</code>、身體 <code>#eff6ff</code>、墨黑 <code>#0f172a</code>。這三個就是 App 介面既有的顏色，沒有另外發明。</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="index">01</span><h2>四種用法</h2></div>
+    <p class="note">同一個形狀，換填充方式就夠用。深底版本把描邊與眼睛改成淺藍／白色，不是另一套圖。</p>
+    <div class="grid g4">
+      <div class="card">
+        <div class="stage">
+          <svg width="120" height="120" viewBox="0 0 120 120" aria-label="線稿版"><use href="#mate"/><use href="#eyes"/></svg>
+        </div>
+        <p class="cap">線稿（預設）</p>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <svg width="120" height="120" viewBox="0 0 120 120" aria-label="單色版">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="#0f172a"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#ffffff"/>
+            <ellipse cx="73" cy="57" rx="6" ry="10" fill="#ffffff"/>
+          </svg>
+        </div>
+        <p class="cap">單色（小尺寸）</p>
+      </div>
+      <div class="card">
+        <div class="stage dark">
+          <svg width="120" height="120" viewBox="0 0 120 120" aria-label="深底版">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z"
+                  fill="none" stroke="#93c5fd" stroke-width="5" stroke-linejoin="round"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+            <ellipse cx="73" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+          </svg>
+        </div>
+        <p class="cap">深底（反白）</p>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <svg width="96" height="96" viewBox="0 0 120 120" aria-label="填色版">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="#1d4ed8"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+            <ellipse cx="73" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+          </svg>
+        </div>
+        <p class="cap">反白（藍底）</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="index">02</span><h2>尺寸</h2></div>
+    <p class="note">五官不能糊。24px 以下用單色版，線稿版最小 32px。</p>
+    <div class="card">
+      <div class="sizes">
+        <div class="size">
+          <svg width="16" height="16" viewBox="0 0 120 120" aria-label="16px">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="#0f172a"/>
+            <ellipse cx="47" cy="57" rx="7" ry="11" fill="#fff"/>
+            <ellipse cx="73" cy="57" rx="7" ry="11" fill="#fff"/>
+          </svg>16
+        </div>
+        <div class="size">
+          <svg width="24" height="24" viewBox="0 0 120 120" aria-label="24px">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="#0f172a"/>
+            <ellipse cx="47" cy="57" rx="7" ry="11" fill="#fff"/>
+            <ellipse cx="73" cy="57" rx="7" ry="11" fill="#fff"/>
+          </svg>24
+        </div>
+        <div class="size">
+          <svg width="32" height="32" viewBox="0 0 120 120" aria-label="32px"><use href="#mate"/><use href="#eyes"/></svg>32
+        </div>
+        <div class="size">
+          <svg width="48" height="48" viewBox="0 0 120 120" aria-label="48px"><use href="#mate"/><use href="#eyes"/></svg>48
+        </div>
+        <div class="size">
+          <svg width="96" height="96" viewBox="0 0 120 120" aria-label="96px"><use href="#mate"/><use href="#eyes"/></svg>96
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="index">03</span><h2>三種表情</h2></div>
+    <p class="note">浮窗只需要三種：待命、思考、聽你說話。不加嘴巴，靠眼睛與狀態點就讀得出來。</p>
+    <div class="grid g3">
+      <div class="card state">
+        <svg width="128" height="128" viewBox="0 0 120 120" aria-label="待命"><use href="#mate"/><use href="#eyes"/></svg>
+        <div class="label">待命</div>
+        <div class="sub">偶爾眨眼</div>
+      </div>
+      <div class="card state">
+        <svg width="128" height="128" viewBox="0 0 120 120" aria-label="思考"><use href="#mate"/><use href="#eyes-squint"/></svg>
+        <div class="label">思考中</div>
+        <div class="sub">右眼閉一半</div>
+        <div class="dots"><i></i><i></i><i></i></div>
+      </div>
+      <div class="card state">
+        <svg width="128" height="128" viewBox="0 0 120 120" aria-label="聆聽"><use href="#mate"/><use href="#eyes-wide"/></svg>
+        <div class="label">聽你說話</div>
+        <div class="sub">眼睛放大、帶高光</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="index">04</span><h2>浮窗</h2></div>
+    <p class="note">沒有底板、沒有圓形背景——就是小助手本人浮在畫面上，只留一層柔和陰影讓它跟背景分開。可拖曳；縮到 48dp 時換單色版。</p>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status"><span>14:46</span><span>5G · 70%</span></div>
+        <div class="apps">
+          <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+          <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+          <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+          <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+        </div>
+        <div class="bubble">
+          <svg width="72" height="72" viewBox="0 0 120 120" aria-label="小助手浮窗"><use href="#mate"/><use href="#eyes"/></svg>
+        </div>
+        <div class="dock"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="index">05</span><h2>App 圖示</h2></div>
+    <p class="note">108dp 自適應圖示：淺藍底、圓角 26dp、圖形縮到 50% 放進 72dp 安全區，任何啟動器裁切都不會切到眼睛。</p>
+    <div class="grid g4">
+      <div class="card state">
+        <svg width="120" height="120" viewBox="0 0 108 108" aria-label="App 圖示">
+          <rect width="108" height="108" rx="26" fill="#eff6ff"/>
+          <g transform="translate(24 24) scale(0.5)">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z"
+                  fill="#ffffff" stroke="#1d4ed8" stroke-width="5" stroke-linejoin="round"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0f172a"/>
+            <ellipse cx="73" cy="57" rx="6" ry="10" fill="#0f172a"/>
+          </g>
+        </svg>
+        <div class="label">主圖示</div>
+      </div>
+      <div class="card state">
+        <svg width="96" height="96" viewBox="0 0 108 108" aria-label="深色圖示">
+          <rect width="108" height="108" rx="26" fill="#0f172a"/>
+          <g transform="translate(24 24) scale(0.5)">
+            <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="none" stroke="#93c5fd" stroke-width="5" stroke-linejoin="round"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+            <ellipse cx="73" cy="57" rx="6" ry="10" fill="#eff6ff"/>
+          </g>
+        </svg>
+        <div class="label">深色啟動器</div>
+      </div>
+      <div class="card state">
+        <svg width="72" height="72" viewBox="0 0 108 108" aria-label="圓形圖示">
+          <circle cx="54" cy="54" r="54" fill="#eff6ff"/>
+          <g transform="translate(26 26) scale(0.48)"><use href="#mate"/><use href="#eyes"/></g>
+        </svg>
+        <div class="label">圓形裁切</div>
+      </div>
+      <div class="card state">
+        <svg width="56" height="56" viewBox="0 0 120 120" aria-label="通知小圖示">
+          <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z" fill="#0f172a"/>
+          <ellipse cx="47" cy="57" rx="7" ry="11" fill="#fff"/>
+          <ellipse cx="73" cy="57" rx="7" ry="11" fill="#fff"/>
+        </svg>
+        <div class="label">通知列（單色）</div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="section-head"><span class="index">06</span><h2>動作</h2></div>
+    <p class="note">手是身體兩側長出來的短圓線（線寬同描邊），肩膀就是支點。動作只用旋轉、位移、透明度，之後轉 Lottie／Android 動畫可以一比一。</p>
+    <div class="motion-grid">
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="待命漂浮">
+          <g>
+            <animateTransform attributeName="transform" type="translate" values="0 0; 0 -5; 0 0" dur="4s" repeatCount="indefinite"/>
+            <path d="M20 72C12 76 10 84 15 90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M100 72C108 76 110 84 105 90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="15" cy="91" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <ellipse cx="105" cy="91" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <use href="#mate" transform="translate(0 8)"/>
+            <g transform="translate(0 8)">
+              <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0f172a">
+                <animate attributeName="ry" values="10;10;10;1.2;10;10" keyTimes="0;.5;.9;.93;.96;1" dur="5.2s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="73" cy="57" rx="6" ry="10" fill="#0f172a">
+                <animate attributeName="ry" values="10;10;10;1.2;10;10" keyTimes="0;.5;.9;.93;.96;1" dur="5.2s" repeatCount="indefinite"/>
+              </ellipse>
+            </g>
+          </g>
+        </svg>
+        <div class="label">待命</div>
+        <div class="sub">上下漂浮、偶爾眨眼</div>
+        <span class="use">浮窗閒置</span>
+      </div>
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="揮手">
+          <g transform="translate(0 8)">
+            <path d="M20 72C12 76 10 84 15 90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="15" cy="91" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <use href="#mate"/>
+            <use href="#eyes"/>
+            <g>
+              <animateTransform attributeName="transform" type="rotate" values="0 100 72; 24 100 72; 0 100 72" dur="0.9s" repeatCount="indefinite"/>
+              <path d="M100 72C108 66 109 52 100 46" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+              <ellipse cx="99" cy="44" rx="6.5" ry="6" fill="#1d4ed8"/>
+            </g>
+          </g>
+        </svg>
+        <div class="label">揮手</div>
+        <div class="sub">右手來回擺動</div>
+        <span class="use">第一次見面／完成</span>
+      </div>
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="思考">
+          <g transform="translate(0 8)">
+            <path d="M20 72C12 76 10 84 15 90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="15" cy="91" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <use href="#mate"/>
+            <ellipse cx="47" cy="57" rx="6" ry="10" fill="#0f172a"/>
+            <rect x="66" y="54" width="14" height="6" rx="3" fill="#0f172a"/>
+            <path d="M104 72C111 64 105 54 92 54" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="90" cy="54" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <circle cx="26" cy="36" r="3" fill="#93c5fd">
+              <animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0 0; -4 -7" dur="1.6s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="38" cy="30" r="2" fill="#93c5fd">
+              <animate attributeName="opacity" values="0;1;0" dur="1.6s" begin=".35s" repeatCount="indefinite"/>
+              <animateTransform attributeName="transform" type="translate" values="0 0; -4 -7" dur="1.6s" begin=".35s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+        </svg>
+        <div class="label">思考</div>
+        <div class="sub">手托下巴、右眼瞇起</div>
+        <span class="use">規劃中／等模型</span>
+      </div>
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="聆聽">
+          <g transform="translate(0 8)">
+            <path d="M20 70C8 72 4 82 8 92" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M100 70C112 72 116 82 112 92" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="8" cy="93" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <ellipse cx="112" cy="93" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <use href="#mate"/>
+            <use href="#eyes-wide"/>
+            <path d="M2 84c-4-3-4-9 0-12" stroke="#93c5fd" stroke-width="3" stroke-linecap="round" fill="none">
+              <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite"/>
+            </path>
+            <path d="M118 84c4-3 4-9 0-12" stroke="#93c5fd" stroke-width="3" stroke-linecap="round" fill="none">
+              <animate attributeName="opacity" values="0;1;0" dur="1.8s" begin=".45s" repeatCount="indefinite"/>
+            </path>
+          </g>
+        </svg>
+        <div class="label">聆聽</div>
+        <div class="sub">雙手張開、音波擴散</div>
+        <span class="use">收音中</span>
+      </div>
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="開心">
+          <g transform="translate(0 8)">
+            <animateTransform attributeName="transform" type="translate" values="0 8; 0 3; 0 8" dur="1s" repeatCount="indefinite"/>
+            <use href="#mate"/>
+            <path d="M20 68C6 60 6 44 18 38" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M100 68C114 60 114 44 102 38" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <ellipse cx="19" cy="36" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <ellipse cx="101" cy="36" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <path d="M41 58Q47 51 53 58" stroke="#0f172a" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M67 58Q73 51 79 58" stroke="#0f172a" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+        <div class="label">開心</div>
+        <div class="sub">雙手舉高、眼睛變彎</div>
+        <span class="use">任務成功</span>
+      </div>
+
+      <div class="motion">
+        <svg width="150" height="150" viewBox="0 0 120 140" aria-label="遞交">
+          <g transform="translate(0 8)">
+            <path d="M20 72C30 72 38 75 44 79" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M100 72C90 72 82 75 76 79" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <use href="#mate"/>
+            <use href="#eyes"/>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 -3; 0 0" dur="2.4s" repeatCount="indefinite"/>
+              <rect x="46" y="82" width="28" height="16" rx="4" fill="#ffffff" stroke="#1d4ed8" stroke-width="3"/>
+            </g>
+            <ellipse cx="46" cy="86" rx="6.5" ry="6" fill="#1d4ed8"/>
+            <ellipse cx="74" cy="86" rx="6.5" ry="6" fill="#1d4ed8"/>
+          </g>
+        </svg>
+        <div class="label">遞交</div>
+        <div class="sub">雙手捧著一張小卡</div>
+        <span class="use">要你確認／給選項</span>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="foot">
+    <div><b>幾何</b>120×120 viewBox；身體 78×76；眼睛 12×20；底部三段圓弧；線寬 5（96px 時約 2.5px）。</div>
+    <div><b>App 配色</b>主色 <code>#1d4ed8</code>、淺藍底 <code>#eff6ff</code>、墨黑 <code>#0f172a</code>、邊線 <code>#e2e8f0</code>。</div>
+    <div><b>檔案</b><code>mascot.svg</code>（線稿）、<code>mascot-solid.svg</code>（單色）、<code>app-icon.svg</code>（自適應）。</div>
+  </div>
+
+</div>
+</body>
+</html>

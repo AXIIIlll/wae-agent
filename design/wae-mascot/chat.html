@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="dsh-design" content="app 390x844">
+<title>對話 · WAE</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 844px;
+  }
+
+  /* 狀態列 */
+  .statusbar {
+    height: 44px; flex: 0 0 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 12px; color: var(--muted);
+  }
+
+  /* 頂部 */
+  header {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.92);
+  }
+  header .mascot { width: 34px; height: 34px; }
+  header .who { flex: 1; }
+  header .name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  header .sub { font-size: 12px; color: var(--muted); }
+  header .close {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--surface);
+    color: var(--muted); font-size: 16px; display: grid; place-items: center;
+  }
+
+  /* 訊息串 */
+  main {
+    flex: 1 1 auto;
+    padding: 16px 16px 8px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row.ai > div { flex: 1; min-width: 0; }
+  .row.me { justify-content: flex-end; }
+  .avatar { width: 26px; height: 26px; flex: 0 0 26px; }
+
+  .bubble {
+    width: fit-content; max-width: 100%;
+    padding: 10px 13px;
+    border-radius: 16px;
+    font-size: 15px;
+    word-break: break-word;
+  }
+  .me .bubble {
+    background: var(--accent); color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+  .ai .bubble {
+    background: var(--surface); border: 1px solid var(--line);
+    border-bottom-left-radius: 6px;
+  }
+  .ai .bubble .muted { color: var(--muted); font-size: 12px; }
+
+  /* 執行動作卡 */
+  .action {
+    margin-top: 8px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); padding: 10px 12px; max-width: 100%;
+  }
+  .action .head { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .action .head .ok { color: var(--accent); }
+  .action ul { margin: 6px 0 0; padding: 0; list-style: none; }
+  .action li {
+    font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: baseline;
+  }
+  .action li b { color: var(--ink); font-weight: 500; white-space: nowrap; flex: 0 0 auto; }
+  .action li span { flex: 1; }
+  .action .more {
+    margin-top: 8px; min-height: 44px; font-size: 13px; color: var(--accent);
+    background: var(--accent-soft); border: 0; border-radius: 8px;
+    padding: 5px 10px;
+  }
+
+  /* 能力卡 */
+  .caps {
+    margin-top: 8px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); padding: 12px; max-width: 100%;
+  }
+  .caps .title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .caps .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .caps .chip {
+    font-size: 13px; color: var(--accent); background: var(--accent-soft);
+    border-radius: 999px; padding: 4px 10px;
+  }
+
+  /* 反問卡 */
+  .ask {
+    margin-top: 8px; border: 1px solid var(--accent-line); border-radius: 12px;
+    background: var(--accent-soft); padding: 12px; max-width: 100%;
+  }
+  .ask .q { font-size: 13px; margin-bottom: 8px; }
+  .ask .opts { display: flex; flex-direction: column; gap: 6px; }
+  .ask button {
+    text-align: left; font-size: 13px; min-height: 44px; padding: 8px 10px;
+    border-radius: 9px; border: 1px solid var(--accent-line);
+    background: var(--surface); color: var(--ink);
+  }
+
+  /* 快速回覆 */
+  .quick { display: flex; gap: 8px; padding: 0 16px 10px; flex-wrap: wrap; }
+  .quick button {
+    font-size: 13px; min-height: 44px; padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .quick button.primary { border-color: var(--accent-line); color: var(--accent); background: var(--accent-soft); }
+
+  /* 打字中 */
+  .typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .typing i {
+    width: 5px; height: 5px; border-radius: 50%; background: #94a3b8;
+    animation: pulse 1.2s infinite;
+  }
+  .typing i:nth-child(2) { animation-delay: .15s; }
+  .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes pulse { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+  /* 輸入列 */
+  .composer {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px 12px;
+    border-top: 1px solid var(--line);
+    background: rgba(255,255,255,.94);
+  }
+  .field {
+    flex: 1; height: 44px; border-radius: 21px;
+    border: 1px solid var(--line); background: var(--surface);
+    display: flex; align-items: center; padding: 0 14px;
+    color: var(--muted); font-size: 14px;
+  }
+  .iconbtn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--surface);
+    display: grid; place-items: center;
+  }
+  .iconbtn.send { background: var(--accent); border-color: var(--accent); }
+  .iconbtn svg { width: 20px; height: 20px; }
+  .hint { text-align: center; font-size: 11px; color: var(--muted); padding: 0 16px 30px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mascot" viewBox="0 0 120 120">
+      <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+            fill="#EFF6FF" stroke="#1D4ED8" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M41,57 a6,10 0 1,0 12,0 a6,10 0 1,0 -12,0 Z" fill="#0F172A"/>
+      <path d="M67,57 a6,10 0 1,0 12,0 a6,10 0 1,0 -12,0 Z" fill="#0F172A"/>
+    </symbol>
+    <symbol id="mic" viewBox="0 0 24 24">
+      <path d="M12 4a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V7a3 3 0 0 1 3-3Z" fill="none" stroke="#1D4ED8" stroke-width="1.8"/>
+      <path d="M6 11a6 6 0 0 0 12 0M12 17v3" fill="none" stroke="#1D4ED8" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="send" viewBox="0 0 24 24">
+      <path d="M5 12h12M13 6l6 6-6 6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="statusbar"><span>14:46</span><span>5G · 72%</span></div>
+
+<header>
+  <svg class="mascot" aria-hidden="true"><use href="#mascot"/></svg>
+  <div class="who">
+    <div class="name">WAE</div>
+    <div class="sub">對話 · 有問題可以直接問</div>
+  </div>
+  <div class="close" role="button" aria-label="收起">–</div>
+</header>
+
+<main>
+
+  <div class="row me">
+    <div class="bubble">打開設定</div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div>
+      <div class="bubble">好，幫你打開了。</div>
+      <div class="action">
+        <div class="head"><span class="ok">✓</span> 已執行 · 1 步 · 0.9 秒</div>
+        <ul>
+          <li><b>打開設定</b><span>→ 前景變成「設定」</span></li>
+        </ul>
+        <button class="more">看細節</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row me">
+    <div class="bubble">hello</div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div class="bubble">嗨，要做什麼？</div>
+  </div>
+
+  <div class="row me">
+    <div class="bubble">你能做什麼</div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div>
+      <div class="bubble">這支手機上，我目前可以：</div>
+      <div class="caps">
+        <div class="title">已確認可用 · 從能力表產生</div>
+        <div class="chips">
+          <span class="chip">開 App</span>
+          <span class="chip">地圖搜尋</span>
+          <span class="chip">傳訊息</span>
+          <span class="chip">調音量／亮度</span>
+          <span class="chip">找餐廳</span>
+          <span class="chip">看影片</span>
+          <span class="chip">訂位</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row me">
+    <div class="bubble">我想找餐廳</div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div>
+      <div class="bubble">在地圖幫你搜尋「餐廳」了。</div>
+      <div class="action">
+        <div class="head"><span class="ok">✓</span> 已執行 · 3 步 · 2.1 秒</div>
+        <ul>
+          <li><b>打開地圖</b><span>→ 地圖在前景</span></li>
+          <li><b>搜尋「餐廳」</b><span>→ 用 geo URI 送給地圖</span></li>
+          <li><b>結果</b><span>→ 搜尋頁已開啟</span></li>
+        </ul>
+        <button class="more">看細節</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row me">
+    <div class="bubble">幫我訂位</div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div>
+      <div class="bubble">要訂哪一家、幾個人？</div>
+      <div class="ask">
+        <div class="q">我需要兩個資訊才能訂位</div>
+        <div class="opts">
+          <button>餐廳名稱（例：鼎泰豐）</button>
+          <button>人數（例：2 人）</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row ai">
+    <svg class="avatar" aria-hidden="true"><use href="#mascot"/></svg>
+    <div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>
+  </div>
+
+</main>
+
+<div class="quick">
+  <button class="primary">再說一次</button>
+  <button>換一個 App</button>
+  <button>為什麼失敗</button>
+  <button>不用了</button>
+</div>
+
+<div class="composer">
+  <div class="field">說點什麼，或長按麥克風…</div>
+  <div class="iconbtn" role="button" aria-label="語音輸入"><svg><use href="#mic"/></svg></div>
+  <div class="iconbtn send" role="button" aria-label="送出"><svg><use href="#send"/></svg></div>
+</div>
+<div class="hint">對話不會影響執行：指令先走規則，只有真的聽不懂才問</div>
+
+</body>
+</html>

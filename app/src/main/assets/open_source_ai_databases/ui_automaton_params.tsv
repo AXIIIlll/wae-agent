@@ -1,0 +1,13 @@
+# S19 參數自校準的候選集合（架構書 §16 S19）
+# 用途: 每次全量編譯時，用既有軌跡做小規模網格掃描，選「召回不掉的前提下壓縮比最大」的參數
+# 約束: 候選 ≤ 12 組、固定排序鍵、可重現（無隨機、無梯度）
+# 格式: param \t value \t note
+cluster_threshold	0.55	聚類門檻
+cluster_threshold	0.60	
+cluster_threshold	0.65	
+cluster_threshold	0.70	
+cluster_threshold	0.75	
+cluster_threshold	0.80	
+minhash_bits	32	簽名位數
+minhash_bits	64	
+minhash_lanes	16	通道數

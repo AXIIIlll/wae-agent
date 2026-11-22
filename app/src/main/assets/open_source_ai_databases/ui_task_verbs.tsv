@@ -1,0 +1,21 @@
+# ui_task_verbs.tsv — Task OS 通用任務動詞（S33）
+# 格式：verb<TAB>動詞<TAB>ActionKind
+# 這是「指令 → 動作」的資料驅動對應表；程式不硬編碼動詞清單。
+verb	launch_app	LAUNCH_APP
+verb	open_app	LAUNCH_APP
+verb	open	LAUNCH_APP
+verb	tap	TAP
+verb	click	TAP
+verb	select	TAP
+verb	type	TYPE
+verb	input	TYPE
+verb	fill	TYPE
+verb	submit	SUBMIT
+verb	back	BACK
+verb	scroll_down	SCROLL_DOWN
+verb	scroll	SCROLL_DOWN
+verb	scroll_up	SCROLL_UP
+verb	wait	WAIT
+verb	deep_link	DEEP_LINK
+verb	open_url	DEEP_LINK
+verb	clear_text	CLEAR_TEXT

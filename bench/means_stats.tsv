@@ -1,0 +1,20 @@
+# effect	total	means
+NAVIGATE:app:Chrome	2	intent:android.intent.action.MAIN×2
+NAVIGATE:app:地圖	2	intent:android.intent.action.MAIN×2
+NAVIGATE:app:日曆	1	intent:android.intent.action.MAIN×1
+NAVIGATE:app:時鐘	1	intent:android.intent.action.MAIN×1
+NAVIGATE:app:聯絡人	1	intent:android.intent.action.MAIN×1
+NAVIGATE:app:電話	1	intent:android.intent.action.MAIN×1
+NAVIGATE:global:notifications	1	system_api:global:notifications×1
+NAVIGATE:global:recents	1	system_api:global:recents×1
+NAVIGATE:page:home	10	system_api:global_action:HOME×10
+NAVIGATE:panel:airplane=on	1	system_api:panel:airplane×1
+NAVIGATE:panel:bluetooth=on	1	system_api:panel:bluetooth×1
+NAVIGATE:panel:wifi=on	1	system_api:panel:wifi×1
+SET:brightness:screen=down	1	system_api:brightness:down×1
+SET:brightness:screen=up	1	system_api:brightness:up×1
+SET:volume:master=down	6	system_api:volume:down×6
+SET:volume:master=up	4	system_api:volume:up×4
+SUBMIT:share:image:訊息	1	intent:wae.action.SHARE_IMAGE×1
+SUBMIT:share:photo:訊息	1	intent:wae.action.SHARE_PHOTO×1
+SUBMIT:share:text:訊息=你好	1	intent:android.intent.action.SEND×1

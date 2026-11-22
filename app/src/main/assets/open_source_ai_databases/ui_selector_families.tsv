@@ -1,0 +1,32 @@
+# 選擇器家族（供 S6 跨 App 遷移的 edge_sig 使用；純通用關鍵字，不含 App 名稱）
+# 格式: keyword \t family \t note
+search	SEARCH_ENTRY	搜尋入口
+omnibox	SEARCH_ENTRY	
+query	SEARCH_ENTRY	
+src_text	TEXT_FIELD	輸入框
+edit	TEXT_FIELD	
+input	TEXT_FIELD	
+textfield	TEXT_FIELD	
+textarea	TEXT_FIELD	
+list_item	LIST_ITEM	清單項
+row	LIST_ITEM	
+item	LIST_ITEM	
+cell	LIST_ITEM	
+card	CARD	
+tab	TAB	頁籤
+bottom	NAV	導覽
+nav	NAV	
+back	NAV	
+switch	TOGGLE	開關
+toggle	TOGGLE	
+checkbox	TOGGLE	
+radio	TOGGLE	
+seek	VALUE	數值
+slider	VALUE	
+progress	VALUE	
+rating	VALUE	
+button	BUTTON	
+btn	BUTTON	
+icon	ICON	
+image	IMAGE	
+avatar	IMAGE	

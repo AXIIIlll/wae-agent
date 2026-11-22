@@ -1,0 +1,23 @@
+# 開放式意圖 → 類別 → 進入後策略（Gen-5 路由表）
+#
+# 格式：term<TAB>categories(|分隔)<TAB>strategy[<TAB>note]
+#   strategy = home    打開就停在首頁（不替使用者選內容）
+#            = search  打開後用「term 後面剩下的字」搜尋
+#
+# 為什麼要這張表：使用者說「我想看影片」時，缺的不是 App 名稱，是**類別**。
+# 先落在類別，再從已安裝 App 中挑同類別的；只有一個就開，多個就反問。
+#
+# 紀律：
+#   1. 詞越長越優先（「導航到」先於「導航」）。
+#   2. strategy=home 的意思是「到得了就好」——不自動點第一支影片。
+#   3. 查不到類別或沒有 App 就誠實棄權，不要亂開。
+看影片	VIDEO_MEDIA	home	D1.1
+看劇	VIDEO_MEDIA|SHORT_DRAMA	home	D1.1
+看電影	VIDEO_MEDIA	home	D1.1
+看動畫	VIDEO_MEDIA	home	D1.1
+聽音樂	MUSIC_MEDIA	home	D2.1
+聽歌	MUSIC_MEDIA	home	D2.1
+導航到	MAPS_NAV	search	G2.1
+帶我去	MAPS_NAV	search	G2.1
+找餐廳	MAPS_NAV	search	G2.2
+找加油站	MAPS_NAV	search	G2.2

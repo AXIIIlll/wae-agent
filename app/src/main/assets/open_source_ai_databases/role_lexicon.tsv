@@ -1,0 +1,46 @@
+# 角色詞庫（word<TAB>kind<TAB>op<TAB>targetKind）
+# kind：ACTION / RECIPIENT / NOISE
+# 注意：這裡加的是「詞」，不是「句子」。詞可以組合，句子不行。
+回到主頁	ACTION	NAVIGATE	home
+返回	ACTION	NAVIGATE	back
+上一頁	ACTION	NAVIGATE	back
+打開通知列	ACTION	NAVIGATE	notifications
+拉下通知列	ACTION	NAVIGATE	notifications
+最近任務	ACTION	NAVIGATE	recents
+切換應用程式	ACTION	NAVIGATE	recents
+打開	ACTION	NAVIGATE	app
+開啟	ACTION	NAVIGATE	app
+關閉	ACTION	SET	toggle
+關掉	ACTION	SET	toggle
+搜尋	ACTION	SELECT	query
+尋找	ACTION	SELECT	query
+查一下	ACTION	SELECT	query
+播放	ACTION	SUBMIT	play
+暫停	ACTION	SET	pause
+調高	ACTION	SET	volume_up
+調低	ACTION	SET	volume_down
+調亮	ACTION	SET	brightness_up
+調暗	ACTION	SET	brightness_down
+拍照	ACTION	SUBMIT	capture
+照相	ACTION	SUBMIT	capture
+拍一張	ACTION	SUBMIT	capture
+傳訊息給	ACTION	SUBMIT	contact
+傳給	ACTION	SUBMIT	contact
+發給	ACTION	SUBMIT	contact
+給	RECIPIENT
+幫我	NOISE
+請	NOISE
+麻煩	NOISE
+一下	NOISE
+我想要	NOISE
+我要	NOISE
+那個	NOISE
+這個	NOISE
+回首頁	ACTION	NAVIGATE	home
+回桌面	ACTION	NAVIGATE	home
+調大聲	ACTION	SET	volume_up
+大聲一點	ACTION	SET	volume_up
+調小聲	ACTION	SET	volume_down
+小聲一點	ACTION	SET	volume_down
+亮一點	ACTION	SET	brightness_up
+暗一點	ACTION	SET	brightness_down

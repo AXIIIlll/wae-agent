@@ -1,0 +1,9 @@
+# timestamp	app	package	avg_ms	samples
+2026-11-18T18:00:13	Chrome	com.android.chrome	0	
+2026-11-18T18:00:13	地圖	com.google.android.apps.maps	11272	11272
+2026-11-18T18:00:13	相機	com.android.camera2	0	
+2026-11-18T18:00:13	設定	com.android.settings	0	
+2026-11-18T18:01:34	Chrome	com.android.chrome	5135	5158,5112
+2026-11-18T18:01:34	地圖	com.google.android.apps.maps	8273	8273
+2026-11-18T18:01:34	相機	com.android.camera2	4066	5003,3129
+2026-11-18T18:01:34	設定	com.android.settings	4570	5776,3364

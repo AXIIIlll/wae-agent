@@ -1,0 +1,6 @@
+原計畫第 {step} 步失敗：{reason}
+目前畫面摘要：
+{observation}
+
+請重新輸出完整計畫 JSON（步驟 3–6 步），修正失敗原因。
+/no_think

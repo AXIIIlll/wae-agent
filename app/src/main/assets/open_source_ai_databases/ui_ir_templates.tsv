@@ -1,0 +1,15 @@
+# ui_ir_templates.tsv — WAE-Ω 意圖模板（S34）
+# 格式：ir<TAB>id<TAB>pattern<TAB>steps
+# steps DSL（`|` 分隔）：
+#   READ:<field>->$var          從畫面讀出欄位到變數（型別由 App Model schema 決定）
+#   WRITE:$var-><field>         把變數寫進欄位（也支援 'literal'）
+#   COMPUTE:$var=<expr>         本地計算（安全子集）
+#   NAV:<UiType>:<hint>         導覽（點某型別的元素）
+#   COMMIT:<hint>               不可逆提交（驗證器會要求確認）
+#   GUARD:<text>                下一個步驟的守衛（畫面出現該文字才做）
+# 編譯器會做靜態檢查：型別要存在、欄位要在 schema、資料流要完備；失敗就回報，不硬做。
+ir	read-version	(?i)(?:讀|查看|查).{0,8}版本	READ:version->$version
+ir	read-battery	(?i)(?:電池|電量|battery).{0,8}(?:多少|查看|讀|百分比)	READ:battery->$battery
+ir	read-then-write	(?i)(?:讀|查).{0,12}(?:然後|再).{0,12}(?:填|輸入)	READ:source->$value|WRITE:$value->target
+ir	fill-and-submit	(?i)(?:填寫|填入|輸入).{0,12}(?:並|然後).{0,12}(?:送出|提交|確定)	WRITE:'範例內容'->comment|COMMIT:送出
+ir	version-to-chat	(?i)(?:版本號?).{0,12}(?:貼|回報|告訴我)	READ:version->$version|WRITE:$version->chatInput

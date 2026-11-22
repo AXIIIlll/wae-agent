@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentPlan",
+  "type": "object",
+  "required": [
+    "version",
+    "goalKind",
+    "summary",
+    "steps"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "goalKind": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "do",
+          "verify"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "do": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "verify": {
+            "type": "string"
+          },
+          "ask": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

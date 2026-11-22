@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="dsh-design" content="app">
+  <title>設定 · WAE</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="status-right">
+        <svg><use href="icons.svg#i-signal"/></svg>
+        <svg><use href="icons.svg#i-wifi"/></svg>
+        <svg><use href="icons.svg#i-battery"/></svg>
+      </span>
+    </div>
+
+    <header class="appbar">
+      <a class="icon-btn" href="home.html" aria-label="返回首頁">
+        <svg style="transform: rotate(180deg)"><use href="icons.svg#i-chevron"/></svg>
+      </a>
+      <span class="brand-name">設定</span>
+      <span class="spacer"></span>
+    </header>
+
+    <main class="content">
+      <section aria-label="系統狀態">
+        <div class="section-head"><h2>系統狀態</h2><a href="home.html">完成</a></div>
+        <div class="list-card">
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-shield"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">無障礙服務</span>
+              <span class="row-sub">畫面感知與安全執行</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>已開啟</span>
+          </a>
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-sparkle"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">助理角色</span>
+              <span class="row-sub">長按電源鍵即可叫出</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>已設定</span>
+          </a>
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-mic"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">麥克風</span>
+              <span class="row-sub">語音輸入使用</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>已允許</span>
+          </a>
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-bolt"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">離線語音引擎</span>
+              <span class="row-sub">sherpa · 中文模型已內建</span>
+            </span>
+            <span class="status-pill"><span class="dot"></span>就緒</span>
+          </a>
+        </div>
+      </section>
+
+      <section aria-label="語音">
+        <div class="section-head"><h2>語音</h2></div>
+        <div class="list-card">
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-language"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">語音語言</span>
+              <span class="row-sub">中文（台灣）</span>
+            </span>
+            <svg class="chevron"><use href="icons.svg#i-chevron"/></svg>
+          </a>
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-sparkle"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">喚醒詞「Hey WAE」</span>
+              <span class="row-sub">需常駐通知，較耗電</span>
+            </span>
+            <span class="switch" role="switch" aria-checked="false" aria-label="喚醒詞" tabindex="0"></span>
+          </div>
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-bolt"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">語音回饋</span>
+              <span class="row-sub">開始與完成時說一句</span>
+            </span>
+            <span class="switch" role="switch" aria-checked="true" aria-label="語音回饋" tabindex="0"></span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="進階">
+        <div class="section-head"><h2>進階</h2></div>
+        <div class="list-card">
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-clock"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">Task OS（長任務）</span>
+              <span class="row-sub">A/B 測試中，預設關閉</span>
+            </span>
+            <span class="switch" role="switch" aria-checked="false" aria-label="Task OS" tabindex="0"></span>
+          </div>
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-shield"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">可驗證執行</span>
+              <span class="row-sub">每個動作附策略證明</span>
+            </span>
+            <span class="switch" role="switch" aria-checked="false" aria-label="可驗證執行" tabindex="0"></span>
+          </div>
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-sparkle"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">LLM Agent</span>
+              <span class="row-sub">目標類語句交給模型規劃</span>
+            </span>
+            <span class="switch" role="switch" aria-checked="true" aria-label="LLM Agent" tabindex="0"></span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="其他">
+        <div class="section-head"><h2>其他</h2></div>
+        <div class="list-card">
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-bolt"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">最近指令</span>
+              <span class="row-sub">3 筆 · 可清除</span>
+            </span>
+            <svg class="chevron"><use href="icons.svg#i-chevron"/></svg>
+          </a>
+          <a class="list-row" href="home.html">
+            <span class="row-icon"><svg><use href="icons.svg#i-search"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">匯出診斷包</span>
+              <span class="row-sub">除錯用，不含帳號資料</span>
+            </span>
+            <svg class="chevron"><use href="icons.svg#i-chevron"/></svg>
+          </a>
+          <div class="list-row">
+            <span class="row-icon"><svg><use href="icons.svg#i-sparkle"/></svg></span>
+            <span class="row-text">
+              <span class="row-title">版本</span>
+              <span class="row-sub">2.1.8-wae · 無網路權限</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer-note">所有處理都在本機完成，WAE 沒有 INTERNET 權限。</p>
+    </main>
+
+    <div class="home-indicator"><span></span></div>
+  </div>
+</body>
+</html>

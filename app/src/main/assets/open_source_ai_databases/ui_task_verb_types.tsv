@@ -1,0 +1,24 @@
+# 句首動詞 → 任務型別（資料驅動；程式碼不得內建任何動詞）
+# 用途：句子以這些動詞「開頭」時，直接採用該型別（比模型更確定）
+# 格式: verb \t taskType \t note
+導航到	NAVIGATE	移動
+帶我去	NAVIGATE	移動
+怎麼去	NAVIGATE	移動
+帶我到	NAVIGATE	移動
+搜尋	FIND	查找
+搜索	FIND	查找
+查找	FIND	查找
+查詢	FIND	查找
+找	FIND	查找
+播放	MEDIA	媒體
+暫停	MEDIA	媒體
+下一首	MEDIA	媒體
+上一首	MEDIA	媒體
+提醒	CREATE	建立
+新增	CREATE	建立
+建立	CREATE	建立
+加入	CREATE	建立
+傳給	TRANSFER	轉移
+分享給	TRANSFER	轉移
+發給	TRANSFER	轉移
+寄給	TRANSFER	轉移

@@ -1,0 +1,16 @@
+# ui_grounding_weights.tsv — 由 tools/grounding/train_grounding.py 產生，請勿手改
+# 格式：model<TAB>feature<TAB>weight；meta 列設定 alpha/bias；# 開頭為註解
+# 來源：synthetic(400)
+meta	alpha	1.00
+meta	bias	-3.5936
+grounding	num:textSim	2.6107
+grounding	flag:textExact	2.1724
+grounding	flag:isEditable	1.5450
+grounding	flag:isClickable	1.4874
+grounding	num:centerDist	-1.3871
+grounding	flag:labelOwned	1.3598
+grounding	num:redundancy	-0.9657
+grounding	flag:onScreen	0.9651
+grounding	num:ocrConf	0.8983
+grounding	num:depth	-0.6662
+grounding	num:area	-0.3486

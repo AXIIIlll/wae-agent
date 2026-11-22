@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="dsh-design" content="app 390x844">
+<title>對話展開 · WAE</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; overflow: hidden; }
+  body {
+    width: 390px; height: 844px; position: relative; overflow: hidden;
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font);
+  }
+  /* 隱藏的開關：勾選＝進入對話 */
+  #talk { display: none; }
+
+  /* ── 極簡主畫面 ── */
+  .home {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity .18s ease .10s;
+  }
+  #talk:checked ~ .home { opacity: 0; pointer-events: none; }
+
+  /* 小助手：整段動畫的主角 */
+  .mascot {
+    width: 168px; height: 168px;
+    transform-origin: center center;
+    transition: transform .46s cubic-bezier(.2,.8,.2,1);
+    will-change: transform;
+  }
+  /* 縮小 + 飛到左上角（header 的頭像位置） */
+  #talk:checked ~ .home .mascot {
+    transform: translate(-153px, -334px) scale(.20);
+  }
+
+  .hint {
+    margin-top: 18px; font-size: 13px; color: var(--muted);
+    transition: opacity .15s ease;
+  }
+  #talk:checked ~ .home .hint { opacity: 0; }
+
+  .tap {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 220px; height: 220px; border-radius: 50%;
+  }
+  #talk:checked ~ .home .tap { display: none; }
+
+  /* ── 對話畫面 ── */
+  .chat {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    opacity: 0; transform: translateY(18px) scale(.985);
+    transition: opacity .22s ease .34s, transform .30s cubic-bezier(.2,.8,.2,1) .34s;
+    pointer-events: none;
+  }
+  #talk:checked ~ .chat { opacity: 1; transform: none; pointer-events: auto; }
+
+  .statusbar {
+    height: 44px; flex: 0 0 44px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 22px; font-size: 12px; color: var(--muted);
+  }
+  .chat-head {
+    display: flex; align-items: center; gap: 10px; padding: 4px 18px 12px;
+    border-bottom: 1px solid var(--line); background: rgba(255,255,255,.92);
+  }
+  /* header 的小助手：等飛過來的動畫到位後才出現，看起來是「同一隻」 */
+  .head-mascot {
+    width: 34px; height: 34px; opacity: 0;
+    transition: opacity .14s ease .40s;
+  }
+  #talk:checked ~ .chat .head-mascot { opacity: 1; }
+  .who { flex: 1; }
+  .who .name { font-size: 15px; font-weight: 600; }
+  .who .sub { font-size: 12px; color: var(--muted); }
+  .back {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); font-size: 16px;
+    display: grid; place-items: center; cursor: pointer;
+  }
+
+  main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row.me { justify-content: flex-end; }
+  .row.ai > div { flex: 1; min-width: 0; }
+  .avatar { width: 26px; height: 26px; flex: 0 0 26px; }
+  .bubble { width: fit-content; max-width: 100%; padding: 10px 13px; border-radius: 16px; font-size: 15px; }
+  .me .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
+  .ai .bubble { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+
+  .composer {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px 34px; border-top: 1px solid var(--line); background: rgba(255,255,255,.94);
+  }
+  .field {
+    flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--line);
+    background: var(--surface); display: flex; align-items: center; padding: 0 14px;
+    color: var(--muted); font-size: 14px;
+  }
+  .iconbtn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); display: grid; place-items: center;
+  }
+  .iconbtn.send { background: var(--accent); border-color: var(--accent); }
+  .iconbtn svg { width: 20px; height: 20px; }
+
+  /* 重播 */
+  .replay {
+    position: absolute; left: 16px; bottom: 96px; z-index: 5;
+    font-size: 12px; color: var(--accent); background: var(--accent-soft);
+    border: 1px solid var(--accent-line); border-radius: 999px;
+    padding: 8px 12px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease .5s;
+  }
+  #talk:checked ~ .replay { opacity: 1; pointer-events: auto; }
+  .replay label { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mate" viewBox="0 0 120 120">
+      <path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z"
+            fill="#EFF6FF" stroke="#1D4ED8" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M41,57 a6,10 0 1,0 12,0 a6,10 0 1,0 -12,0 Z" fill="#0F172A"/>
+      <path d="M67,57 a6,10 0 1,0 12,0 a6,10 0 1,0 -12,0 Z" fill="#0F172A"/>
+    </symbol>
+    <symbol id="mic" viewBox="0 0 24 24">
+      <path d="M12 4a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V7a3 3 0 0 1 3-3Z" fill="none" stroke="#1D4ED8" stroke-width="1.8"/>
+      <path d="M6 11a6 6 0 0 0 12 0M12 17v3" fill="none" stroke="#1D4ED8" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="send" viewBox="0 0 24 24">
+      <path d="M5 12h12M13 6l6 6-6 6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<input type="checkbox" id="talk" checked>
+
+<div class="home">
+  <svg class="mascot" aria-hidden="true"><use href="#mate"/></svg>
+  <div class="hint">長按輸入 · 或點一下開始對話</div>
+  <label class="tap" for="talk" aria-label="開始對話"></label>
+</div>
+
+<div class="chat">
+  <div class="statusbar"><span>14:46</span><span>5G · 72%</span></div>
+  <div class="chat-head">
+    <svg class="head-mascot" aria-hidden="true"><use href="#mate"/></svg>
+    <div class="who">
+      <div class="name">WAE</div>
+      <div class="sub">對話 · 有問題可以直接問</div>
+    </div>
+    <label class="back" for="talk" aria-label="回到小助手">–</label>
+  </div>
+
+  <main>
+    <div class="row me"><div class="bubble">我想找餐廳</div></div>
+    <div class="row ai">
+      <svg class="avatar" aria-hidden="true"><use href="#mate"/></svg>
+      <div class="bubble">在地圖幫你搜尋「餐廳」了。</div>
+    </div>
+    <div class="row me"><div class="bubble">hello</div></div>
+    <div class="row ai">
+      <svg class="avatar" aria-hidden="true"><use href="#mate"/></svg>
+      <div class="bubble">嗨，要做什麼？</div>
+    </div>
+  </main>
+
+  <div class="composer">
+    <div class="field">說點什麼，或長按麥克風…</div>
+    <div class="iconbtn" role="button" aria-label="語音"><svg><use href="#mic"/></svg></div>
+    <div class="iconbtn send" role="button" aria-label="送出"><svg><use href="#send"/></svg></div>
+  </div>
+</div>
+
+<div class="replay"><label for="talk">↺ 重播轉場</label></div>
+
+</body>
+</html>

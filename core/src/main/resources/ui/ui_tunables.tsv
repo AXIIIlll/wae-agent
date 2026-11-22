@@ -1,0 +1,29 @@
+# Gen-5 可調參數（key<TAB>value<TAB>說明）
+# 規則：程式碼裡不准出現這些數字的字面量（I7）；改這裡不用重編。
+step.max_attempts	2	單步最多嘗試次數
+step.timeout_ms	12000	單步逾時（毫秒）
+plan.max_replans	2	同一任務最多重規劃次數
+perception.ocr_a11y_threshold	6	無障礙元素少於此值才補 OCR
+refutation.ban_threshold	2	同一反例累積幾次升為 BAN
+refutation.ttl_ms	2592000000	反例有效期（30 天，毫秒）
+exec.idempotency_window_ms	2500	冪等視窗（同一意圖不重送）
+abstain.min_confidence	0.35	低於此信心直接棄權
+safety.confirm_high_risk	true	高風險操作一律要人工確認
+gesture.scroll_delta_px	1200	捲動距離（像素）
+agent.gen5.enabled	true	Gen-5 管線開關（執行按鈕優先用新管線；完全沒動作才退回舊路徑）
+means.cost.system_api	1	手段成本：系統 API（最省）
+means.cost.intent	2	手段成本：Intent／深鏈
+means.cost.a11y	3	手段成本：無障礙動作
+means.cost.input	4	手段成本：輸入文字
+means.cost.gesture	5	手段成本：座標手勢
+means.cost.teach	9	手段成本：教學（最後手段）
+seek.max_scrolls	5	找不到目標時最多捲動幾次
+recover.max_backs	2	走錯畫面時最多退回幾層
+route.prior_success	1.0	效果路由：沒有資料時的保守先驗（1.0＝沒資料 p=0.5）
+route.lower_penalty	0.6	被反例降權的路線分數乘數（<1）
+route.fallback_steps	8	沒有步數資料時的估計步數（寧可估高）
+perception.settle_timeout_ms	1500	動作後等畫面變化的上限（毫秒）
+perception.settle_interval_ms	100	等畫面變化的輪詢間隔（毫秒）
+budget.max_steps	20	單一任務最多步數
+budget.max_wallclock_ms	120000	單一任務最長時間（毫秒）
+budget.max_high_risk	1	單一任務最多高風險操作次數

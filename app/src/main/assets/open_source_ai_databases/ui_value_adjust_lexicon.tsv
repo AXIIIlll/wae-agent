@@ -1,0 +1,148 @@
+# 數值調整語彙庫 (Value Adjust Lexicon) — 跨 App 通用語言層資料，程式碼不得內建詞表
+# 用途: 「調高/降低/最大/一半/一點/很多」等詞的方向與幅度，全部由資料決定，方便後期擴充管理
+# 格式: term \t role \t magnitude \t note
+# role: MAX(絕對最大) MIN(絕對最小) MID(絕對中間) UP(調高) DOWN(調低)
+#       DELTA_SMALL(小幅度) DELTA_LARGE(大幅度) FILLER(目標名詞前的填充詞，會被剝除)
+# magnitude: 僅 DELTA_* 使用（0~1，佔量程比例）
+最大	MAX		絕對最大
+最高	MAX		絕對最大
+最強	MAX		絕對最大
+最亮	MAX		絕對最大
+最大聲	MAX		絕對最大
+全滿	MAX		絕對最大
+滿格	MAX		絕對最大
+全開	MAX		絕對最大
+開到最大	MAX		絕對最大
+調到最大	MAX		絕對最大
+maximize	MAX		絕對最大
+maximum	MAX		絕對最大
+full	MAX		絕對最大
+loudest	MAX		絕對最大
+brightest	MAX		絕對最大
+最小	MIN		絕對最小
+最低	MIN		絕對最小
+最弱	MIN		絕對最小
+最暗	MIN		絕對最小
+最小聲	MIN		絕對最小
+關到最小	MIN		絕對最小
+minimum	MIN		絕對最小
+quietest	MIN		絕對最小
+dimmest	MIN		絕對最小
+一半	MID		絕對中間
+中間	MID		絕對中間
+中等	MID		絕對中間
+適中	MID		絕對中間
+half	MID		絕對中間
+middle	MID		絕對中間
+medium	MID		絕對中間
+調高	UP		往上調
+調大	UP		往上調
+加大	UP		往上調
+增大	UP		往上調
+加高	UP		往上調
+提高	UP		往上調
+上升	UP		往上調
+上調	UP		往上調
+增加	UP		往上調
+變大	UP		往上調
+轉大	UP		往上調
+亮一點	UP		往上調
+亮一些	UP		往上調
+大聲	UP		往上調
+快一點	UP		往上調
+加快	UP		往上調
+調亮	UP		往上調
+turn up	UP		往上調
+increase	UP		往上調
+raise	UP		往上調
+louder	UP		往上調
+brighter	UP		往上調
+faster	UP		往上調
+調低	DOWN		往下調
+調小	DOWN		往下調
+減小	DOWN		往下調
+減低	DOWN		往下調
+降低	DOWN		往下調
+下降	DOWN		往下調
+下調	DOWN		往下調
+減少	DOWN		往下調
+變小	DOWN		往下調
+轉小	DOWN		往下調
+暗一點	DOWN		往下調
+暗一些	DOWN		往下調
+小聲	DOWN		往下調
+慢一點	DOWN		往下調
+減慢	DOWN		往下調
+調暗	DOWN		往下調
+turn down	DOWN		往下調
+decrease	DOWN		往下調
+lower	DOWN		往下調
+quieter	DOWN		往下調
+dimmer	DOWN		往下調
+slower	DOWN		往下調
+一點	DELTA_SMALL	0.10	小幅度
+一些	DELTA_SMALL	0.10	小幅度
+稍微	DELTA_SMALL	0.10	小幅度
+小幅	DELTA_SMALL	0.10	小幅度
+少許	DELTA_SMALL	0.10	小幅度
+微微	DELTA_SMALL	0.10	小幅度
+一點點	DELTA_SMALL	0.10	小幅度
+a bit	DELTA_SMALL	0.10	小幅度
+slightly	DELTA_SMALL	0.10	小幅度
+a little	DELTA_SMALL	0.10	小幅度
+很多	DELTA_LARGE	0.30	大幅度
+大幅	DELTA_LARGE	0.30	大幅度
+明顯	DELTA_LARGE	0.30	大幅度
+顯著	DELTA_LARGE	0.30	大幅度
+大量	DELTA_LARGE	0.30	大幅度
+一堆	DELTA_LARGE	0.30	大幅度
+a lot	DELTA_LARGE	0.30	大幅度
+much	DELTA_LARGE	0.30	大幅度
+significantly	DELTA_LARGE	0.30	大幅度
+幫我	FILLER		目標名詞前的填充詞
+請	FILLER		目標名詞前的填充詞
+把	FILLER		目標名詞前的填充詞
+將	FILLER		目標名詞前的填充詞
+我要	FILLER		目標名詞前的填充詞
+我想	FILLER		目標名詞前的填充詞
+現在	FILLER		目標名詞前的填充詞
+然後	FILLER		目標名詞前的填充詞
+稍微	FILLER		目標名詞前的填充詞
+一點點	FILLER		目標名詞前的填充詞
+一點	FILLER		目標名詞前的填充詞
+一些	FILLER		目標名詞前的填充詞
+少許	FILLER		目標名詞前的填充詞
+調高	FILLER		目標名詞前的填充詞
+調低	FILLER		目標名詞前的填充詞
+調大	FILLER		目標名詞前的填充詞
+調小	FILLER		目標名詞前的填充詞
+調整	FILLER		目標名詞前的填充詞
+設定	FILLER		目標名詞前的填充詞
+設為	FILLER		目標名詞前的填充詞
+設成	FILLER		目標名詞前的填充詞
+調到	FILLER		目標名詞前的填充詞
+調成	FILLER		目標名詞前的填充詞
+增加到	FILLER		目標名詞前的填充詞
+減少到	FILLER		目標名詞前的填充詞
+加大	FILLER		目標名詞前的填充詞
+減小	FILLER		目標名詞前的填充詞
+提高	FILLER		目標名詞前的填充詞
+降低	FILLER		目標名詞前的填充詞
+增加	FILLER		目標名詞前的填充詞
+減少	FILLER		目標名詞前的填充詞
+上升	FILLER		目標名詞前的填充詞
+下降	FILLER		目標名詞前的填充詞
+上調	FILLER		目標名詞前的填充詞
+下調	FILLER		目標名詞前的填充詞
+變大	FILLER		目標名詞前的填充詞
+變小	FILLER		目標名詞前的填充詞
+最大	FILLER		目標名詞前的填充詞
+最小	FILLER		目標名詞前的填充詞
+最高	FILLER		目標名詞前的填充詞
+最低	FILLER		目標名詞前的填充詞
+一半	FILLER		目標名詞前的填充詞
+中間	FILLER		目標名詞前的填充詞
+中等	FILLER		目標名詞前的填充詞
+適中	FILLER		目標名詞前的填充詞
+更多	FILLER		目標名詞前的填充詞
+更少	FILLER		目標名詞前的填充詞

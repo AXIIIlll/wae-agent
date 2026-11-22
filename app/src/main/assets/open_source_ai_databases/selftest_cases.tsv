@@ -1,0 +1,12 @@
+# App 內自我測試（command<TAB>expect）
+# 這一組刻意「狀態無關」：任何畫面都能做，而且不依賴上一個案例。
+# 注意：會開 App、改音量、改亮度，請由使用者主動執行。
+打開設定	SUCCESS
+打開相機	SUCCESS
+回到主頁	SUCCESS
+調高音量	SUCCESS
+調低音量	SUCCESS
+調亮	SUCCESS
+打開Wi-Fi	ABSTAIN
+傳訊息給媽媽	ABSTAIN
+今天天氣如何	ABSTAIN

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- WAE 小助手：單色（實心，透明底）。小尺寸與通知列用。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <path d="M60 18C37 18 20 33 20 54V80C20 88 25 94 32 94C38 94 40 88 46 88C51 88 53 94 59 94C65 94 67 88 72 88C78 88 80 94 86 94C93 94 98 88 98 80V54C98 33 83 18 60 18Z"
+        fill="#0f172a"/>
+  <ellipse cx="47" cy="57" rx="6" ry="10" fill="#ffffff"/>
+  <ellipse cx="73" cy="57" rx="6" ry="10" fill="#ffffff"/>
+</svg>

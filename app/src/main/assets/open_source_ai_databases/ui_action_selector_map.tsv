@@ -1,0 +1,12 @@
+# 動作類別 × 受詞型別 → 動作種類（資料驅動；取代程式裡的 primaryActionCode 硬對應）
+# 用途: 修正「把深色模式打開」被誤判為啟動 App 的根因
+# 格式: verb_class \t object_type \t action_kind \t note
+LAUNCH	APP	LAUNCH_APP	對象是 App → 啟動
+LAUNCH	EMPTY	LAUNCH_APP	沒有受詞（打開設定）→ 啟動
+LAUNCH	NON_APP	TAP	受詞是功能/設定項（把X打開）→ 點擊；能力層可升級為切換
+LAUNCH	UNKNOWN	TAP	受詞不明 → 保守點擊
+TAP	ANY	TAP	
+TYPE	ANY	TYPE	
+BACK	ANY	BACK	
+SCROLL	ANY	SCROLL_DOWN	
+WAIT	ANY	WAIT	

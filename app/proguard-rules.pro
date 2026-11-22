@@ -1,1 +1,2 @@
-# Add project specific ProGuard rules here.
+# WAE ProGuard Rules
+-keep class com.wae.agent.** { *; }

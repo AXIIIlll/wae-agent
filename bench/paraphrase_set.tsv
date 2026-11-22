@@ -1,0 +1,38 @@
+# 改寫集 v1：每個意圖 3 句（2 句看過、1 句留出）
+# 欄位：id<TAB>意圖<TAB>句子<TAB>split(seen|heldout)<TAB>期望(judge 命中的目的或 route/noun 型別)
+I01	開設定	打開設定	seen	A1.1
+I01	開設定	幫我開一下設定	seen	A1.1
+I01	開設定	設定開起來	heldout	A1.1
+I02	開相機	打開相機	seen	A1.1
+I02	開相機	幫我開相機	seen	A1.1
+I02	開相機	相機開一下	heldout	A1.1
+I03	開地圖	打開地圖	seen	A1.1
+I03	開地圖	地圖幫我打開	seen	A1.1
+I03	開地圖	我要看地圖	heldout	A1.1
+I04	找餐廳	找餐廳	seen	G2.2
+I04	找餐廳	幫我找餐廳	seen	G2.2
+I04	找餐廳	我想找個吃飯的地方	heldout	G2.2
+I05	找醫院	找醫院	seen	G2.2
+I05	找醫院	幫我找醫院	seen	G2.2
+I05	找醫院	附近哪裡有醫院	heldout	G2.2
+I06	找資料	我想找AI資料	seen	G2.2
+I06	找資料	幫我查AI資料	seen	G2.2
+I06	找資料	AI 資料查一下	heldout	G2.2
+I07	看影片	我想看影片	seen	D1.1
+I07	看影片	幫我開影片	seen	D1.1
+I07	看影片	想看一下影片	heldout	D1.1
+I08	聽音樂	我想聽音樂	seen	D2.1
+I08	聽音樂	放音樂	seen	D2.1
+I08	聽音樂	想聽點音樂	heldout	D2.1
+I09	調亮	調亮一點	seen	E2.1
+I09	調亮	螢幕變亮	seen	E2.1
+I09	調亮	太暗了，亮一點	heldout	E2.1
+I10	導航	導航到台北車站	seen	G2.1
+I10	導航	帶我去台北車站	seen	G2.1
+I10	導航	怎麼去台北車站	heldout	G2.1
+I11	傳訊息	傳訊息給媽媽	seen	C1.1
+I11	傳訊息	跟媽媽說一聲	seen	C1.1
+I11	傳訊息	幫我密媽媽	heldout	C1.1
+I12	開Chrome	打開Chrome	seen	A1.1
+I12	開Chrome	開一下Chrome	seen	A1.1
+I12	開Chrome	Chrome 開起來	heldout	A1.1

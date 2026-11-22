@@ -1,0 +1,16 @@
+﻿# 目標連接詞語意（資料驅動）：決定「後一步是否依賴前一步」
+# 用途: 「關閉飛航模式再開啟藍牙」→ 後者依賴前者；前一步失敗就不該繼續
+# 格式: connector \t kind \t note
+再	SEQUENTIAL	序列：先A再B
+然後	SEQUENTIAL	
+之後	SEQUENTIAL	
+接著	SEQUENTIAL	
+再來	SEQUENTIAL	
+隨後	SEQUENTIAL	
+然後再	SEQUENTIAL	
+並且	INDEPENDENT	並行/獨立
+並	INDEPENDENT	
+同時	INDEPENDENT	
+也	INDEPENDENT	
+and then	SEQUENTIAL	
+then	SEQUENTIAL	

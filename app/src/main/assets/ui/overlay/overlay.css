@@ -1,0 +1,190 @@
+/* ============================================================
+   WAE 懸浮窗 · 極簡白底
+   只用：白底、黑字、灰線、一個藍色進度、一個紅色停止。
+   ============================================================ */
+
+:root {
+  --ink: #111111;
+  --ink-2: #6b7280;
+  --ink-3: #9ca3af;
+  --line: #ececec;
+  --bg: #ffffff;
+  --accent: #2563eb;
+  --ok: #16a34a;
+  --bad: #dc2626;
+}
+
+html, body { background: transparent !important; margin: 0; padding: 0; height: auto !important; }
+.wae-body {
+  background: transparent !important;
+  color: var(--ink);
+  font-family: -apple-system, "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.wae-body ::-webkit-scrollbar { width: 0; }
+
+/* 面板 */
+.wae-panel {
+  width: min(346px, 100vw);
+  box-sizing: border-box;
+  padding: 12px 14px 10px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid rgba(17, 17, 17, .08);
+  box-shadow: 0 14px 34px rgba(17, 17, 17, .14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: wae-in .16s ease-out;
+}
+@keyframes wae-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* 標題 */
+.wae-head { display: flex; align-items: center; gap: 7px; cursor: grab; touch-action: none; }
+.wae-mark { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.wae-name { font-size: 13px; font-weight: 600; letter-spacing: .03em; }
+.wae-status { font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.wae-dot { width: 5px; height: 5px; border-radius: 50%; background: #d1d5db; flex: none; }
+.wae-dot.on { background: var(--ok); }
+.wae-dot.err { background: var(--bad); }
+.wae-spacer { flex: 1; }
+.wae-icon-btn {
+  width: 24px; height: 24px; border: 0; background: transparent; color: var(--ink-3);
+  font-size: 15px; line-height: 1; cursor: pointer; border-radius: 6px;
+}
+.wae-icon-btn:active { background: #f3f4f6; color: var(--ink); }
+
+/* 進度 */
+.wae-progress { height: 1.5px; background: #f1f1f1; border-radius: 2px; overflow: hidden; }
+.wae-progress-bar { height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+
+/* 狀態行 */
+.wae-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: var(--ink-3); min-height: 12px; }
+.wae-meta span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 步驟 */
+.wae-steps { display: flex; flex-direction: column; max-height: 218px; overflow-y: auto; }
+.wae-empty { padding: 26px 4px; text-align: center; color: var(--ink-3); font-size: 12px; }
+.wae-step { display: flex; gap: 7px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.wae-step:last-child { border-bottom: 0; }
+.wae-step-dot { flex: none; width: 12px; text-align: center; font-size: 10px; color: var(--ink-3); }
+.wae-step.ok .wae-step-dot { color: var(--ok); }
+.wae-step.fail .wae-step-dot { color: var(--bad); }
+.wae-step.run .wae-step-dot { color: var(--accent); }
+.wae-step-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wae-step-time { font-size: 10px; color: var(--ink-3); flex: none; }
+
+/* 輸入 */
+.wae-composer { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 9px; }
+.wae-input {
+  flex: 1; border: 0; outline: 0; background: transparent; padding: 2px 0;
+  font-size: 13px; color: var(--ink); font-family: inherit;
+}
+.wae-input::placeholder { color: var(--ink-3); }
+.wae-send {
+  flex: none; width: 28px; height: 28px; border-radius: 50%; border: 0;
+  background: var(--ink); color: #fff; font-size: 14px; line-height: 1; cursor: pointer;
+}
+.wae-send:disabled { background: #e5e7eb; color: var(--ink-3); }
+.wae-send-stop { background: var(--bad); font-size: 10px; }
+
+/* 浮球 */
+.wae-mascot { width: 100%; height: 100%; display: block; }
+.wae-mark { width: 20px; height: 20px; display: inline-block; }
+.wae-mark .wae-mascot { width: 20px; height: 20px; }
+
+.wae-bubble {
+  position: relative; width: 62px; height: 62px; border-radius: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; border: none; box-shadow: none;
+  filter: drop-shadow(0 8px 16px rgba(15,23,42,.28));
+}
+.wae-bubble .wae-mascot { width: 58px; height: 58px; }
+.wae-bubble-dot { position: absolute; right: 6px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; border: 2px solid #fff; }
+.wae-bubble-dot.on { background: var(--ok); }
+.wae-bubble-dot.err { background: var(--bad); }
+
+[hidden] { display: none !important; }
+
+/* ============================================================
+   玻璃深色主題（2026-11-20）
+   ============================================================ */
+:root {
+  --ink: #F2F4FF;
+  --ink-2: #A9B4D0;
+  --ink-3: #7C87A6;
+  --line: rgba(255, 255, 255, .10);
+  --bg: #0B0A14;
+  --accent: #8B5CF6;
+  --ok: #4ADE80;
+  --bad: #F87171;
+}
+
+html, body { background: rgba(0, 0, 0, 0) !important; }
+
+.wae-panel {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)) !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
+  border-bottom-color: rgba(255, 255, 255, .06) !important;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(120%) !important;
+  backdrop-filter: blur(30px) saturate(120%) !important;
+}
+
+.wae-progress { background: rgba(255, 255, 255, .10) !important; }
+.wae-progress-bar { background: linear-gradient(90deg, #8B5CF6, #EC4899) !important; }
+.wae-icon-btn { color: rgba(242, 244, 255, .55) !important; }
+.wae-icon-btn:active { background: rgba(255, 255, 255, .10) !important; color: #fff !important; }
+
+.wae-send {
+  background: linear-gradient(150deg, #8B5CF6, #4F46E5) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.wae-send:disabled { background: rgba(255, 255, 255, .10) !important; color: rgba(242, 244, 255, .35) !important; }
+.wae-send-stop { background: linear-gradient(150deg, #F87171, #DC2626) !important; }
+
+.wae-step { border-bottom: 1px solid rgba(255, 255, 255, .07) !important; }
+.wae-input { color: var(--ink) !important; }
+.wae-input::placeholder { color: var(--ink-3) !important; }
+.wae-composer { border-top: 1px solid rgba(255, 255, 255, .10) !important; }
+.wae-empty { color: var(--ink-3) !important; }
+
+/* ── 懸浮小幽靈：沒有圓框、沒有底色，就是一隻會飄的幽靈 ── */
+.wae-bubble {
+  display: block !important;
+  width: 84px !important;
+  height: 84px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  touch-action: none;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .45)) drop-shadow(0 0 22px rgba(147, 197, 253, .45)) !important;
+  transition: transform .18s cubic-bezier(.2, 0, 0, 1);
+}
+.wae-bubble:active { transform: scale(.94); }
+.wae-bubble .wae-mascot { width: 84px !important; height: 84px !important; display: block; }
+
+.wae-bubble-dot {
+  position: absolute !important;
+  right: 8px !important;
+  top: 16px !important;
+  width: 7px !important;
+  height: 7px !important;
+  border: 0 !important;
+  background: var(--ok);
+  box-shadow: 0 0 10px rgba(74, 222, 128, .85);
+}

@@ -1,0 +1,36 @@
+# 語法助詞／介詞（供指令拆解使用；純語言層，跨 App 通用，不含任何 App 資料）
+# 用途: 讓「在設定中搜尋藍牙」能整段吃掉「在設定中」這個 App 片語，而不是只切掉別名
+# 來源: 通用中文語法（介詞 + 方位助詞），與 stopwords 詞庫互補
+# 格式: term \t role \t note
+在	PREFIX	介詞：在X中
+到	PREFIX	介詞：到X
+進	PREFIX	進入X
+進入	PREFIX	
+前往	PREFIX	
+去	PREFIX	
+從	PREFIX	從X內
+於	PREFIX	
+打開	PREFIX	打開X
+開啟	PREFIX	開啟X
+启动	PREFIX	
+啟動	PREFIX	
+中	SUFFIX	方位助詞：X中
+裡	SUFFIX	
+裏	SUFFIX	
+内	SUFFIX	
+內	SUFFIX	
+上	SUFFIX	
+下	SUFFIX	
+的	SUFFIX	
+之後	SUFFIX	
+之后	SUFFIX	
+以後	SUFFIX	
+以后	SUFFIX	
+裡面	SUFFIX	
+裏面	SUFFIX	
+里边	SUFFIX	
+裏邊	SUFFIX	
+内面	SUFFIX	
+界面里	SUFFIX	
+頁面中	SUFFIX	
+页面中	SUFFIX	

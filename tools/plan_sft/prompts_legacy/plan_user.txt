@@ -1,0 +1,6 @@
+使用者目標：{goal}
+已選 App：{selectedApp}
+已安裝 App（僅供理解環境，不得輸出 App 名稱）：{installedApps}
+
+直接輸出 JSON（不要 <think>、不要 markdown、不要任何其他文字）（key 必須是 "steps"），第一個字元是 {，最後一個字元是 }。
+/no_think

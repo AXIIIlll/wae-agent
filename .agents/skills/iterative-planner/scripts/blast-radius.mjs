@@ -1,0 +1,463 @@
+#!/usr/bin/env node
+// Blast-radius scorer for the iterative-planner skill.
+//
+// Computes a coarse, deterministic radius signal for a single file edit.
+// Output is meant for the per-edit `changelog.md` ledger — informative,
+// never gating.
+//
+// Usage:
+//   node blast-radius.mjs <file>              Score a file (default: current iteration HEAD)
+//   node blast-radius.mjs <file> --verbose    Include per-signal breakdown
+//   node blast-radius.mjs <file> --json       Emit JSON instead of single line
+//
+// Exit code: 0 always (informational tool — never block executor).
+// Output line 1 (always): radius:TIER(score) or radius:UNKNOWN(reason)
+//
+// Requires Node.js 18+. No external dependencies.
+
+import { existsSync, readFileSync, statSync, readdirSync } from "fs";
+import { spawnSync } from "child_process";
+import { join, extname, basename, relative, resolve } from "path";
+
+const args = process.argv.slice(2);
+const verbose = args.includes("--verbose");
+const json = args.includes("--json");
+const fileArg = args.find((a) => !a.startsWith("--"));
+
+if (!fileArg) {
+  process.stdout.write("radius:UNKNOWN(no-file-arg)\n");
+  process.exit(0);
+}
+
+const cwd = process.cwd();
+const filePath = resolve(cwd, fileArg);
+const repoRel = relative(cwd, filePath);
+
+// -----------------------------------------------------------------------------
+// Helpers
+// -----------------------------------------------------------------------------
+
+// NOTE: spawnSync(cmd, args[], …) instead of
+// execSync(cmd-string). Pre-fix: every callsite interpolated `repoRel` (and
+// `pat`) into a double-quoted shell command string, allowing `$()` / backtick
+// expansion when the filename contained those. Live probe (FN-004) created
+// /tmp/FN_PWNED from a filename `bad$(touch /tmp/FN_PWNED).js`. Post-fix:
+// argv elements never touch the shell. shell:false is the spawnSync default.
+//
+// NOTE: execArgs returns a three-way verdict because the grep family overloads
+// its exit status: `git grep -l` (and plain `grep`) exit **1 on zero matches**,
+// which is a perfectly normal result, not a failure. Verified live: no match →
+// status 1 + empty stdout; not a git repo → 128; bad regex → 128; unknown flag →
+// 129. So real errors are always >= 2 (or a spawn error), and the no-match verdict
+// keys on (status === 1 AND empty stdout) — never on the bare number 1, which a
+// future git error could also use.
+//
+// Pre-fix, `tryExecArgs` folded no-match into "failed", so reverseDeps()'s `??`
+// chain fell through to the unscoped `grep -r .` fallback on the COMMON case (a
+// file with zero reverse-dependents), paying a second subprocess and an unfiltered
+// whole-tree scan on nearly every invocation. See reverseDeps() below.
+//
+// Verdict shape: { ok, noMatch, stdout }
+//   ok:true                  → command succeeded; stdout is the trimmed output
+//   ok:false, noMatch:true   → command ran fine and found nothing
+//   ok:false, noMatch:false  → real failure (spawn error, timeout, status >= 2)
+// DECISION plan-2026-11-08T075330-b464ad63/D-009 — a subprocess that TIMED OUT is recorded in `timedOut`: its signal then silently reads as 0
+// (no deps, no churn, no tests) and the tier would understate the radius on exactly the large
+// repos where it matters. The compose step turns it into radius:UNKNOWN(timeout) instead.
+// Do NOT widen this to every non-zero exit: `git diff HEAD` legitimately fails in a repo with no
+// HEAD and falls back; only a timeout (and both grep searches failing) means "no data".
+let timedOut = false;
+function execArgs(cmd, args, opts = {}) {
+  const fail = { ok: false, noMatch: false, stdout: "" };
+  try {
+    const r = spawnSync(cmd, args, {
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 1500,
+      ...opts,
+    });
+    if (r.error) {
+      if (r.error.code === "ETIMEDOUT") timedOut = true;
+      return fail;
+    }
+    const stdout = (r.stdout ?? "").trim();
+    if (r.status === 0) return { ok: true, noMatch: false, stdout };
+    if (r.status === 1 && stdout === "") return { ok: false, noMatch: true, stdout: "" };
+    return fail;
+  } catch {
+    return fail;
+  }
+}
+
+// Back-compat wrapper: every non-grep caller only cares about "usable stdout or
+// nothing", and for them a status-1 exit is still nothing. Semantics unchanged.
+function tryExecArgs(cmd, args, opts = {}) {
+  const r = execArgs(cmd, args, opts);
+  return r.ok ? r.stdout : null;
+}
+
+function isGitRepo() {
+  return tryExecArgs("git", ["rev-parse", "--is-inside-work-tree"]) === "true";
+}
+
+// NOTE: every diff-reading signal below used to call `git diff HEAD`, which by
+// design excludes untracked files. A brand-new file therefore scored 0 on LOC
+// churn, public-API touch and test delta — i.e. the CREATE case (the very case
+// the changelog `OP=CREATE(+N)` field exists for, and the riskiest kind of edit)
+// got the LOWEST possible radius. Reproduced pre-fix: a 500-line unstaged new
+// file scored `radius:LOW(0)`; `git add` alone — zero content change — scored
+// `radius:MED(3)`. Executors score a file right after writing it, before staging,
+// so this was the common path, not an edge case.
+//
+// Fix: probe tracked-ness explicitly and, for an untracked-but-existing file,
+// synthesize the CREATE diff from the file BODY (added = line count, removed = 0;
+// the public-API scan runs over the body instead of over diff `+` lines; testDelta
+// unions the untracked entries from `git status --porcelain`).
+//
+// Do NOT "fix" this by teaching the signals to `git add` the file — the scorer is
+// advisory and must never mutate the index. Tracked files keep the exact
+// diff-driven path they had before: their scores must not move.
+function isTracked(p) {
+  return tryExecArgs("git", ["ls-files", "--error-unmatch", "--", p]) !== null;
+}
+
+// Lines of the target file when it is an untracked-but-existing regular file,
+// else null (tracked, deleted, or unreadable → callers use the real diff).
+// Memoized: up to three signals ask for it, and each ask is a git subprocess.
+let untrackedLinesCache; // undefined = not yet computed
+function untrackedLines() {
+  if (untrackedLinesCache !== undefined) return untrackedLinesCache;
+  untrackedLinesCache = null;
+  try {
+    if (existsSync(filePath) && statSync(filePath).isFile() && !isTracked(repoRel)) {
+      const content = readFileSync(filePath, "utf-8");
+      // Trailing newline is a terminator, not a line: `seq 500 > f` is 500 lines,
+      // which is exactly what `git diff --numstat` reports once the file is added.
+      untrackedLinesCache = content === "" ? [] : content.replace(/\r?\n$/, "").split("\n");
+    }
+  } catch {
+    untrackedLinesCache = null;
+  }
+  return untrackedLinesCache;
+}
+
+// Untracked paths per `git status --porcelain` (`?? path`), repo-root-relative —
+// the same frame `git diff --name-only` reports in.
+function untrackedPaths() {
+  const out = tryExecArgs("git", ["status", "--porcelain", "--untracked-files=all"]);
+  if (out == null) return [];
+  return out
+    .split("\n")
+    .filter((l) => l.startsWith("?? "))
+    .map((l) => l.slice(3).trim())
+    // git quotes paths containing special characters (core.quotePath).
+    .map((p) => (p.startsWith('"') && p.endsWith('"') ? p.slice(1, -1) : p))
+    .filter((p) => p.length > 0);
+}
+
+function isBinary(p) {
+  try {
+    const buf = readFileSync(p, { encoding: null });
+    const sample = buf.slice(0, 8000);
+    for (const b of sample) if (b === 0) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Signal 1 — LOC churn (added + removed) from git diff --numstat
+// Range 0..3, threshold per references/blast-radius.md.
+// -----------------------------------------------------------------------------
+
+function locScore(total) {
+  if (total <= 20) return 0;
+  if (total <= 80) return 1;
+  if (total <= 200) return 2;
+  return 3;
+}
+
+function locChurn() {
+  // Untracked file → synthesize the CREATE diff from content (see NOTE above).
+  const created = untrackedLines();
+  if (created !== null) {
+    const added = created.length;
+    return { score: locScore(added), added, removed: 0 };
+  }
+  // Try staged + unstaged together against HEAD; fall back to working-tree only.
+  const numstat =
+    tryExecArgs("git", ["diff", "HEAD", "--numstat", "--", repoRel]) ??
+    tryExecArgs("git", ["diff", "--numstat", "--", repoRel]);
+  if (numstat == null) return { score: 0, added: 0, removed: 0 };
+  const line = numstat.split("\n").find((l) => l.trim().length > 0);
+  if (!line) return { score: 0, added: 0, removed: 0 };
+  const [a, r] = line.split(/\s+/);
+  const added = a === "-" ? 0 : parseInt(a, 10) || 0;
+  const removed = r === "-" ? 0 : parseInt(r, 10) || 0;
+  return { score: locScore(added + removed), added, removed };
+}
+
+// -----------------------------------------------------------------------------
+// Signal 2 — Reverse-dep count
+// grep across repo for imports/requires referencing this file's basename.
+// Range 0..3 by tier. Pattern is heuristic and language-agnostic.
+// -----------------------------------------------------------------------------
+
+let depsUnavailable = false;
+function reverseDeps() {
+  const ext = extname(repoRel);
+  const base = basename(repoRel, ext);
+  if (!base) return { score: 0, count: 0 };
+  // Build a heuristic pattern matching common import idioms.
+  // Pattern goes into git grep / grep as an argv element — never shell-interpreted.
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pat = `(from ['\"][^'\"]*${escaped}['\"]|require\\(['\"][^'\"]*${escaped}['\"]\\)|import [^;]*${escaped}|use [a-zA-Z0-9_:]*${escaped}|include [\"<][^\">]*${escaped})`;
+  // Use git grep when in repo (faster, respects .gitignore); fall back to grep -r
+  // ONLY on a real git failure.
+  //
+  // NOTE: zero reverse-dependents is a RESULT, not an error — `git grep` reports it
+  // as exit 1 with empty stdout (see execArgs above). Returning count 0 here is what
+  // keeps the fallback off the common path; pre-fix it fired on nearly every call.
+  // The fallback carries the same exclusions as the git-grep pathspec (`plans/`)
+  // plus the dirs git-grep gets for free by respecting .gitignore / not indexing
+  // .git — without them, a basename mentioned in prose inside plans/*/changelog.md
+  // (or a vendored copy under node_modules/) inflates the deps count for the
+  // fallback path only, making the two paths disagree on the same file.
+  // Pathspecs are root-framed (rootRel,
+  // not repoRel) and `:(top)` is REQUIRED: without it a subdir invocation misses importers
+  // outside its own subtree. Do not drop `:(top)` or swap diff pathspecs elsewhere to rootRel.
+  const gitGrep = execArgs("git", ["grep", "-E", "-l", "--untracked", "--no-color", pat,
+                                   "--", ":(top)", `:(top,exclude)${rootRel}`, ":(top,exclude)plans/"]);
+  if (gitGrep.noMatch) return { score: 0, count: 0 };
+  let out;
+  let fromFallback = false;
+  if (gitGrep.ok) {
+    out = gitGrep.stdout;
+  } else {
+    fromFallback = true;
+    const fb = execArgs("grep", ["-E", "-r", "-l",
+                                 "--exclude-dir=.git", "--exclude-dir=node_modules",
+                                 "--exclude-dir=dist", "--exclude-dir=plans",
+                                 `--include=*.${ext.slice(1) || "*"}`, pat, "."]);
+    if (fb.noMatch) return { score: 0, count: 0 };
+    // Both searches failed outright (not "no match"): the dependent count is unknown, not zero.
+    if (!fb.ok) { depsUnavailable = true; return { score: 0, count: 0 }; }
+    out = fb.stdout;
+  }
+  // Self-exclusion in the frame each path family prints: git grep (with :(top)) prints
+  // ROOT-relative paths; the grep fallback prints cwd-relative paths with a `./` prefix.
+  const selfPath = fromFallback ? repoRel.replace(/\\/g, "/") : rootRel;
+  const lines = out.split("\n")
+    .map((l) => l.trim().replace(/\\/g, "/").replace(/^\.\//, ""))
+    .filter((l) => l.length > 0 && l !== selfPath);
+  const count = lines.length;
+  let score = 0;
+  if (count === 0) score = 0;
+  else if (count <= 5) score = 1;
+  else if (count <= 20) score = 2;
+  else score = 3;
+  return { score, count };
+}
+
+// -----------------------------------------------------------------------------
+// Signal 3 — Shared-path flag
+// Path matches (^|/)(lib|core|shared|common|utils|types)/ — case-insensitive.
+// Score: 0 or 2.
+// -----------------------------------------------------------------------------
+
+function sharedPath() {
+  // Root-relative frame: `lib/x.js` scored from inside lib/ (repoRel "x.js")
+  // must still flag as shared. See the root derivation below.
+  const norm = rootRel.replace(/\\/g, "/").toLowerCase();
+  const match = /(^|\/)(lib|core|shared|common|utils|types)\//.test(norm);
+  return { score: match ? 2 : 0, match };
+}
+
+// -----------------------------------------------------------------------------
+// Signal 4 — Public-API touch
+// diff added line matches `^\+\s*(export\b|pub\s|public\s|def\s+[a-z])`
+// (extension-aware: skip for non-code extensions).
+// Score: 0 or 2.
+// -----------------------------------------------------------------------------
+
+const CODE_EXTS = new Set([
+  ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
+  ".py", ".rb", ".go", ".rs", ".java", ".kt", ".swift", ".scala", ".cs",
+  ".c", ".h", ".cpp", ".hpp", ".cc", ".php",
+]);
+
+const PUBLIC_API_RE = /^\+\s*(export\b|pub\s|public\s|def\s+[a-z]|func\s+[A-Z])/;
+
+function publicApiTouch() {
+  if (!CODE_EXTS.has(extname(repoRel))) return { score: 0, hits: 0 };
+  let adds;
+  const created = untrackedLines();
+  if (created !== null) {
+    // No diff exists for an untracked file, so scan the BODY. Every line of a new
+    // file is an added line; prefixing with "+" lets the single PUBLIC_API_RE above
+    // stay the one definition of "public symbol" across both paths.
+    adds = created.map((l) => "+" + l);
+  } else {
+    const diff =
+      tryExecArgs("git", ["diff", "HEAD", "--", repoRel]) ??
+      tryExecArgs("git", ["diff", "--", repoRel]);
+    if (!diff) return { score: 0, hits: 0 };
+    adds = diff.split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"));
+  }
+  let hits = 0;
+  for (const l of adds) {
+    if (PUBLIC_API_RE.test(l)) hits++;
+  }
+  return { score: hits > 0 ? 2 : 0, hits };
+}
+
+// -----------------------------------------------------------------------------
+// Signal 5 — Test coverage delta
+// Tests in this iteration that added/modified for this file → -1.
+// Heuristic: any file in the same diff under a path matching /test|spec/ that
+// references this file's basename.
+// -----------------------------------------------------------------------------
+
+function testDelta() {
+  const ext = extname(repoRel);
+  const base = basename(repoRel, ext);
+  if (!base) return { score: 0, hit: false };
+  // Union the diff with the untracked entries: a brand-new test file is invisible
+  // to `git diff` until it is staged, which is the same blind spot as the CREATE
+  // case above — a fresh test written alongside a fresh module must still count.
+  const changed =
+    tryExecArgs("git", ["diff", "HEAD", "--name-only"]) ??
+    tryExecArgs("git", ["diff", "--name-only"]);
+  const candidates = new Set([
+    ...(changed ? changed.split("\n") : []),
+    ...untrackedPaths(),
+  ]);
+  if (candidates.size === 0) return { score: 0, hit: false };
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // A 1-2 character basename (`a`, `io`) matches nearly any test file as a bare substring and
+  // would grant the -1 credit for free: require the basename with its extension, and for longer
+  // names a non-identifier boundary on both sides.
+  const nameRe = base.length < 3
+    ? new RegExp(escaped + ext.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    : new RegExp(`(^|[^A-Za-z0-9_])${escaped}([^A-Za-z0-9_]|$)`);
+  // Root frame: `f` values come from `git diff
+  // --name-only` / untrackedPaths(), both ROOT-relative from any cwd — so the
+  // self-skip compares rootRel and the read joins root, never cwd. Pre-fix a
+  // subdir invocation joined cwd with a root-relative f, readFileSync threw,
+  // and the -1 test-coverage credit silently vanished (reviewer finding 1).
+  for (const f of candidates) {
+    if (!f) continue;
+    if (f === rootRel) continue;
+    if (!/(^|\/)(tests?|specs?|__tests__)\//i.test(f) && !/\.(test|spec)\./.test(f)) continue;
+    const content = (() => {
+      try { return readFileSync(join(root, f), "utf-8"); } catch { return ""; }
+    })();
+    if (nameRe.test(content)) return { score: -1, hit: true };
+  }
+  return { score: 0, hit: false };
+}
+
+// -----------------------------------------------------------------------------
+// Signal 6 — Iteration history
+// File appeared in a prior iteration's manifest (state.md change manifest) of
+// the active plan. Heuristic: grep prior plans/.current_plan/state.md for path.
+// Score: 0 or 1.
+// -----------------------------------------------------------------------------
+
+function iterationHistory() {
+  try {
+    // Root frame: plans/ lives at the repo root, and manifests record
+    // root-relative paths — a subdir invocation must still find both.
+    const ptr = readFileSync(join(root, "plans", ".current_plan"), "utf-8").trim();
+    if (!ptr) return { score: 0, prior: false };
+    const planDir = join(root, "plans", ptr);
+    // Look in checkpoints/ for prior iteration markers and decisions.md mentions.
+    const candidates = [];
+    const stPath = join(planDir, "state.md");
+    if (existsSync(stPath)) candidates.push(stPath);
+    const cpDir = join(planDir, "checkpoints");
+    if (existsSync(cpDir)) {
+      for (const f of readdirSync(cpDir)) {
+        if (f.endsWith(".md")) candidates.push(join(cpDir, f));
+      }
+    }
+    for (const p of candidates) {
+      try {
+        const c = readFileSync(p, "utf-8");
+        // Match rootRel (the manifests' frame) as a backtick-fenced or
+        // whitespace-bounded path.
+        const re = new RegExp(`(\`|\\s)${rootRel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\`|\\s|$)`);
+        if (re.test(c)) return { score: 1, prior: true };
+      } catch {}
+    }
+  } catch {}
+  return { score: 0, prior: false };
+}
+
+// -----------------------------------------------------------------------------
+// Compose
+// -----------------------------------------------------------------------------
+
+function emitUnknown(reason) {
+  if (json) {
+    process.stdout.write(JSON.stringify({ tier: "UNKNOWN", reason, file: repoRel }) + "\n");
+  } else {
+    process.stdout.write(`radius:UNKNOWN(${reason})\n`);
+  }
+  process.exit(0);
+}
+
+if (!isGitRepo()) emitUnknown("no-git");
+
+// Root-frame derivation: derive the repo
+// root ONCE here (fallback to cwd on rev-parse failure), consumed by sharedPath(),
+// reverseDeps(), testDelta(), iterationHistory(). Do not move git pathspec args to rootRel —
+// git resolves those against cwd, and output is pinned root-relative by existing tests.
+const root = tryExecArgs("git", ["rev-parse", "--show-toplevel"]) ?? cwd;
+// POSIX separators: git prints `/` on every platform, and manifests record `/` paths.
+const rootRel = relative(root, filePath).replace(/\\/g, "/");
+if (!existsSync(filePath)) {
+  // File may have been deleted as part of edit; still try to score from diff.
+  // If git diff returns nothing, give up.
+  const d = tryExecArgs("git", ["diff", "HEAD", "--numstat", "--", repoRel]);
+  if (!d) emitUnknown("not-tracked");
+}
+if (existsSync(filePath) && statSync(filePath).isDirectory()) emitUnknown("is-directory");
+if (existsSync(filePath) && isBinary(filePath)) emitUnknown("unreadable");
+
+const loc = locChurn();
+const deps = reverseDeps();
+const shared = sharedPath();
+const api = publicApiTouch();
+const tests = testDelta();
+const hist = iterationHistory();
+
+// A timed-out git/grep subprocess (or a failed reverse-dep search) means a signal read 0 for lack
+// of data, not because the answer is 0: report UNKNOWN rather than an understated tier.
+if (timedOut) emitUnknown("timeout");
+if (depsUnavailable) emitUnknown("grep-failed");
+
+const score = loc.score + deps.score + shared.score + api.score + tests.score + hist.score;
+const tier = score <= 2 ? "LOW" : score <= 5 ? "MED" : "HIGH";
+
+if (json) {
+  process.stdout.write(JSON.stringify({
+    tier, score, file: repoRel,
+    signals: {
+      loc: { score: loc.score, added: loc.added, removed: loc.removed },
+      deps: { score: deps.score, count: deps.count },
+      shared: { score: shared.score, match: shared.match },
+      api: { score: api.score, hits: api.hits },
+      tests: { score: tests.score, hit: tests.hit },
+      hist: { score: hist.score, prior: hist.prior },
+    },
+  }) + "\n");
+  process.exit(0);
+}
+
+let line = `radius:${tier}(${score})`;
+if (verbose) {
+  line += ` loc=${loc.score}(+${loc.added},-${loc.removed}) deps=${deps.score}(${deps.count}) shared=${shared.score} api=${api.score}(${api.hits}) tests=${tests.score} hist=${hist.score}`;
+}
+process.stdout.write(line + "\n");

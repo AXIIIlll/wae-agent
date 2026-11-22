@@ -1,0 +1,22 @@
+# ui_task_templates.tsv — Task OS 任務模板（S33）
+# 格式：template<TAB>id<TAB>pattern<TAB>steps
+#   pattern：比對使用者指令的正則（要大小寫不敏感就自己加 (?i)）
+#   steps：`|` 分隔的步驟 DSL
+#     LAUNCH_APP:設定   TAP:關於   TYPE:$var   SUBMIT   BACK
+#     SCROLL_DOWN / SCROLL_UP / WAIT:800 / DEEP_LINK:...
+#     COLLECT:<mode>:<變數>[:<參數>]   mode = LONGEST_NUMBER | TEXT_AFTER | REGEX | REGEX_ALL
+#     IRREVERSIBLE                     下一步不可逆（送出/付款），執行前要確認
+#     GUARD:TEXT:<文字>                下一步的守衛：畫面出現該文字才做
+# 原則是資料驅動：新增能力＝加一行，不用改程式。
+# 命中不了就 fallback 到既有拆解器，所以新增模板不會讓原有指令變差。
+template	settings-version	(?i)(?:讀|查看|查|看)(?:一下)?(?:系統)?(?:的)?(?:版本號?|version)|(?:版本號?|version)(?:是多少|多少)	LAUNCH_APP:設定|TAP:關於|COLLECT:LONGEST_NUMBER:version|BACK
+template	settings-battery	(?i)(?:電池|電量|battery).{0,8}(?:多少|查看|讀|資訊|百分比)	LAUNCH_APP:設定|TAP:電池|COLLECT:REGEX:battery:\d+%|BACK
+template	search-open-first	(?i)(?:搜尋|搜索|查).{1,20}(?:第一個|第一筆|第一項)	LAUNCH_APP:$app|TAP:搜尋|TYPE:$query|SUBMIT|TAP:$first
+template	version-to-chat	(?i)(?:版本號?|version).{0,16}(?:貼|回報|告訴我|傳給)	LAUNCH_APP:設定|TAP:關於|COLLECT:LONGEST_NUMBER:version|BACK|BACK|LAUNCH_APP:聊天|TYPE:$version
+template	settings-about-read	(?i)(?:關於|about).{0,10}(?:版本|資訊|讀|查看)	LAUNCH_APP:設定|TAP:關於|COLLECT:LONGEST_NUMBER:info|BACK
+template	settings-wifi-info	(?i)(?:查看|讀|看|查).{0,6}(?:wi-?fi|無線網路|无线网络).{0,6}(?:資訊|状态|狀態|名稱|名称|列表)|(?:wi-?fi|無線網路).{0,4}(?:連到|連線|名称|狀態)	LAUNCH_APP:設定|TAP:Wi-Fi|COLLECT:LONGEST_NUMBER:wifi|BACK
+template	settings-bluetooth-info	(?i)(?:查看|讀|看|查).{0,6}(?:藍牙|蓝牙|bluetooth).{0,6}(?:資訊|狀態|名称|列表)	LAUNCH_APP:設定|TAP:藍牙|COLLECT:LONGEST_NUMBER:bt|BACK
+template	settings-storage-read	(?i)(?:查看|讀|看|查).{0,6}(?:儲存|存储|空間|空间).{0,6}(?:剩餘|剩餘空間|用量|容量)	LAUNCH_APP:設定|TAP:儲存空間|COLLECT:REGEX:storage:\d+	BACK
+template	settings-sound-read	(?i)(?:查看|讀|看|查|打開).{0,6}(?:音效|聲音|声音).{0,6}(?:設定|設定值|大小)	LAUNCH_APP:設定|TAP:音效|BACK
+template	settings-display-read	(?i)(?:查看|讀|看|查|打開).{0,6}(?:顯示|显示|螢幕|屏幕).{0,6}(?:設定|亮度|資訊)	LAUNCH_APP:設定|TAP:顯示|BACK
+template	settings-apps-list	(?i)(?:查看|讀|看|查).{0,6}(?:已安裝|已安装|所有).{0,4}(?:應用程式|應用|App)	LAUNCH_APP:設定|TAP:應用程式|COLLECT:LONGEST_NUMBER:apps|BACK

@@ -1,0 +1,7 @@
+# FINANCE 詞庫（家族專屬角色）
+# role<TAB>term1|term2|...
+BALANCE	餘額|balance
+TRANSFER	轉帳|transfer
+PAY	付款|pay
+STATEMENT	明細|對帳單|statement
+CARD	卡片|card

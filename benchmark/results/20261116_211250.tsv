@@ -1,0 +1,4 @@
+id	tier	ok	elapsed_s	steps	min_steps	detail	cmd
+E01	EASY	False	41.0	0	1	timeout	打開地圖
+E02	EASY	False	46.7	0	2	timeout	在地圖搜尋台北101
+E03	EASY	False	41.0	0	1	timeout	打開gmail

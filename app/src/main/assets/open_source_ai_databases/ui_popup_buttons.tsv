@@ -1,0 +1,30 @@
+# 彈窗按鈕角色：dismiss=可自動按、never=永不自動按（安全界線）
+# 格式: role \t text
+dismiss	稍後再說
+dismiss	稍後
+dismiss	取消
+dismiss	關閉
+dismiss	知道了
+dismiss	跳過
+dismiss	以後再說
+dismiss	下次再說
+dismiss	不用了
+dismiss	暫不
+dismiss	Not now
+dismiss	Later
+dismiss	Skip
+dismiss	Close
+dismiss	Cancel
+dismiss	Dismiss
+never	允許
+never	允許存取
+never	確定
+never	同意
+never	購買
+never	訂閱
+never	刪除
+never	清除
+never	Allow
+never	OK
+never	Buy
+never	Delete

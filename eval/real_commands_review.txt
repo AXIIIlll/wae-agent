@@ -1,0 +1,2 @@
+# 低信心，需要人工確認（command <TAB> weak_label <TAB> conf）
+幫我訂明天下午三點的餐廳	UNKNOWN	0.40

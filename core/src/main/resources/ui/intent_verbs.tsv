@@ -1,0 +1,16 @@
+# 動詞表（verb<TAB>op<TAB>targetKind）
+# targetKind：app / toggle / query / contact / home / volume_up / volume_down / play / pause
+回到主頁	NAVIGATE	home
+打開	NAVIGATE	app
+開啟	NAVIGATE	app
+關閉	SET	toggle
+搜尋	SELECT	query
+尋找	SELECT	query
+播放	SUBMIT	play
+暫停	SET	pause
+調高	SET	volume_up
+調低	SET	volume_down
+傳訊息給	SUBMIT	contact
+選一張照片	SUBMIT	picker
+選照片	SUBMIT	picker
+挑一張照片	SUBMIT	picker

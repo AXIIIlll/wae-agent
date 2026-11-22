@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "weights": {
+    "crossEncoder": 0.55,
+    "decisionHeadPrior": 0.25,
+    "ruleScore": 0.2
+  },
+  "thresholds": {
+    "autoAct": 0.65,
+    "askOrReplan": 0.35
+  },
+  "shortlist": 20,
+  "maxScrolls": 2
+}

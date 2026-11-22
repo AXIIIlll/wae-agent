@@ -1,0 +1,102 @@
+# 100 任務評測集（難度分層；EXTREME >=30 步）
+id	tier	app_family	cmd	min_steps	timeout_s	notes
+E01	EASY	maps	打開地圖	1	40	App 啟動
+E02	EASY	maps	在地圖搜尋台北101	2	45	搜尋成功且有結果
+E03	EASY	mail	打開gmail	1	40	App 啟動
+E04	EASY	mail	在gmail搜尋invoice	2	50	搜尋框輸入並提交
+E05	EASY	video	打開youtube	1	40	App 啟動
+E06	EASY	video	在youtube搜尋周杰倫	2	50	搜尋有結果
+E07	EASY	settings	打開設定	1	40	App 啟動
+E08	EASY	settings	進入顯示設定	2	45	二級頁
+E09	EASY	browser	打開瀏覽器	1	40	App 啟動
+E10	EASY	browser	在瀏覽器搜尋天氣	2	50	搜尋頁
+E11	EASY	music	打開音樂	1	40	App 啟動
+E12	EASY	music	在音樂搜尋晴天	2	50	搜尋有結果
+E13	EASY	files	打開檔案管理	1	40	App 啟動
+E14	EASY	files	在檔案管理看下載項目	2	50	進入下載目錄
+E15	EASY	social	打開社群app	1	40	App 啟動
+E16	EASY	shop	打開購物app	1	40	App 啟動
+E17	EASY	game	打開遊戲	1	40	App 啟動
+E18	EASY	maps	在地圖搜尋加油站	2	45	搜尋有結果
+E19	EASY	mail	在gmail看收件匣	2	45	回到收件匣
+E20	EASY	video	在youtube回到首頁	2	45	首頁
+E21	EASY	settings	打開wifi設定	2	45	Wifi 頁
+E22	EASY	settings	打開藍牙設定	2	45	藍牙頁
+E23	EASY	browser	在瀏覽器開新分頁	2	50	新分頁
+E24	EASY	maps	在地圖放大畫面	2	45	地圖縮放
+E25	EASY	maps	在地圖縮小畫面	2	45	地圖縮放
+E26	EASY	mail	在gmail切換到寄件備份	2	50	資料夾切換
+E27	EASY	video	在youtube打開訂閱頁	2	50	訂閱分頁
+E28	EASY	settings	在設定搜尋電池	2	50	設定內搜尋
+E29	EASY	files	在檔案管理搜尋pdf	2	50	檔案搜尋
+E30	EASY	social	在社群app回到首頁	2	45	首頁
+M01	MEDIUM	mail	在gmail搜尋invoice並點開第一封	4	80	搜尋+開啟郵件
+M02	MEDIUM	mail	在gmail搜尋發票並點開第二封	4	80	索引選擇
+M03	MEDIUM	mail	在gmail打開第一封信然後返回	4	70	開關可回溯
+M04	MEDIUM	maps	在地圖搜尋餐廳並點開第一家	4	80	搜尋+詳情
+M05	MEDIUM	maps	在地圖搜尋咖啡廳然後返回	4	70	返回首頁
+M06	MEDIUM	maps	在地圖搜尋捷運站並切換到大眾運輸	5	90	篩選切換
+M07	MEDIUM	video	在youtube搜尋周杰倫並點開第一個影片	4	80	搜尋+播放頁
+M08	MEDIUM	video	在youtube搜尋關鍵字然後往下滑看更多	5	90	滾動
+M09	MEDIUM	video	在youtube打開第一個影片然後返回	4	70	開關可回溯
+M10	MEDIUM	settings	進入顯示設定把亮度調高一點	5	90	滑桿操作
+M11	MEDIUM	settings	進入音效設定然後返回	4	70	二級頁返回
+M12	MEDIUM	settings	在設定搜尋飛航模式並打開它	5	90	開關
+M13	MEDIUM	settings	在設定搜尋藍牙並關閉它	5	90	開關
+M14	MEDIUM	browser	在瀏覽器搜尋台北車站並點開第一個結果	4	90	搜尋+結果
+M15	MEDIUM	browser	在瀏覽器開啟一個網站然後返回	4	70	返回
+M16	MEDIUM	browser	在瀏覽器搜尋新聞然後往下滑	5	90	滾動
+M17	MEDIUM	music	在音樂搜尋晴天並播放第一首	4	80	搜尋+播放
+M18	MEDIUM	music	在音樂搜尋歌手然後返回	4	70	返回
+M19	MEDIUM	files	在檔案管理進入下載項目並打開第一個檔案	5	90	檔案開啟
+M20	MEDIUM	files	在檔案管理搜尋pdf並返回	4	70	搜尋+返回
+M21	MEDIUM	social	在社群app搜尋關鍵字並點開第一篇	4	80	搜尋+貼文
+M22	MEDIUM	social	在社群app把第一篇貼文按讚	5	90	寫入動作（有安全閘門）
+M23	MEDIUM	shop	在購物app搜尋耳機並點開第一個商品	4	90	搜尋+詳情
+M24	MEDIUM	shop	在購物app搜尋商品然後返回	4	70	返回
+M25	MEDIUM	game	打開遊戲並同意開始	4	80	自繪畫面
+M26	MEDIUM	game	在遊戲中往上滑查看背包	5	90	上滑動作
+M27	MEDIUM	maps	在地圖長按一個位置	4	80	長按
+M28	MEDIUM	mail	在gmail下拉重新整理收件匣	4	70	下滑手勢
+M29	MEDIUM	browser	在瀏覽器左右滑切換分頁	4	80	左右滑
+M30	MEDIUM	settings	在設定清除搜尋框再搜尋wifi	5	90	清除+重輸
+H01	HARD	maps	在地圖搜尋餐廳然後篩選評分最高的一家並點開	10	150	搜尋+篩選
+H02	HARD	maps	在地圖搜尋加油站然後切換到衛星檢視再返回	12	160	檢視切換
+H03	HARD	maps	在地圖規劃到台北車站的路線並選擇步行	12	160	路線規劃
+H04	HARD	maps	在地圖搜尋景點往下滑三次再看評論	14	180	多次滾動
+H05	HARD	mail	在gmail搜尋invoice然後切換到促銷分類再點開第一封	12	160	分類切換
+H06	HARD	mail	在gmail打開一封郵件往下滑讀完然後標記已讀	13	170	長頁+寫入
+H07	HARD	mail	在gmail搜尋附件郵件並打開附件列表	12	160	附件
+H08	HARD	video	在youtube搜尋料理然後篩選長片再點開第一個	12	170	篩選
+H09	HARD	video	在youtube打開影片往下滑看留言然後返回	13	170	滾動+返回
+H10	HARD	video	在youtube搜尋音樂並加入播放清單	13	170	寫入動作
+H11	HARD	settings	進入應用程式清單找到其中一個app再進去看權限	14	180	多層導覽
+H12	HARD	settings	在設定搜尋電池並查看用量詳情再返回	12	160	多層
+H13	HARD	settings	關閉飛航模式再開啟藍牙再返回	12	160	多開關
+H14	HARD	browser	在瀏覽器搜尋台北景點然後打開第一個結果往下滑三次再返回	15	190	長鏈
+H15	HARD	browser	在瀏覽器開三個分頁然後關閉第二個	14	180	分頁管理
+H16	HARD	music	在音樂搜尋專輯然後點開第一張再播放	12	160	多層
+H17	HARD	music	在音樂建立播放清單並加入第一首歌	14	180	寫入動作
+H18	HARD	files	在檔案管理進入下載項目按大小排序再打開第一個	13	170	排序
+H19	HARD	files	在檔案管理搜尋圖片然後滑動瀏覽	13	170	滾動
+H20	HARD	social	在社群app搜尋關鍵字打開貼文往下滑看留言再按讚	15	190	長鏈
+H21	HARD	social	在社群app打開通知清單再返回首頁	12	160	多層
+H22	HARD	shop	在購物app搜尋商品點開第一個加入購物車	14	190	寫入動作
+H23	HARD	shop	在購物app搜尋商品篩選價格再點開第一個	13	180	篩選
+H24	HARD	game	在遊戲中完成一局教學	20	240	自繪+多步
+H25	HARD	game	在遊戲中打開設定調整音量再返回遊戲	14	180	多層
+X01	EXTREME	maps	在地圖搜尋餐廳點開第一家往下滑看評論回到列表再點開第二家再返回首頁	32	360	深層導覽
+X02	EXTREME	maps	在地圖規劃到台北101的路線切換三種交通方式再返回搜尋加油站再點開第一家	34	380	跨功能
+X03	EXTREME	mail	在gmail搜尋invoice點開第一封往下滑讀完返回列表再搜尋發票點開第二封再返回	32	360	重複流程
+X04	EXTREME	mail	在gmail搜尋附件郵件打開第一封打開附件列表返回再切換到寄件備份	33	370	多階段
+X05	EXTREME	video	在youtube搜尋料理點開第一個影片往下滑看留言按讚返回再搜尋飲料點開第一個	32	370	跨流程
+X06	EXTREME	video	在youtube搜尋音樂打開播放清單加入兩首歌再返回首頁再打開訂閱頁	34	380	多寫入
+X07	EXTREME	settings	在設定搜尋藍牙關閉再開啟再進入應用程式清單找到一個app看權限再返回	32	360	多層+開關
+X08	EXTREME	settings	在設定關閉飛航模式開啟wifi連接第一個網路再返回搜尋電池看用量再返回	34	380	跨設定
+X09	EXTREME	browser	在瀏覽器搜尋台北景點打開三個結果分頁切換第二個往下滑三次關閉再返回第一個	34	380	多分頁
+X10	EXTREME	browser	在瀏覽器搜尋新聞打開第一個往下滑五次按讚再分享取消再返回	33	380	含取消/安全閘門
+X11	EXTREME	music	在音樂搜尋晴天播放第一首加入播放清單再搜尋另一首歌播放再返回首頁	32	370	多寫入
+X12	EXTREME	shop	在購物app搜尋耳機篩選價格點開第一個加入購物車再返回搜尋第二個商品加入	34	390	多寫入+安全
+X13	EXTREME	files	在檔案管理進入下載項目開啟第一個檔案返回滑到最底再開啟最後一個檔案	32	360	深層列表
+X14	EXTREME	social	在社群app搜尋關鍵字打開第一篇往下滑看留言按讚返回開啟通知再返回首頁	33	370	長鏈
+X15	EXTREME	game	在遊戲完成教學關卡打開設定調整音量返回再進入背包往上滑查看道具	35	400	自繪+多階段

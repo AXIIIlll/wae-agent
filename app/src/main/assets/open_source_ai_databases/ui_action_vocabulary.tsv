@@ -1,0 +1,364 @@
+# 通用 UI 動作詞彙庫（跨 App 通用，無任何單一 App 資料）
+# 來源: AOSP Settings 多語系字串資源 (Apache-2.0) + OpenCC 繁簡變體 (Apache-2.0)
+# 格式: key 	 en 	 zh_CN 	 zh_TW 	 ja 	 ko 	 繁簡變體(|分隔)
+accessibility_dialog_button_allow	Allow	允许	允許	許可	허용	许可
+accessibility_dialog_button_cancel	Keep on	保持开启状态	保持啟用	ON のまま	계속 사용	保持啓用|保持開啓狀態
+accessibility_dialog_button_deny	Deny	拒绝	拒絕	許可しない	거부	许可しない
+accessibility_dialog_button_stop	Turn off	关闭	停用	OFF にする	사용 중지	關閉
+accessibility_hearingaid_instruction_continue_button	Continue	继续	繼續	続行	계속	
+accessibility_quick_settings_tooltip_dismiss	Dismiss	关闭	關閉	閉じる	닫기	闭じる
+accessibility_screen_magnification_follow_typing_title	Magnify typing	输入时使用放大功能	放大目前輸入的內容	入力しながら拡大	돋보기로 입력 글자 확대	放大目前输入的内容|輸入時使用放大功能
+accessibility_shortcut_edit_dialog_summary_software_floating	More options	更多选项	更多選項	その他のオプション	옵션 더보기	
+accessibility_shortcut_edit_dialog_title_advance	Advanced	高级	進階	詳細設定	고급	详细设定|进阶|高級
+accessibility_shortcut_edit_dialog_title_hardware	Volume keys	音量键	音量鍵	音量ボタン	볼륨 키	
+accessibility_shortcut_edit_dialog_title_quick_settings	Quick Settings	快捷设置	快速設定	クイック設定	빠른 설정	クイック设定|快捷設置|快速设定
+accessibility_shortcut_edit_screen_title_triple_tap	Triple tap	点按三次	輕觸三下	トリプルタップ	세 번 탭	轻触三下|點按三次
+accessibility_text_reading_confirm_dialog_reset_button	Reset	重置	重設	リセット	초기화	重设
+accessibility_text_reading_reset_button_title	Reset settings	重置	重設	設定をリセット	설정 초기화	设定をリセット|重设
+action_drag_label_remove	Remove language	移除语言	移除語言	言語を削除します	언어 삭제	言语を削除します
+add	Add	添加	新增	追加	추가	
+add_a_language	Add a language	添加语言	新增語言	言語を追加	언어 추가	新增语言|添加語言|言语を追加
+add_account_label	Add account	添加账号	新增帳戶	アカウントを追加	계정 추가	新增帐户|新增帳户|添加賬號
+allow	Allow	允许	允許	許可	허용	许可
+android_version_pending_update_summary	Update available	有新版本可用	有可用的更新	アップデートを利用できます	업데이트 가능	
+apn_add	Add access point	添加接入点	新增存取點	アクセス ポイントを追加	액세스 포인트 추가	新增存取点|添加接入點
+app_disable_dlg_positive	Disable app	停用应用	停用應用程式	アプリを無効にする	앱 사용 중지	アプリを无効にする|停用应用程式|停用應用
+app_install_details_group_title	Store	商店	商店	ストア	스토어	
+app_install_details_title	App details	应用详情	應用程式詳細資料	アプリの詳細	앱 세부정보	アプリの详细|应用程式详细资料|應用詳情
+app_launch_add_link	Add link	添加链接	新增連結	リンクを追加	링크 추가	新增连结|添加鏈接
+app_launch_dialog_cancel	Cancel	取消	取消	キャンセル	취소	
+app_launch_dialog_ok	OK	确定	確定	OK	확인	
+app_launch_open_in_app	In the app	在此应用内	在應用程式中開啟	アプリ内	앱에서	アプリ內|在应用程式中开啓|在此應用內
+app_launch_open_in_browser	In your browser	在浏览器中	在瀏覽器中開啟	ブラウザ内	브라우저에서	ブラウザ內|在浏览器中开啓|在瀏覽器中
+app_launch_supported_links_add	Add	添加	新增	追加	추가	
+app_link_open_ask	Ask every time	每次都询问	每次都詢問	毎回確認	항상 확인	毎回确认|毎迴確認
+app_notifications_dialog_done	Done	完成	完成	完了	완료	
+apply	Apply	应用	套用	適用	적용	應用|适用
+assistant_security_warning_agree	Agree	同意	同意	同意する	동의	衕意|衕意する
+audio_sharing_close_button_label	Close	关闭	關閉	閉じる	닫기	闭じる
+audio_sharing_no_thanks_button_label	No thanks	不用了	不用了，謝謝	利用しない	나중에	不用了，谢谢
+audio_sharing_share_button_label	Share audio	分享音频	分享音訊	音声を共有	오디오 공유	分享音讯|分享音頻|音聲を共有
+audio_sharing_share_dialog_title	Share your audio	分享您的音频	分享音訊	音声の共有	오디오 공유	分享您的音頻|分享音讯|音聲の共有
+audio_sharing_stop_button_label	Stop sharing	停止分享	停止分享	共有を停止	공유 중지	
+audio_streams_dialog_close	Close	关闭	關閉	閉じる	닫기	闭じる
+audio_streams_dialog_no_le_device_button	Connect a device	连接设备	連線至裝置	デバイスを接続	기기 연결	连线至装置|連接設備
+audio_streams_dialog_retry	Try again	重试	再試一次	再試行	다시 시도	再试一次|再试行|重試
+audio_streams_no_password_summary	No password	没有密码	不需密碼	パスワードなし	비밀번호 필요 없음	不需密码|沒有密碼
+auto_launch_disable_text	No defaults set.	无默认设置。	沒有預設值。	設定されていません。	기본값이 설정되지 않음	没有预设值。|無默認設置。|设定されていません。
+back_sensitivity_dialog_title	Back Sensitivity	“返回”手势的灵敏度	系統偵測「返回」手勢的敏感度	「戻る」の感度	뒤로 가기 동작 민감도	“返迴”手勢的靈敏度|係統偵測「返迴」手勢的敏感度|系统侦测「返回」手势的敏感度
+background_install_uninstall_button_description	Uninstall app	卸载应用	解除安裝應用程式	アプリをアンインストール	앱 제거	卸載應用|解除安装应用程式
+backup_pw_cancel_button_text	Cancel	取消	取消	キャンセル	취소	
+battery_saver_auto_no_schedule	No schedule	没有时间表	未設定時間表	スケジュールなし	없음	未設定時間錶|未设定时间表|沒有時間錶
+battery_tip_early_heads_up_done_title	Battery Saver on	省电模式已开启	省電模式已開啟	バッテリー セーバー ON	절전 모드 사용 중	省电模式已开啓|省電模式已開啓
+battery_tip_limited_temporarily_dialog_resume_charge	Resume charging	继续充电	繼續充電	充電を再開	충전 재개	充电を再开
+battery_tip_restrict_app_dialog_ok	Restrict	限制	限制	制限	제한	製限|限製
+battery_tip_unrestrict_app_dialog_cancel	Cancel	取消	取消	キャンセル	취소	
+battery_tip_unrestrict_app_dialog_ok	Remove	移除	移除	解除	삭제	
+battery_tips_card_dismiss_button	Got it	知道了	我知道了	OK	확인	
+battery_usage_spinner_view_by_apps	View by apps	按应用查看	應用程式	アプリ別に表示	앱별로 보기	アプリ別に錶示|アプリ别に表示|应用程式|按應用査看
+battery_usage_spinner_view_by_systems	View by systems	按系统查看	按系統查看	システム別に表示	시스템별로 보기	システム別に錶示|システム别に表示|按係統査看
+biometric_settings_add_biometrics_in_split_mode_ok	OK	确定	確定	OK	확인	
+biometric_settings_hand_back_to_guardian_ok	OK	确定	確定	OK	확인	
+bluetooth_companion_app_remove_association_confirm_button	Disconnect app	取消与该应用的关联	解除連結應用程式	アプリの接続を解除する	앱 연결 해제	取消與該應用的關聯|解除连结应用程式
+bluetooth_companion_app_remove_association_dialog_title	Disconnect App?	要取消与该应用的关联吗？	要解除連結應用程式嗎？	アプリの接続を解除しますか？	앱 연결을 해제할까요?	要取消與該應用的關聯嗎？|要解除连结应用程式吗？
+bluetooth_disable_hw_offload_dialog_cancel	Cancel	取消	取消	キャンセル	취소	
+bluetooth_disable_hw_offload_dialog_confirm	Restart	重启	重新啟動	再起動	다시 시작	再起动|重啓|重新啓动
+bluetooth_key_missing_cancel	Cancel	取消	取消	キャンセル	취소	
+bluetooth_rename_button	Rename	重命名	重新命名	名前を変更	이름 바꾸기	
+bubbles_feature_disabled_button_cancel	Cancel	取消	取消	キャンセル	취소	
+calls_sms_no_sim	No SIM	没有 SIM 卡	沒有 SIM 卡	SIM なし	SIM 없음	
+cancel	Cancel	取消	取消	キャンセル	취소	
+cancel_lock_screen_dialog_button_label	Cancel	取消	取消	キャンセル	취소	
+cdma_system_select_dialogtitle	System select	系统选择	選取系統	システムの選択	시스템 선택	システムの选択|係統選擇|选取系统|選取係統
+cdma_system_select_title	System select	系统选择	選取系統	システムの選択	시스템 선택	システムの选択|係統選擇|选取系统|選取係統
+certificate_warning_install_anyway	Install anyway	仍然安装	仍要安裝	インストールする	계속 설치	仍然安裝|仍要安装
+clear	Clear	清除	清除	消去	삭제	
+clear_cache_btn_text	Clear cache	清除缓存	清除快取	キャッシュを削除	캐시 지우기	清除緩存
+clear_instant_app_data	Clear app	清除应用	清除應用程式	アプリを削除	앱 삭제	清除应用程式|清除應用
+clear_uri_btn_text	Clear access	取消访问权限	清除存取權	アクセスをクリア	액세스 삭제	取消訪問權限|清除存取权
+clear_user_data_text	Clear storage	清空存储空间	清除儲存空間	ストレージを消去	저장용량 비우기	清空存儲空間|清除储存空间
+color_contrast_preview_email_send_date	2 days ago	2 天前	2 天前	2 日前	2일 전	
+color_selector_dialog_cancel	Cancel	取消	取消	キャンセル	취소	
+color_selector_dialog_save	Save	保存	儲存	保存	저장	储存
+confirm_ext4_button_text	Erase all data	清除所有数据	清除所有資料	すべてのデータを消去	모든 데이터 삭제	清除所有數據|清除所有资料
+connected_devices_dashboard_no_driving_mode_no_nfc_summary	Bluetooth	蓝牙	藍牙	Bluetooth	블루투스	
+connected_devices_dashboard_no_driving_mode_summary	Bluetooth, NFC	蓝牙、NFC	藍牙、NFC	Bluetooth、NFC	블루투스, NFC	
+contextual_card_dismiss_keep	Keep	保留	保留	保持	삭제 안함	
+contextual_card_dismiss_remove	Remove	移除	移除	削除	삭제	
+contextual_card_feedback_send	Send feedback	发送反馈	提供意見	フィードバックを送信	의견 보내기	提供意见|發送反饋
+credman_button_open	Open	打开	開啟	開く	열기	开く|开啓|打開
+data_roaming_enable_mobile	Roaming	漫游	漫遊	ローミング	로밍	
+data_usage_enable_3g	2G-3G data	2G-3G 数据	2G-3G 數據	2G～3Gデータ	2G-3G 데이터	
+data_usage_enable_4g	4G data	4G 数据	4G 數據	4Gデータ	4G 데이터	
+data_usage_enable_mobile	Mobile data	移动数据	行動數據	モバイルデータ	모바일 데이터	移動數據|行动数据
+date_time_search_region	Search region	搜索区域	搜尋地區	地域を検索します	지역 검색	搜寻地区|蒐尋地區|蒐索區域
+date_time_select_region	Region	区域	地區	地域	지역	區域|地区
+delete	Delete	删除	刪除	削除	삭제	
+deny	Deny	拒绝	拒絕	許可しない	거부	许可しない
+device_admin_add_title	Device admin	设备管理	裝置管理員	デバイス管理	기기 관리자	装置管理员|設備管理
+disable_text	Disable	停用	停用	無効にする	사용 안함	无効にする
+dlg_cancel	Cancel	取消	取消	キャンセル	취소	
+dlg_delete	Delete	删除	刪除	削除	소거	
+dlg_ok	OK	确定	確定	OK	확인	
+done	Done	完成	完成	完了	완료	
+done_button	Done	完成	完成	完了	완료	
+enable_2g_title	Allow 2G	允许启用 2G	允許啟用 2G	2G を許可する	2G 허용	2G を许可する|允許啓用 2G|允许啓用 2G
+enable_compatibility	Scale app	调整应用的显示尺寸/比例	應用程式比例	アプリを拡大/縮小	앱 확장	アプリを拡大/缩小|应用程式比例|調整應用的顯示尺寸/比例
+enable_mms_notification_channel_title	MMS message	彩信	多媒體訊息	MMS メッセージ	MMS 메시지	多媒体讯息|綵信
+enable_text	Enable	启用	啟用	有効にする	사용	啓用
+erase_sim_confirm_button	Erase	清空	清除	消去	삭제	
+fingerprint_add_title	Add fingerprint	添加指纹	新增指紋	指紋を追加	지문 추가	指纹を追加|新增指纹|添加指紋
+fingerprint_enroll_button_add	Add another	再添加一个	新增其他指紋	別の指紋を登録	다른 지문 추가	再添加一個|别の指纹を登録|新增其他指纹
+fingerprint_enroll_button_next	Next	下一步	下一步	次へ	다음	
+force_stop	Force stop	强行停止	強制停止	強制停止	강제 종료	強行停止|強製停止|强制停止
+force_stop_dlg_title	Force stop?	要强行停止吗？	確定要強制停止嗎？	強制停止しますか？	강제로 종료하시겠습니까?	強製停止しますか？|强制停止しますか？|确定要强制停止吗？|確定要強製停止嗎？|要強行停止嗎？
+gesture_button_done	Done	完成	完成	完了	완료	
+gesture_button_next	Next	下一页	繼續	次へ	다음	下一頁|继续
+gesture_button_skip	Skip	跳过	略過	スキップ	건너뛰기	略过|跳過
+gesture_title_go_back	Go back	返回	返回	戻る	돌아가기	返迴
+go_back_button_label	Go back	返回	返回	戻る	뒤로 이동	返迴
+header_add_an_account	Add an account	添加账号	新增帳戶	アカウントの追加	계정 추가	新增帐户|新增帳户|添加賬號
+homepage_search	Search Settings	在设置中搜索	搜尋設定	設定を検索	설정 검색	在設置中蒐索|搜寻设定|蒐尋設定|设定を検索
+identity_check_biometric_error_cancel	Cancel	取消	取消	キャンセル	취소	
+identity_check_biometric_error_ok	OK	确定	確定	OK	확인	
+ingress_rate_limit_no_limit_entry	No limit	无限制	無限制	制限なし	제한 없음	無限製|製限なし
+install_applications	Unknown sources	未知来源	不明的來源	提供元不明のアプリ	알 수 없는 소스	不明的来源|未知來源
+install_text	Install	安装	安裝	インストール	설치	
+install_type_instant	Instant app	免安装应用	免安裝應用程式	Instant App	인스턴트 앱	免安装应用程式|免安裝應用
+keywords_add_bt_device	bluetooth	蓝牙	藍牙	Bluetooth	블루투스	
+locale_remove_menu	Remove	移除	移除	削除	삭제	
+locale_search_menu	Search	搜索	搜尋	検索	검색	搜寻|蒐尋|蒐索
+location_recent_location_access_view_details	View details	查看详情	查看詳細資料	詳細を表示	세부정보 보기	查看详细资料|査看詳情|査看詳細資料|詳細を錶示|详细を表示
+location_time_zone_detection_location_is_off_dialog_cancel_button	Cancel	取消	取消	キャンセル	취소	
+location_time_zone_provider_fix_dialog_ok_button	Fix this	解决此问题	修正這個問題	修正する	문제 해결	修正这个问题|脩正する|脩正這個問題|解決此問題
+lock_settings_profile_unification_dialog_confirm	Use one lock	使用同一种锁定方式	使用同一種鎖定方式	統一ロックを使用	같은 잠금 사용	使用衕一種鎖定方式|统一ロックを使用
+lock_settings_profile_unification_dialog_uncompliant_confirm	Use one lock	使用同一种锁定方式	使用同一種鎖定方式	統一ロックを使用	같은 잠금 사용	使用衕一種鎖定方式|统一ロックを使用
+lockpassword_clear_label	Clear	清除	清除	消去	지우기	
+lockpassword_confirm_label	Confirm	确认	確認	確認	확인	
+lockpassword_confirm_repair_mode_password_header	Verify password	验证密码	驗證密碼	パスワードの確認	비밀번호 확인	パスワードの确认
+lockpassword_confirm_repair_mode_pattern_header	Verify pattern	验证图案	驗證解鎖圖案	パターンの確認	패턴 확인	パターンの确认|驗證圖案|验证解锁图案
+lockpassword_confirm_repair_mode_pin_header	Verify PIN	验证 PIN 码	驗證 PIN 碼	PIN の確認	PIN 확인	PIN の确认
+lockpassword_confirm_your_password_header_frp	Verify password	验证密码	驗證密碼	パスワードの確認	비밀번호 확인	パスワードの确认
+lockpassword_confirm_your_pattern_header_frp	Verify pattern	验证图案	驗證解鎖圖案	パターンの確認	패턴 확인	パターンの确认|驗證圖案|验证解锁图案
+lockpassword_confirm_your_pin_header_frp	Verify PIN	验证 PIN 码	驗證 PIN 碼	PIN の確認	PIN 확인	PIN の确认
+lockpattern_confirm_button_text	Confirm	确认	確認	確認	확인	
+lockpattern_continue_button_text	Continue	继续	繼續	次へ	계속	
+lockpattern_retry_button_text	Clear	清除	清除	消去	지우기	
+lockpattern_settings_enable_tactile_feedback_title	Vibrate on tap	点按时振动	輕觸時震動	タップ操作時のバイブ	탭하면 진동	タップ操作时のバイブ|轻触时震动|點按時振動
+lockpattern_settings_enable_title	Require pattern	需要解锁图案	需要解鎖圖案	パターン入力が必要	패턴 설정	
+lockpattern_tutorial_cancel_label	Cancel	取消	取消	キャンセル	취소	
+lockpattern_tutorial_continue_label	Next	下一步	下一步	次へ	다음	
+main_clear_desc_also_erases_esim	eSIMs	eSIM 卡	eSIM 卡	eSIM	eSIM	
+main_clear_progress_title	Erasing	正在清除	清除中	消去しています	삭제 중	
+memtag_reboot_no	Not now	以后再说	暫時不要	後で	나중에	以後再說|后で|暂时不要
+memtag_reboot_yes	Restart	重启	重新啟動	再起動	다시 시작	再起动|重啓|重新啓动
+menu_cancel	Cancel	取消	取消	キャンセル	취소	
+menu_delete	Delete APN	删除 APN	刪除 APN	APN を削除	APN 삭제	
+menu_save	Save	保存	儲存	保存	저장	储存
+mobile_data_disable_message_default_carrier	your carrier	您的运营商	你的電信業者	携帯通信会社	이동통신사	你的电信业者|您的運營商|攜帯通信會社
+mobile_data_no_connection	No connection	无网络连接	沒有網路連線	接続なし	연결되지 않음	没有网路连线|無網絡連接
+mobile_network_list_add_more	Add SIM	添加 SIM 卡	新增 SIM 卡	SIM を追加	SIM 추가	
+mobile_network_sim_name_rename	Save	保存	儲存	保存	저장	储存
+mobile_network_summary_add_a_network	Add a network	添加网络	新增網路	ネットワークを追加	네트워크 추가	新增网路|添加網絡
+modifier_keys_cancel	Cancel	取消	取消	キャンセル	취소	
+modifier_keys_done	Done	完成	完成	完了	완료	
+modifier_keys_reset	Reset	重置	重設	リセット	초기화	重设
+modifier_keys_reset_title	Reset all	全部重置	全部重設	すべてリセット	모두 재설정	全部重设
+network_connection_timeout_dialog_ok	Try again	重试	再試一次	再試行	다시 시도	再试一次|再试行|重試
+next_label	Next	下一步	下一步	次へ	다음	
+next_page_content_description	Next	下一页	繼續	次へ	다음	下一頁|继续
+nfc_payment_btn_text_update	Update	更新	更新	更新	업데이트	
+nfc_reboot_dialog_confirm	Restart	重启	重新啟動	再起動	다시 시작	再起动|重啓|重新啓动
+night_display_start_time_title	Start time	开始时间	開始時間	開始時間	시작 시간	
+no	No	否	否	いいえ	아니요	
+no_applications	No apps.	无应用。	沒有應用程式。	アプリはありません。	앱 없음	没有应用程式。|無應用。
+no_carrier_update_now_text	Updated just now	刚刚更新	剛才更新	更新: たった今	조금 전 업데이트됨	刚纔更新|剛剛更新|剛纔更新
+no_carrier_update_text	Updated ^2 ago	已在 ^2前更新	^2前更新	更新: ^2 前	^2 전에 업데이트됨	
+no_certificate_management_app	None	无	無	なし	없음	
+no_data_usage	No data used	未使用任何数据流量	未使用任何數據	データ通信の使用はありません	사용한 데이터 없음	未使用任何数据|未使用任何數據流量
+no_device_lock_action_label	Set screen lock	设置屏锁	設定螢幕鎖定功能	画面ロックを設定	화면 잠금 설정	画面ロックを设定|畫麪ロックを設定|設置屏鎖|设定萤幕锁定功能
+no_device_lock_cancel	Cancel	取消	取消	キャンセル	취소	
+no_notification_assistant	None	无	無	なし	없음	
+no_screen_lock_issue_action_label	Set screen lock	设置屏幕锁定	設定螢幕鎖定	画面ロックを設定	화면 잠금 설정	画面ロックを设定|畫麪ロックを設定|設置屏幕鎖定|设定萤幕锁定
+notification_listener_disable_warning_cancel	Cancel	取消	取消	キャンセル	취소	
+notification_listener_disable_warning_confirm	Turn off	关闭	關閉	OFF にする	사용 중지	
+notification_log_details_content_view	custom view	自定义视图	自訂檢視	カスタム ビュー	사용자설정 보기	自定義視圖|自订检视
+notification_log_details_delete_intent	delete intent	删除 intent	刪除意圖	インテントの削除	인텐트 삭제	删除意图|刪除 intent
+peak_refresh_rate_title	Smooth display	流畅画面	流暢顯示	スムーズ ディスプレイ	스무스 디스플레이	流暢畫麪|流畅显示
+print_cancel	Cancel	取消	取消	キャンセル	취소	
+print_menu_item_add_printer	Add printer	添加打印机	新增印表機	プリンタを追加	프린터 추가	新增印表机|新增印錶機|添加打印機
+print_menu_item_add_printers	Add printers	添加打印机	新增印表機	プリンタを追加	프린터 추가	新增印表机|新增印錶機|添加打印機
+print_menu_item_add_service	Add service	添加服务	新增服務	サービスを追加	서비스 추가	新增服务|添加服務
+print_menu_item_search	Search	搜索	搜尋	検索	검색	搜寻|蒐尋|蒐索
+print_settings_summary_no_service	Off	已关闭	關閉	OFF	사용 안함	关闭|已關閉
+private_space_cancel_label	Cancel	取消	取消	キャンセル	취소	
+private_space_continue_login_label	Continue	继续	繼續	続行	계속	
+private_space_delete_button_label	Delete	删除	刪除	削除	삭제	
+private_space_done_label	Done	完成	完成	完了	완료	
+private_space_retry_signin_title	Sign in	登录	登入	ログイン	로그인	登錄
+private_space_skip_login_label	Not now	以后再说	暫時不要	後で	나중에	以後再說|后で|暂时不要
+proxy_clear_text	Clear	清除	清除	消去	지우기	
+proxy_error_dismiss	OK	确定	確定	OK	확인	
+really_remove_account_title	Remove account?	要移除账号吗？	確定要移除帳戶？	アカウントを削除しますか？	계정을 삭제하시겠습니까?	确定要移除帐户？|確定要移除帳户？|要移除賬號嗎？
+reduce_bright_colors_intensity_start_label	Dimmer	更暗	較暗	暗い	어둡게	更闇|較闇|较暗|闇い
+remove	Remove	移除	移除	削除	삭제	
+remove_account_label	Remove account	移除账号	移除帳戶	アカウントを削除	계정 삭제	移除帐户|移除帳户|移除賬號
+remove_credential_management_app	Remove app	移除应用	移除應用程式	アプリを削除	앱 삭제	移除应用程式|移除應用
+remove_credential_management_app_dialog_title	Remove this app?	要移除此应用吗？	要移除這個應用程式嗎？	このアプリを削除しますか？	이 앱을 삭제하시겠습니까?	要移除此應用嗎？|要移除这个应用程式吗？
+request_manage_bluetooth_permission_dont_allow	Don\u2019t allow	不允许	不允許	許可しない	허용 안함	许可しない
+request_manage_credentials_allow	Allow	允许	允許	許可	허용	许可
+request_manage_credentials_dont_allow	Don\u2019t allow	不允许	不允許	許可しない	허용 안함	许可しない
+reset_app_preferences_button	Reset apps	重置应用	重設應用程式	アプリをリセット	앱 초기화	重置應用|重设应用程式
+reset_bluetooth_wifi_button_text	Reset	重置	重設	リセット	초기화	重设
+reset_dashboard_title	Reset options	重置选项	重設選項	リセット オプション	초기화 옵션	重置選項|重设选项
+reset_esim_title	Erase eSIMs	清空 eSIM 卡	清除 eSIM 卡	eSIM を消去	eSIM 삭제	
+reset_network_button_text	Reset settings	重置设置	重設設定	設定をリセット	설정 초기화	设定をリセット|重置設置|重设设定
+reset_network_confirm_title	Reset?	要重置网络设置吗？	你要重設嗎？	リセットしますか？	초기화하시겠습니까?	你要重设吗？|要重置網絡設置嗎？
+reset_network_final_button_text	Reset settings	重置设置	重設設定	設定をリセット	설정 초기화	设定をリセット|重置設置|重设设定
+restriction_location_enable_title	Location	位置信息	位置	位置情報	위치	位置情报
+retry	Retry	重试	重試	再試行	재시도	再试行
+save	Save	保存	儲存	保存	저장	储存
+search_gesture_feature_title	Circle to Search	圈定即搜	畫圈搜尋	かこって検索	서클 투 서치	圈定卽蒐|画圈搜寻|畫圈蒐尋
+search_settings	Search	搜索	搜尋	検索	검색	搜寻|蒐尋|蒐索
+security_settings_face_enroll_dialog_ok	OK	确定	確定	OK	확인	
+security_settings_face_enroll_done	Done	完成	完成	完了	완료	
+security_settings_face_enroll_education_start	Start	开始	開始	開始	시작	
+security_settings_face_enroll_enrolling_skip	Skip	跳过	略過	スキップ	건너뛰기	略过|跳過
+security_settings_face_enroll_introduction_agree	I agree	我同意	我同意	同意する	동의	我衕意|衕意する
+security_settings_face_enroll_introduction_cancel	Cancel	取消	取消	キャンセル	취소	
+security_settings_face_enroll_introduction_no_thanks	Not now	以后再说	暫時不要	後で	나중에	以後再說|后で|暂时不要
+security_settings_fingerprint_enroll_dialog_delete	Delete	删除	刪除	削除	삭제	
+security_settings_fingerprint_enroll_dialog_ok	OK	确定	確定	OK	확인	
+security_settings_fingerprint_enroll_done	Done	完成	完成	完了	완료	
+security_settings_fingerprint_enroll_enrolling_skip	Do it later	以后再说	稍後再說	後で行う	나중에	以後再說|后で行う|稍后再说|稍後再説
+security_settings_fingerprint_enroll_introduction_agree	I agree	我同意	我同意	同意する	동의	我衕意|衕意する
+security_settings_fingerprint_enroll_introduction_cancel	Cancel	取消	取消	キャンセル	취소	
+security_settings_fingerprint_enroll_introduction_no_thanks	Not now	以后再说	暫時不要	後で	나중에	以後再說|后で|暂时不要
+security_settings_fingerprint_enroll_start_title	Touch the sensor	触摸传感器	輕觸感應器	センサーを指でタッチ	센서 터치	觸摸傳感器|轻触感应器
+security_settings_remoteauth_enroll_enrolling_agree	Confirm	确认	確認	確認	확인	
+security_settings_remoteauth_enroll_enrolling_disagree	Cancel	取消	取消	キャンセル	취소	
+security_settings_remoteauth_enroll_finish_btn_next	Done	完成	完成	完了	완료	
+security_settings_remoteauth_enroll_introduction_agree	Continue	继续	繼續	続行	계속	
+security_settings_remoteauth_enroll_introduction_disagree	Not now	以后再说	暫時不要	後で	나중에	以後再說|后で|暂时不要
+security_settings_remoteauth_settings_remove_device	Remove watch	移除手表	移除智慧手錶	スマートウォッチを削除	시계 삭제	移除手錶|移除智慧手表
+security_settings_udfps_enroll_find_sensor_start_button	Start	开始	開始	開始	시작	
+select_all	Select all	全选	全選	すべて選択	모두 선택	すべて选択
+service_stop	Stop	停止	停止	停止	중지	
+share	Share	分享	分享	共有	공유	
+share_remote_bugreport_action	Share	分享	分享	共有する	공유	
+sim_action_cancel	Cancel	取消	取消	キャンセル	취소	
+sim_action_no_thanks	No thanks	不用了	不用了，謝謝	いいえ	사용 안함	不用了，谢谢
+sim_action_yes	Yes	是	是	はい	예	
+sim_disable_sim_lock	Unlock SIM	解锁 SIM 卡	解鎖 SIM 卡	SIM のロックを解除する	SIM 잠금 해제	
+sim_enable_sim_lock	Lock SIM	锁定 SIM 卡	鎖定 SIM 卡	SIM をロックする	SIM 잠금	
+sim_enter_cancel	Cancel	取消	取消	キャンセル	취소	
+sim_enter_ok	OK	确定	確定	OK	확인	
+sim_onboarding_close	Close	关闭	關閉	閉じる	닫기	闭じる
+sim_onboarding_next	Next	继续	繼續	次へ	다음	
+skip_anyway_button_label	Skip anyway	仍然跳过	仍要略過	スキップ	건너뛰기	仍然跳過|仍要略过
+skip_label	Skip	跳过	略過	スキップ	건너뛰기	略过|跳過
+skip_lock_screen_dialog_button_label	Skip	跳过	略過	スキップ	건너뛰기	略过|跳過
+storage_menu_rename	Rename	重命名	重新命名	名前を変更	이름 바꾸기	
+storage_rename_title	Rename storage	重命名存储设备	重新命名儲存空間	ストレージの名前の変更	저장소 이름 바꾸기	重命名存儲設備|重新命名储存空间
+storage_trash_dialog_confirm	Empty trash	清空回收站	清空垃圾桶	ゴミ箱を空にする	휴지통 비우기	清空迴收站
+storage_wizard_format_confirm_v2_action	Format ^1	将^1格式化	將 ^1格式化	^1をフォーマット	^1 포맷	将 ^1格式化|將^1格式化
+storage_wizard_move_confirm_title	Move ^1	移动^1	移動「^1」	^1を移動	^1 이동	^1を移动|移动「^1」|移動^1
+storage_wizard_slow_v2_continue	Continue	继续	繼續	続行	계속	
+storage_wizard_slow_v2_start_over	Start over	重新开始	重新開始	最初からやり直す	다시 시작	
+suggestion_button_close	Close	关闭	關閉	閉じる	닫기	闭じる
+summary_add_satellite_setting	Learn More	了解详情	瞭解詳情	詳細	자세히 알아보기	了解詳情|瞭解详情|详细
+sync_menu_sync_cancel	Cancel sync	取消同步	取消同步處理	同期をキャンセル	동기화 취소	取消同步处理|取消衕步|取消衕步處理|衕期をキャンセル
+system_update_settings_list_item_title	System updates	系统更新	系統更新	システムアップデート	시스템 업데이트	係統更新
+three_finger_tap_go_back	Go back	返回	返回	戻る	뒤로	返迴
+trackpad_go_back_title	Go back	返回	返回	戻る	돌아가기	返迴
+trusted_credentials_disable_label	Disable	停用	停用	無効にする	사용 중지	无効にする
+trusted_credentials_enable_label	Enable	启用	啟用	有効にする	사용	啓用
+trusted_credentials_remove_label	Uninstall	卸载	解除安裝	アンインストール	제거	卸載|解除安装
+tts_install_voice_title	Voices	语音	語音	音声	음성	音聲
+tts_install_voices_cancel	Cancel	取消	取消	キャンセル	취소	
+tts_install_voices_open	Open App	打开应用	開啟應用程式	アプリを開く	앱 열기	アプリを开く|开啓应用程式|打開應用
+tts_install_voices_title	Install Voices	安装语音	安裝語音	音声のインストール	음성 설치	音聲のインストール
+tts_reset	Reset	重置	重設	リセット	재설정	重设
+uninstall_device_admin	Uninstall app	卸载应用	解除安裝應用程式	アプリをアンインストール	애플리케이션 제거	卸載應用|解除安装应用程式
+uninstall_text	Uninstall	卸载	解除安裝	アンインストール	제거	卸載|解除安装
+unlock_disable_frp_warning_ok	Delete	删除	刪除	削除	삭제	
+user_confirm_remove_self_title	Delete yourself?	是否删除自己？	你要刪除自己嗎？	自分を削除しますか？	본인을 삭제하시겠습니까?	你要删除自己吗？|是否刪除自己？
+user_delete_button	Delete	删除	刪除	削除	삭제	
+user_delete_user_description	Delete user	删除用户	刪除使用者	ユーザーを削除	사용자 삭제	删除使用者|删除用戶|刪除用戶
+user_dict_settings_add_dialog_confirm	OK	确定	確定	OK	확인	
+user_dict_settings_add_dialog_less_options	Less options	隐藏部分选项	較少選項	詳細設定を隠す	옵션 숨기기	详细设定を隠す|较少选项|隱藏部分選項
+user_dict_settings_add_dialog_more_options	More options	显示更多选项	更多選項	詳細設定を表示	옵션 더보기	更多选项|詳細設定を錶示|详细设定を表示|顯示更多選項
+user_dict_settings_add_locale_option_name	Language:	语言：	語言：	言語:	언어:	言语:
+user_dict_settings_add_menu_title	Add	添加	新增	追加	추가	
+user_dict_settings_add_screen_title	Phrase	词组	詞組	フレーズ	구문	
+user_dict_settings_add_shortcut_option_name	Shortcut:	快捷键：	快速鍵：	ショートカット:	단축키:	快捷鍵：|快速键：
+user_dict_settings_add_word_hint	Type a word	输入字词	輸入字詞	単語を入力します	단어 입력	単语を入力します
+user_dict_settings_add_word_option_name	Word:	字词：	字詞：	単語:	단어:	単语:
+user_dict_settings_context_menu_delete_title	Delete	删除	刪除	削除	삭제	
+user_dict_settings_context_menu_edit_title	Edit	编辑	編輯	編集	수정	编集
+user_dict_settings_edit_dialog_title	Edit word	编辑字词	編輯文字	語句の編集	단어 수정	編輯字詞|编辑文字|语句の编集
+user_exit_guest_dialog_remove	Remove	移除	移除	削除	삭제	
+user_remove_user	Delete user	删除用户	刪除使用者	ユーザーの削除	사용자 삭제	删除使用者|删除用戶|刪除用戶
+user_rename	RENAME	重命名	重新命名	名前を変更	이름 바꾸기	
+voice_search_settings_title	Voice search	语音搜索	語音搜尋	音声検索	음성 검색	語音蒐尋|語音蒐索|语音搜寻|音聲検索
+vpn_cancel	Cancel	取消	取消	キャンセル	취소	
+vpn_done	Dismiss	关闭	關閉	終了	취소	终了
+vpn_edit	Edit VPN profile	编辑 VPN 配置文件	編輯 VPN 設定檔	VPN プロファイルの編集	VPN 프로필 수정	VPN プロファイルの编集|編輯 VPN 配置文件|编辑 VPN 设定档
+vpn_menu_delete	Delete profile	删除配置文件	刪除設定檔	プロファイルを削除	프로필 삭제	删除设定档|刪除配置文件
+vpn_menu_edit	Edit profile	修改配置文件	編輯設定檔	プロファイルを編集	프로필 수정	プロファイルを编集|编辑设定档|脩改配置文件
+vpn_no_vpns_added	No VPNs added	尚未添加任何 VPN	尚未新增任何 VPN	VPN は追加されていません	추가된 VPN 없음	
+vpn_save	Save	保存	儲存	保存	저장	储存
+web_action_enable_title	Instant apps	免安装应用	免安裝應用程式	Instant Apps	인스턴트 앱	免安装应用程式|免安裝應用
+wfc_disclaimer_agree_button_text	CONTINUE	继续	繼續	続行	계속	
+wfc_disclaimer_disagree_text	NO THANKS	不用了	不用了，謝謝	同意しない	거부	不用了，谢谢|衕意しない
+wifi_add_app_networks_saved_summary	Networks saved	网络已保存	已儲存網路	ネットワークを保存しました	네트워크 저장됨	已储存网路|網絡已保存
+wifi_add_app_single_network_saved_summary	Saved	已保存	已儲存	保存しました	저장됨	已储存
+wifi_add_app_single_network_saving_summary	Saving\u2026	正在保存…	儲存中…	保存しています…	저장 중…	储存中…
+wifi_add_network	Add network	添加网络	新增網路	ネットワークを追加	네트워크 추가	新增网路|添加網絡
+wifi_cancel	Cancel	取消	取消	キャンセル	취소	
+wifi_display_options_done	Done	完成	完成	完了	완료	
+wifi_dpp_add_device	Add device	添加设备	新增裝置	デバイスを追加	기기 추가	新增装置|添加設備
+wifi_dpp_add_device_to_network	Add a device	添加设备	新增裝置	デバイスの追加	기기 추가	新增装置|添加設備
+wifi_dpp_share_hotspot	Share hotspot	分享热点	分享無線基地台	アクセス ポイントの共有	핫스팟 공유	分享无线基地臺|分享無線基地臺|分享熱點
+wifi_dpp_share_wifi	Share Wi\u2011Fi	分享 WLAN	分享 Wi-Fi	Wi‑Fi の共有	Wi‑Fi 공유	
+wifi_no_related_sim_card	None	无	無	なし	없음	
+wifi_no_sim_card	No SIM	没有 SIM 卡	沒有 SIM 卡	SIM なし	SIM 없음	
+wifi_p2p_menu_rename	Rename device	重命名设备	重新命名裝置	デバイス名を変更	기기 이름 변경	重命名設備|重新命名装置
+wifi_privacy_send_device_name_toggle_title	Send device name	发送设备名称	傳送裝置名稱	デバイスの名前を送信	기기 이름 전송	传送装置名称|發送設備名稱
+wifi_save	Save	保存	儲存	保存	저장	储存
+wifi_scan_always_confirm_allow	Allow	允许	允許	許可する	허용	许可する
+wifi_scan_always_confirm_deny	Deny	拒绝	拒絕	許可しない	거부	许可しない
+wifi_settings_ssid_block_button_close	Close	关闭	關閉	閉じる	닫기	闭じる
+wifi_settings_wep_networks_button_allow	Allow WEP	允许连接 WEP	允許使用 WEP	WEP を許可する	WEP 허용	WEP を许可する|允許連接 WEP|允许使用 WEP
+wifi_sign_in_button_text	Sign in	登录	登入	ログイン	로그인	登錄
+wifi_warning_continue_button	Erase anyway	仍要清除	仍要清除	消去	무시하고 삭제	
+wizard_back	Back	返回	返回	戻る	뒤로	返迴
+wizard_next	Next	下一步	下一步	次へ	다음	
+work_sync_dialog_yes	Confirm	确认	確認	確認	확인	
+yes	Yes	是	是	はい	예	
+zen_custom_settings_dialog_ok	Got it	知道了	我知道了	OK	확인	
+zen_mode_action_disable	Disable	停用	停用	無効にする	사용 중지	无効にする
+zen_mode_action_enable	Enable	启用	啟用	有効にする	사용	啓用
+zen_mode_add	Add	添加	新增	追加	추가	
+zen_mode_add_rule	Add more	添加更多	新增更多	追加	추가	
+zen_mode_bypassing_apps_add	Add apps	添加应用	新增應用程式	アプリを追加	앱 추가	新增应用程式|添加應用
+zen_mode_bypassing_apps_add_header	Select more apps	选择更多应用	選取更多應用程式	他のアプリを選択	앱 추가 선택	他のアプリを选択|选取更多应用程式|選擇更多應用
+zen_mode_delete_automatic_rules	Delete schedules	删除时间表	刪除排程	スケジュールを削除	예약 삭제	删除排程|刪除時間錶
+zen_mode_delete_rule_button	Delete	删除	刪除	削除	삭제	
+zen_mode_edit_choose_icon_title	Choose an icon	选择一个图标	選擇圖示	アイコンを選択してください	아이콘 선택	アイコンを选択してください|选择图示|選擇一個圖標
+zen_mode_edit_name_hint	Mode name	模式名称	模式名稱	モード名	모드 이름	
+zen_mode_enable_dialog_turn_on	Turn on	开启	開啟	ON にする	사용 설정	开啓|開啓
+zen_mode_event_rule_reply	Where reply is	回复为	對活動的回覆為：	対象となる返信ステータス	응답	对活动的回覆爲：|對活動的迴覆為：|迴復爲
+zen_mode_event_rule_reply_yes	Yes	“参加”	「是」	参加	예	“參加”|參加
+zen_mode_event_rule_reply_yes_or_maybe	Yes or Maybe	“参加”或“可能参加”	「是」或「不確定」	参加/未定	예 또는 미정	“參加”或“可能參加”|「是」或「不确定」|參加/未定
+zen_mode_from_no_conversations	None	无	無	なし	없음	
+zen_mode_menu_delete_mode	Delete	删除	刪除	削除	삭제	
+zen_mode_menu_rename_mode	Rename	重命名	重新命名	名前を変更	이름 변경	
+zen_mode_no_exceptions	None	无	無	なし	없음	
+zen_mode_rename_title	Edit mode	修改模式	編輯模式	モードの編集	모드 수정	モードの编集|编辑模式|脩改模式
+zen_mode_rule_name_edit	Edit	修改	編輯	編集	수정	编辑|编集|脩改
+zen_mode_schedule_delete	Delete	删除	刪除	削除	삭제	
+zen_mode_select_schedule	Set a schedule	设置时间表	設定時間表	スケジュールの設定	일정 설정	スケジュールの设定|設定時間錶|設置時間錶|设定时间表
+zen_mode_select_schedule_calendar	Calendar events	日历活动	日曆活動	カレンダーの予定	캘린더 일정	日曆活动|日歷活動
+zen_mode_select_schedule_time	Day and time	日期和时间	星期幾和時間	曜日と時刻	요일 및 시간	日期和時間|星期几和时间|曜日と时刻
+zen_mode_start_time	Start time	开始时间	開始時間	開始時間	시작 시간	

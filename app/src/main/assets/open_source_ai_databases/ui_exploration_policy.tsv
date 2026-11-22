@@ -1,0 +1,21 @@
+# 探索護欄（S5）：所有門檻與禁忌詞都放這裡，程式只讀表
+# 格式: key \t value \t note
+MAX_ACTIONS_PER_ROUND	40	每輪探索動作上限
+MAX_MINUTES_PER_ROUND	3	每輪探索時間上限（分鐘）
+MAX_ACTIONS_PER_DAY	120	每日探索動作上限
+MIN_IDLE_MS	6000	畫面靜止多久才敢探索
+REQUIRE_CHARGING	1	是否必須充電中（1/0）
+REQUIRE_SCREEN_OFF	0	是否必須螢幕關閉（1/0；螢幕關閉時通常無法操作）
+FORBIDDEN_KEYWORD	付款	絕對禁區
+FORBIDDEN_KEYWORD	購買	絕對禁區
+FORBIDDEN_KEYWORD	訂閱	絕對禁區
+FORBIDDEN_KEYWORD	刪除	絕對禁區
+FORBIDDEN_KEYWORD	清除資料	絕對禁區
+FORBIDDEN_KEYWORD	還原	絕對禁區
+FORBIDDEN_KEYWORD	登出	絕對禁區
+FORBIDDEN_KEYWORD	解除安裝	絕對禁區
+FORBIDDEN_KEYWORD	權限	絕對禁區
+FORBIDDEN_KEYWORD	密碼	絕對禁區
+FORBIDDEN_KEYWORD	信用卡	絕對禁區
+FORBIDDEN_KEYWORD	轉帳	絕對禁區
+FORBIDDEN_KEYWORD	送出訂單	絕對禁區

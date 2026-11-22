@@ -1,0 +1,18 @@
+# Gen-5 冒煙測試（可重跑、狀態無關）
+# expect：SUCCESS / ABSTAIN
+#
+# 這一組刻意「不依賴上一個指令留下的畫面」：
+# 開 App、回首頁、音量、亮度、面板開啟，都是從任何畫面都能做的動作。
+#
+# 「搜尋」不放這裡，因為它依賴「目標 App 有可編輯欄位」——
+# 設定頁有時會回到上次的子頁，沒有搜尋框，那不是不穩定，是**狀態相關**。
+# 搜尋請用 tools/gen5_bench_cases.tsv（有明確順序）。
+打開設定	SUCCESS
+打開相機	SUCCESS
+回到主頁	SUCCESS
+調高音量	SUCCESS
+調低音量	SUCCESS
+調亮	SUCCESS
+打開Wi-Fi	ABSTAIN
+傳訊息給媽媽	ABSTAIN
+今天天氣如何	ABSTAIN

@@ -1,0 +1,4 @@
+id	tier	ok	detail	elapsed_s	steps	trace_lines	bad_lines	trace_file
+E01	EASY	0	timeout	45.7	0	0	1	
+E02	EASY	0	timeout	51.5	0	0	1	
+E03	EASY	0	timeout	45.6	0	0	1	

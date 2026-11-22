@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- 只在 debug build 存在的探針：讓 adb 能把指令送進正式管線（release 不打包） -->
+        <activity
+            android:name=".debug.ProbeActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+
+</manifest>

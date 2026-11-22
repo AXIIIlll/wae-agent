@@ -1,0 +1,21 @@
+# 內容項證據：導覽型列（資料夾/分類/設定入口）不該被當成「內容」
+# 格式: keyword \t kind \t note
+標籤	NAV_ROW	分類資料夾
+寄件備份	NAV_ROW	
+垃圾桶	NAV_ROW	
+所有郵件	NAV_ROW	
+草稿	NAV_ROW	
+已寄出	NAV_ROW	
+促銷內容	NAV_ROW	
+社交	NAV_ROW	
+更新	NAV_ROW	
+待辦	NAV_ROW	
+設定	NAV_ROW	
+說明	NAV_ROW	
+登出	NAV_ROW	
+帳戶	NAV_ROW	
+更多	NAV_ROW	
+資料夾	NAV_ROW	
+分類	NAV_ROW	
+返回	NAV_ROW	
+向上瀏覽	NAV_ROW	

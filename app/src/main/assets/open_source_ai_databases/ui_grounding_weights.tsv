@@ -1,0 +1,34 @@
+# ui_grounding_weights.tsv — Grounding 2.0 多通道融合權重（Bootstrap 版本）
+# 格式：model<TAB>feature<TAB>weight
+#   model = fusion   （跨通道候選融合，輸出 bonus 加進 fusedScore）
+#           meta     （alpha_fusion / fusion_bias；alpha 乘在 clamp 後的分數上）
+# 註解以 # 開頭；空白行忽略；由 tools/grounding/train_fusion_bootstrap.py 產生或覆蓋。
+# 分數規則：raw = bias + Σ(weight × feature)，clamp 在 ±2，再乘 alpha。
+# 注意：ExtremeRuntimeHooks.GROUNDING_2_ENABLED 預設 false；旗標關閉時本檔完全不被使用。
+meta	alpha_fusion	0.60
+meta	fusion_bias	0.00
+fusion	chan:a11y	0.25
+fusion	chan:ocr	0.10
+fusion	chan:icon	-0.10
+fusion	chan:spatial	-0.20
+fusion	flag:clickable	0.80
+fusion	flag:editable	0.50
+fusion	flag:checkable	0.40
+fusion	flag:checked	0.10
+fusion	flag:enabled	0.60
+fusion	flag:actionable	0.40
+fusion	flag:hasText	0.20
+fusion	flag:hasViewId	0.15
+fusion	flag:topOfChannel	0.50
+fusion	flag:singleOfChannel	0.20
+fusion	flag:sameRowText	0.70
+fusion	flag:containsText	0.50
+fusion	flag:leftOfText	-0.05
+fusion	flag:rightOfText	0.15
+fusion	num:score	0.90
+fusion	num:channelRank	0.40
+fusion	num:statusRank	0.20
+fusion	num:area	-0.15
+fusion	num:textLen	0.10
+fusion	num:vertOverlap	0.30
+fusion	num:edgeDist	0.30

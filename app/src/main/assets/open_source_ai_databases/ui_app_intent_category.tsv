@@ -1,0 +1,44 @@
+# ui_app_intent_category.tsv — 開放式意圖 → App 類別（給 AppSelector 用）
+# 格式：intent_term<TAB>categories(|分隔)<TAB>weight<TAB>note
+# 類別必須是 global_tw_cn_app_metadata.tsv 既有的分類（守門測試會檢查）。
+# 新增能力＝加一行，不改程式。
+看劇	VIDEO_MEDIA|SHORT_DRAMA	1.0	串流長劇
+追劇	SHORT_DRAMA|VIDEO_MEDIA	1.0	短劇優先
+看短劇	SHORT_DRAMA	1.0
+看影片	VIDEO_MEDIA	1.0
+看電影	VIDEO_MEDIA	1.0
+看视频	VIDEO_MEDIA	1.0
+看動畫	VIDEO_MEDIA	0.9
+聽歌	MUSIC_MEDIA	1.0
+聽音樂	MUSIC_MEDIA	1.0
+放音樂	MUSIC_MEDIA	1.0
+聽podcast	MUSIC_MEDIA	0.8
+導航	MAPS_NAV	1.0
+怎麼去	MAPS_NAV	0.9
+找路	MAPS_NAV	0.9
+查地圖	MAPS_NAV	1.0
+找附近	MAPS_NAV	0.8
+訂餐	FOOD_DELIVERY	1.0
+叫外送	FOOD_DELIVERY	1.0
+點餐	FOOD_DELIVERY	1.0
+購物	SHOPPING	1.0
+買東西	SHOPPING	1.0
+網購	SHOPPING	1.0
+看新聞	BROWSER|SEARCH_ENGINE	0.7	沒有 NEWS 類別，先用瀏覽器
+查資料	BROWSER|GOOGLE_BROWSER	0.9
+上網查	BROWSER|GOOGLE_BROWSER	0.9
+聊天	MESSAGING	1.0
+傳訊息	MESSAGING	1.0
+發文	SOCIAL	0.9
+看貼文	SOCIAL	1.0
+叫車	TRANSPORT	1.0
+訂房	TRAVEL	0.9
+訂飯店	TRAVEL	1.0
+轉帳	FINANCE_BANK|FINANCE_PAY	0.8
+查帳	FINANCE_BANK	0.8
+拍照	CAMERA	1.0
+看照片	GALLERY	1.0
+收信	EMAIL	1.0
+寄信	EMAIL	1.0
+翻譯	TOOLS	0.8
+計算	TOOLS	0.7

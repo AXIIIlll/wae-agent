@@ -1,0 +1,12 @@
+# 操作；格式：id<TAB>pre<TAB>cost<TAB>probe<TAB>fallback
+INTENT	target_app_has_intent	1	resolve_intent	A11Y_CLICK
+SYSTEM_API	permission_granted	1	api_available	PANEL
+CLIPBOARD	clipboard_available	1	clipboard_readable	A11Y_SET_TEXT
+PANEL	panel_available	4	quick_settings	A11Y_CLICK
+A11Y_CLICK	node_clickable	3	node_found	GESTURE
+A11Y_SET_TEXT	node_editable	3	node_found	INPUT_PASTE
+A11Y_READ	root_available	2	root_available	
+INPUT_PASTE	field_focused	4	focus_ok	GESTURE
+GESTURE	coords_valid	5	screen_size	TEACH
+LAUNCHER	icon_on_launcher	3	launcher_visible	GESTURE
+TEACH	taught_flow	9		

@@ -1,0 +1,8 @@
+# App 自動機的節點／邊預算策略（依複雜度自適應；純程式查表，無 AI）
+# 用途: 決定每個 App 的狀態圖上限，避免簡單 App 浪費記憶體、複雜 App 被過度淘汰
+# 來源: 本專案設計（docs/WAE_Extreme_Architecture.md §3.7）
+# 格式: tier \t min_states \t min_edges \t min_skeletons \t node_budget \t edge_budget \t ttl_days
+SIMPLE	0	0	0	32	160	30
+STANDARD	24	80	3	64	384	30
+COMPLEX	96	400	6	128	768	21
+HUGE	320	1400	10	256	1536	14

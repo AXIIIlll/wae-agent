@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>Ghost Motion</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:720px;height:720px;overflow:hidden;background:#050509;}
+  body{font-family:"Microsoft JhengHei UI",sans-serif;}
+  .stage{position:relative;width:720px;height:720px;overflow:hidden;
+    background:
+      radial-gradient(520px 520px at 12% 6%, rgba(139,92,246,.50), transparent 60%),
+      radial-gradient(420px 420px at 96% 14%, rgba(236,72,153,.34), transparent 60%),
+      radial-gradient(560px 560px at 88% 96%, rgba(34,211,238,.26), transparent 60%),
+      radial-gradient(440px 440px at 6% 92%, rgba(99,102,241,.34), transparent 60%),
+      radial-gradient(760px 620px at 50% 48%, rgba(0,0,0,.55), rgba(0,0,0,.55) 70%, transparent 100%),
+      linear-gradient(165deg,#08060F 0%, #050409 42%, #07050C 74%, #04040A 100%);}
+  .grain{position:absolute;inset:0;opacity:.05;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.6'/></svg>");}
+
+  .ghost-wrap{position:absolute;left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;
+    animation:float 4.32s cubic-bezier(.45,0,.55,1) infinite;}
+  .ghost-inner{position:absolute;inset:0;animation:breathe 4.32s cubic-bezier(.45,0,.55,1) infinite;}
+
+  .ghost-bloom{position:absolute;left:50%;top:50%;width:620px;height:620px;margin:-310px 0 0 -310px;border-radius:50%;
+    background:radial-gradient(circle,rgba(147,197,253,.30),rgba(167,139,250,.18) 45%,transparent 70%);
+    filter:blur(24px);animation:glow 4.32s ease-in-out infinite;}
+  .ghost-glass{position:absolute;inset:0;
+    background:
+      radial-gradient(140px 140px at 34% 20%, rgba(255,255,255,.72), transparent 62%),
+      radial-gradient(200px 200px at 62% 44%, rgba(226,238,255,.30), transparent 70%),
+      linear-gradient(168deg, rgba(255,255,255,.20), rgba(198,222,255,.10) 52%, rgba(167,139,250,.07));
+    -webkit-backdrop-filter:blur(26px) saturate(135%) brightness(1.55);
+    backdrop-filter:blur(26px) saturate(135%) brightness(1.55);
+    -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><path d='M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z' fill='white'/></svg>") center/contain no-repeat;
+    mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><path d='M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z' fill='white'/></svg>") center/contain no-repeat;}
+  .ghost-mist{position:absolute;left:50%;bottom:56px;width:360px;height:130px;margin-left:-180px;border-radius:50%;
+    background:radial-gradient(ellipse at 50% 50%, rgba(198,222,255,.42), rgba(167,139,250,.18) 45%, transparent 72%);
+    filter:blur(24px);animation:mist 4.32s ease-in-out infinite;}
+  .ghost-shade{position:absolute;inset:0;
+    background:radial-gradient(220px 150px at 52% 98%, rgba(10,12,26,.34), transparent 74%);
+    -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><path d='M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z' fill='white'/></svg>") center/contain no-repeat;
+    mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><path d='M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z' fill='white'/></svg>") center/contain no-repeat;}
+
+  .rim{position:absolute;inset:0;animation:shimmer 4.32s ease-in-out infinite;}
+  .rim .base{position:absolute;inset:0;opacity:.38;}
+  .rim .bright{position:absolute;inset:0;
+    -webkit-mask:linear-gradient(138deg,#000 0%,#000 34%,rgba(0,0,0,.45) 52%,transparent 74%);
+    mask:linear-gradient(138deg,#000 0%,#000 34%,rgba(0,0,0,.45) 52%,transparent 74%);}
+  .rim svg{width:100%;height:100%;display:block;}
+
+  .eyes{position:absolute;inset:0;}
+  .eye{position:absolute;width:42px;height:70px;border-radius:50%;background:#0B1220;opacity:.94;
+    top:164px;}
+  .eye.l{left:143px;} .eye.r{left:234px;}
+  .eye i{position:absolute;left:8px;top:14px;width:15px;height:15px;border-radius:50%;background:#fff;opacity:.9;}
+  .eyes{animation:look 4.32s ease-in-out infinite;}
+  .blinker{position:absolute;inset:0;animation:blink 2.16s steps(1,end) infinite;transform-origin:50% 46%;}
+
+  .mote{position:absolute;border-radius:50%;background:#DBEAFE;box-shadow:0 0 16px rgba(191,219,254,.9);}
+  .m1{width:9px;height:9px;left:96px;top:300px;animation:drift 4.32s linear infinite;}
+  .m2{width:6px;height:6px;right:70px;top:340px;animation:drift 4.32s linear infinite .9s;}
+  .m3{width:7px;height:7px;left:70px;bottom:190px;animation:drift 4.32s linear infinite 1.8s;}
+  .m4{width:11px;height:11px;right:96px;bottom:160px;animation:drift 4.32s linear infinite 2.7s;}
+
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.028)}}
+  @keyframes glow{0%,100%{opacity:.85}50%{opacity:1}}
+  @keyframes mist{0%,100%{opacity:.8;transform:scaleX(1)}50%{opacity:1;transform:scaleX(1.06)}}
+  @keyframes shimmer{0%,100%{opacity:.92}50%{opacity:1}}
+  @keyframes blink{0%,93%,100%{transform:scaleY(1)}95.5%{transform:scaleY(.08)}}
+  @keyframes look{0%,40%{transform:translateX(0)}55%,75%{transform:translateX(-9px)}90%,100%{transform:translateX(0)}}
+  @keyframes drift{0%{transform:translateY(0) scale(1);opacity:0}
+    12%{opacity:.9}
+    100%{transform:translateY(-150px) scale(.7);opacity:0}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="grain"></div>
+
+  <div class="ghost-wrap">
+    <div class="ghost-bloom"></div>
+    <div class="ghost-inner">
+      <div class="ghost-glass"></div>
+      <div class="ghost-mist"></div>
+      <div class="ghost-shade"></div>
+      <div class="rim">
+        <div class="base">
+          <svg viewBox="0 0 120 120"><path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z" fill="none" stroke="#BCD2FF" stroke-width="2.6" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="bright">
+          <svg viewBox="0 0 120 120"><path d="M60,18 C37,18 20,33 20,54 L20,80 C20,88 25,94 32,94 C38,94 40,88 46,88 C51,88 53,94 59,94 C65,94 67,88 72,88 C78,88 80,94 86,94 C93,94 98,88 98,80 L98,54 C98,33 83,18 60,18 Z" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="eyes">
+        <div class="blinker">
+          <div class="eye l"><i></i></div>
+          <div class="eye r"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <span class="mote m1"></span><span class="mote m2"></span>
+  <span class="mote m3"></span><span class="mote m4"></span>
+</div>
+
+<script>
+  const t = parseFloat(new URLSearchParams(location.search).get('t') || '0');
+  window.addEventListener('load', () => {
+    document.getAnimations().forEach(a => { try { a.pause(); a.currentTime = t * 1000; } catch (e) {} });
+  });
+</script>
+</body>
+</html>

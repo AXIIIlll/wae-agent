@@ -1,0 +1,32 @@
+# ui_decision_head.tsv — 由 tools/decision_head/train_linear.py 產生
+# 格式：model<TAB>feature<TAB>weight（meta 列設定 alpha）
+meta	alpha_candidate	0.60
+meta	alpha_edge	0.25
+meta	candidate_bias	0.00
+meta	edge_bias	0.00
+candidate	flag:isBottomNavigationTab	-1.1386
+candidate	flag:isNavigationRow	-0.7790
+candidate	flag:isEditable	0.7748
+candidate	flag:hasSearchIdHint	0.7460
+candidate	flag:isClickable	0.4245
+candidate	num:sim	0.3610
+candidate	flag:isSearchAffordance	0.2874
+candidate	num:p95	-0.1055
+candidate	num:total	-0.0722
+candidate	flag:opMatch	-0.0435
+candidate	num:success	0.0333
+candidate	num:area	-0.0211
+candidate	num:overlap	0.0014
+edge	flag:isSearchAffordance	-0.1645
+edge	num:p95	-0.1569
+edge	flag:opMatch	0.1510
+edge	flag:hasSearchIdHint	0.1434
+edge	num:overlap	0.1399
+edge	num:success	0.1394
+edge	num:total	0.0833
+edge	num:area	0.0432
+edge	flag:isNavigationRow	0.0399
+edge	flag:isClickable	0.0388
+edge	flag:isEditable	0.0367
+edge	num:sim	0.0051
+edge	flag:isBottomNavigationTab	0.0051

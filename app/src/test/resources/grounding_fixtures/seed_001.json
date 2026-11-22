@@ -1,0 +1,162 @@
+{
+  "schema": "wae-grounding-fixture/1",
+  "name": "seed_001",
+  "source": "manual",
+  "createdAt": "2026-11-14",
+  "note": "手寫種子 fixture：只放 T1/T2 文字 token 與幾何結構，不含任何真實 App 文字。用來驗證 GroundingReplay 解析與 Top-1/Top-3/abstain 定義，不代表真機指標。",
+  "stats": {
+    "steps": 3,
+    "labeled": 3
+  },
+  "steps": [
+    {
+      "stepId": "seed_001_s0",
+      "pkg": "P1",
+      "posture": "FORM",
+      "stateId": "S1",
+      "goal": "T1",
+      "chosenIndex": 0,
+      "labelIndex": 0,
+      "labelReason": "postcondition",
+      "changed": true,
+      "postconditionVerified": true,
+      "elapsedMs": 7,
+      "candidates": [
+        {
+          "slot": 0,
+          "text": "T1",
+          "className": "android.widget.EditText",
+          "viewId": "V1",
+          "bounds": [72, 300, 1008, 396],
+          "clickable": false,
+          "editable": true,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.910
+        },
+        {
+          "slot": 1,
+          "text": "T2",
+          "className": "android.widget.ImageButton",
+          "viewId": "V2",
+          "bounds": [936, 276, 1032, 372],
+          "clickable": true,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.420
+        },
+        {
+          "slot": 2,
+          "text": "T3",
+          "className": "android.widget.TextView",
+          "viewId": "V3",
+          "bounds": [72, 432, 1008, 480],
+          "clickable": false,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.310
+        }
+      ]
+    },
+    {
+      "stepId": "seed_001_s1",
+      "pkg": "P1",
+      "posture": "LIST",
+      "stateId": "S2",
+      "goal": "T2",
+      "chosenIndex": 2,
+      "labelIndex": 2,
+      "labelReason": "screen_changed",
+      "changed": true,
+      "postconditionVerified": false,
+      "elapsedMs": 9,
+      "candidates": [
+        {
+          "slot": 0,
+          "text": "T4",
+          "className": "android.widget.Button",
+          "viewId": "V4",
+          "bounds": [72, 720, 1008, 816],
+          "clickable": true,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.620
+        },
+        {
+          "slot": 1,
+          "text": "T5",
+          "className": "android.widget.TextView",
+          "viewId": "V5",
+          "bounds": [72, 840, 1008, 888],
+          "clickable": false,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.480
+        },
+        {
+          "slot": 2,
+          "text": "T2",
+          "className": "android.widget.TextView",
+          "viewId": "V6",
+          "bounds": [72, 960, 1008, 1056],
+          "clickable": true,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.550
+        }
+      ]
+    },
+    {
+      "stepId": "seed_001_s2",
+      "pkg": "P1",
+      "posture": "MENU",
+      "stateId": "S3",
+      "goal": "T3",
+      "chosenIndex": -1,
+      "labelIndex": 1,
+      "labelReason": "manual",
+      "changed": false,
+      "postconditionVerified": false,
+      "elapsedMs": 12,
+      "candidates": [
+        {
+          "slot": 0,
+          "text": "T6",
+          "className": "android.widget.TextView",
+          "viewId": "V7",
+          "bounds": [72, 1200, 1008, 1296],
+          "clickable": true,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.620
+        },
+        {
+          "slot": 1,
+          "text": "T3",
+          "className": "android.widget.TextView",
+          "viewId": "V8",
+          "bounds": [72, 1320, 1008, 1416],
+          "clickable": true,
+          "editable": false,
+          "checkable": false,
+          "checked": false,
+          "enabled": true,
+          "score": 0.100
+        }
+      ]
+    }
+  ]
+}
