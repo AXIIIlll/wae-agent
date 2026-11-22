@@ -327,7 +327,9 @@ object PredicateRuntime {
                     similarity = PredicateAgent.LabelSimilarity { goal, cand ->
                         DecisionRanker.textScore(goal, cand, context)
                     },
-                    similarityFloor = 0.62f,
+                    similarityFloor = com.wae.agent.core.runtime.Tunables.getFloat(
+                        context, "match.similarity_floor", 0.62f
+                    ),
                     tried = tried,
                     searchUsed = searchUsed
                 ),

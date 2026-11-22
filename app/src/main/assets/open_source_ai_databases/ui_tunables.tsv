@@ -35,6 +35,13 @@ decision.scroll_when_below	0.30	低於這個分數先捲動找
 decision.ask_when_nothing	1	什麼都找不到時是否反問（1/0）
 decision.role_min_length	2	角色關鍵詞最短長度
 
+# ── 目標匹配（多視圖融合的權重；四項相加後夾在 0..1）──────────
+match.weight.semantic	0.55	語意分數（文字／模型）的權重
+match.weight.kind	0.22	角色（按鈕／開關／輸入框…）相符的權重
+match.weight.state	0.15	開關狀態相符的權重
+match.weight.usable	0.08	元件可用（enabled）的權重
+match.similarity_floor	0.62	低於這個分數就不動作（寧可反問，不要點錯）
+
 # ── App 選擇 ──────────────────────────────────────────────
 app.confident_score	1.5	App 選擇的絕對信心門檻
 app.tie_gap	0.25	第一名與第二名的最小差距

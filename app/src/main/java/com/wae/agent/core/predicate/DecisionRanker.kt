@@ -91,13 +91,25 @@ object DecisionRanker {
 
         val usable = if (candidate.enabled) 1f else 0f
 
-        return (W_SEMANTIC * semantic + W_KIND * kindMatch + W_STATE * stateMatch + W_USABLE * usable)
-            .coerceIn(0f, 1f)
+        val total = weight(context, KEY_W_SEMANTIC, FALLBACK_SEMANTIC) * semantic +
+            weight(context, KEY_W_KIND, FALLBACK_KIND) * kindMatch +
+            weight(context, KEY_W_STATE, FALLBACK_STATE) * stateMatch +
+            weight(context, KEY_W_USABLE, FALLBACK_USABLE) * usable
+        return total.coerceIn(0f, 1f)
     }
 
-    // 權重（之後要換成 TSV 可調；先固定，因為這是第一版決策模型）
-    private const val W_SEMANTIC = 0.55f
-    private const val W_KIND = 0.22f
-    private const val W_STATE = 0.15f
-    private const val W_USABLE = 0.08f
+    /** 權重一律走 Tunables（可在 `ui_tunables.tsv` 調、可真機覆寫），程式碼只留最後防線。 */
+    private fun weight(context: Context?, key: String, fallback: Float): Float =
+        com.wae.agent.core.runtime.Tunables.getFloat(context, key, fallback)
+
+    private const val KEY_W_SEMANTIC = "match.weight.semantic"
+    private const val KEY_W_KIND = "match.weight.kind"
+    private const val KEY_W_STATE = "match.weight.state"
+    private const val KEY_W_USABLE = "match.weight.usable"
+
+    // 最後防線（真相在 assets/.../ui_tunables.tsv；這裡只在連資料都讀不到時生效）
+    private const val FALLBACK_SEMANTIC = 0.55f
+    private const val FALLBACK_KIND = 0.22f
+    private const val FALLBACK_STATE = 0.15f
+    private const val FALLBACK_USABLE = 0.08f
 }
