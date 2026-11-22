@@ -1,0 +1,102 @@
+﻿id	tier	command	target	attempt1	attempt2	final	detail
+001	EASY	打開設定	com.android.settings	SUCCESS		SUCCESS	11-22 17:06:11.015 29275 29519 I WAE_CAPS: record pkg=com.android.settings purpose=A1.1 ok=true
+006	EASY	打開 Chrome	com.android.chrome	SUCCESS		SUCCESS	11-22 17:13:23.844 29275  1100 I WAE_CAPS: record pkg=com.android.chrome purpose=A1.1 ok=true
+002	EASY	打開時鐘	com.sec.android.app.clockpackage	SUCCESS		SUCCESS	11-22 17:13:59.532 29275  1791 I WAE_CAPS: record pkg=com.sec.android.app.clockpackage purpose=A1.1 ok=true
+003	EASY	打開相機	com.sec.android.app.camera	SUCCESS		SUCCESS	11-22 17:14:31.107 29275  2188 I WAE_CAPS: record pkg=com.sec.android.app.camera purpose=A1.1 ok=true
+004	EASY	打開計算機	com.sec.android.app.popupcalculator	SUCCESS		SUCCESS	11-22 17:15:02.061 29275  2962 I WAE_CAPS: record pkg=com.sec.android.app.popupcalculator purpose=A1.1 ok=true
+005	EASY	打開聯絡人	com.samsung.android.app.contacts	SUCCESS		SUCCESS	11-22 17:15:46.732 29275  3439 I WAE_CAPS: record pkg=com.samsung.android.app.contacts purpose=A1.1 ok=true
+006	EASY	打開 Chrome	com.android.chrome	SUCCESS		SUCCESS	11-22 17:16:05.669 29275  4198 I WAE_CAPS: record pkg=com.android.chrome purpose=A1.1 ok=true
+007	EASY	打開地圖	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 17:16:37.250 29275  4588 I WAE_CAPS: record pkg=com.google.android.apps.maps purpose=A1.1 ok=true
+008	EASY	打開 YouTube	com.google.android.youtube	SUCCESS		SUCCESS	11-22 17:17:08.430 29275  5233 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+009	EASY	打開相簿	com.google.android.apps.photos	SUCCESS		SUCCESS	11-22 17:17:35.906 29275  5969 I WAE_CAPS: record pkg=com.google.android.apps.photos purpose=A1.1 ok=true
+010	EASY	打開 Spotify	com.spotify.music	SUCCESS		SUCCESS	11-22 17:18:07.809 29275  6538 I WAE_CAPS: record pkg=com.spotify.music purpose=A1.1 ok=true
+011	EASY	在設定裡搜尋藍牙	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:18:44.857 29275  7753 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+012	EASY	在設定裡搜尋 Wi-Fi	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:19:40.610 29275  8265 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+013	EASY	在設定裡搜尋電池	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:20:35.759 29275  8959 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+014	EASY	在設定裡搜尋顯示	com.android.settings	SUCCESS		SUCCESS	11-22 17:21:30.731 29275  9283 I WAE_CAPS: record pkg=com.android.settings purpose=A5.1 ok=true
+015	EASY	在 Chrome 搜尋貓咪	com.android.chrome	SUCCESS		SUCCESS	11-22 17:22:06.449 29275  9525 I WAE_CAPS: record pkg=com.android.chrome purpose=A5.1 ok=true
+016	EASY	在 YouTube 搜尋烹飪影片	com.google.android.youtube	SUCCESS		SUCCESS	11-22 17:22:33.880 29275  9958 I WAE_CAPS: record pkg=com.google.android.youtube purpose=A5.1 ok=true
+017	EASY	在地圖搜尋咖啡店	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 17:23:06.317 29275 10511 I WAE_CAPS: record pkg=com.google.android.apps.maps purpose=A5.1 ok=true
+018	EASY	在時鐘看世界時間	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 17:23:34.182 29275 11024 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+019	EASY	在時鐘查看鬧鐘清單	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 17:24:37.726 29275 11616 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+020	EASY	打開 Wi-Fi	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:25:45.620 29275 12221 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+021	EASY	關閉藍牙	com.android.settings	FAIL	FAIL	FAIL	11-22 17:26:42.457 29275 12740 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+022	EASY	把亮度調高	com.android.settings	SUCCESS		SUCCESS	11-22 17:27:34.850 29275 13276 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+023	EASY	把音量調低	com.android.settings	REJECT	SUCCESS	SUCCESS	11-22 17:28:05.466 29275 13483 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+024	EASY	在聯絡人搜尋王	com.samsung.android.app.contacts	UNKNOWN	UNKNOWN	UNKNOWN	11-22 17:28:57.334 29275 13898 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+025	EASY	在電話查看通話紀錄	com.samsung.android.dialer	SUCCESS		SUCCESS	11-22 17:30:00.809 29275 14793 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=電話 app=電話 via=direct matched_by=noun command=在電話查看通話紀錄
+026	EASY	打開 Chrome 的歷史紀錄	com.android.chrome	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:30:33.070 29275 15138 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+027	EASY	在地圖看目前位置	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 17:31:28.892 29275 15997 I WAE_GEN5: result=SUCCESS noun_type=PLACE noun=地圖 app=地圖 via=direct matched_by=noun command=在地圖看目前位置
+028	EASY	在 YouTube 打開首頁	com.google.android.youtube	SUCCESS		SUCCESS	11-22 17:31:58.498 29275 16828 I WAE_GEN5: result=SUCCESS noun_type=APP noun=在 YouTube 首頁 app=YouTube via=direct matched_by=verb command=在 YouTube 打開首頁
+029	EASY	打開 Samsung 瀏覽器	com.sec.android.app.sbrowser	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:32:41.129 29275 17654 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+030	EASY	打開 YouTube Music	com.google.android.apps.youtube.music	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:33:33.949 29275 18968 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+031	MEDIUM	在設定裡搜尋飛航模式並打開	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:34:29.537 29275 19492 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+032	MEDIUM	在設定裡開啟 Wi-Fi 並查看已連線網路	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:35:25.145 29275 20015 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+033	MEDIUM	在設定裡進入藍牙並看已配對裝置	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:36:20.673 29275 20932 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+034	MEDIUM	在設定裡把字型調大	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:37:17.529 29275 21474 I WAE_EXPLORE: shadow pkg=com.android.settings pick=grid:540,1336 verdict=true commit=true (device untouched)
+035	MEDIUM	在設定裡關閉自動旋轉	com.android.settings	SUCCESS		SUCCESS	11-22 17:38:11.193 29275 21997 I WAE_GEN5: result=SUCCESS noun_type=SETTING noun=在設定裡自動旋轉 app=設定 via=direct matched_by=verb command=在設定裡關閉自動旋轉
+011	EASY	在設定裡搜尋藍牙	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:40:46.646 29275 23183 I WAE_EXPLORE: shadow pkg=com.sec.android.app.launcher pick=id:icon_container verdict=true commit=true (device untouched)
+020	EASY	打開 Wi-Fi	com.android.settings	ABSTAIN	ABSTAIN	ABSTAIN	11-22 17:41:54.040 29275 23788 I WAE_EXPLORE: shadow pkg=com.sec.android.app.launcher pick=id:icon_container verdict=true commit=true (device untouched)
+037	MEDIUM	在設定裡查看儲存空間	com.android.settings	FAIL	FAIL	FAIL	11-22 17:57:38.020 27903 29833 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=39 success=0.98 (execution flag=true)
+038	MEDIUM	在設定裡查看應用程式清單	com.android.settings	SUCCESS		SUCCESS	11-22 17:58:23.425 27903 30087 I WAE_GEN5: result=SUCCESS noun_type=APP noun=應用程式 app=設定 via=open matched_by=noun command=在設定裡查看應用程式清單
+039	MEDIUM	在 Chrome 搜尋今天天氣並打開第一個結果	com.android.chrome	FAIL	FAIL	FAIL	11-22 17:59:03.008 27903 30578 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=49 success=0.98 (execution flag=true)
+040	MEDIUM	在 Chrome 搜尋台北車站	com.android.chrome	FAIL	FAIL	FAIL	11-22 17:59:59.095 27903 31271 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=59 success=0.98 (execution flag=true)
+041	MEDIUM	在 YouTube 搜尋音樂並播放第一首	com.google.android.youtube	FAIL	FAIL	FAIL	11-22 18:00:54.722 27903 32454 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=69 success=0.99 (execution flag=true)
+042	MEDIUM	在 YouTube 搜尋新聞並打開第一個	com.google.android.youtube	FAIL	FAIL	FAIL	11-22 18:01:47.428 27903  1232 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=79 success=0.99 (execution flag=true)
+043	MEDIUM	在地圖搜尋加油站	com.google.android.apps.maps	FAIL	FAIL	FAIL	11-22 18:02:48.312 27903  2930 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=89 success=0.99 (execution flag=true)
+044	MEDIUM	在地圖搜尋停車場	com.google.android.apps.maps	FAIL	FAIL	FAIL	11-22 18:03:44.181 27903  4242 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=99 success=0.99 (execution flag=true)
+045	MEDIUM	在地圖查看路線到台北 101	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 18:04:32.598 27903  4842 I WAE_GEN5: result=SUCCESS noun_type=PLACE noun=台北 app=地圖 via=uri matched_by=noun command=在地圖查看路線到台北 101
+046	MEDIUM	在相簿查看最近的照片	com.google.android.apps.photos	SUCCESS		SUCCESS	11-22 18:05:05.061 27903  5283 I WAE_GEN5: result=SUCCESS noun_type=MEDIA noun=照片 app=YouTube via=uri matched_by=noun command=在相簿查看最近的照片
+047	MEDIUM	在相簿搜尋食物	com.google.android.apps.photos	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:05:37.190 27903  5824 I WAE_GEN5: predicate ok 'PΦ:task_done(3)'
+048	MEDIUM	在時鐘新增一個早上七點的鬧鐘	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:06:39.563 27903  7087 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+049	MEDIUM	在時鐘開啟計時器	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:07:43.327 27903  7907 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+050	MEDIUM	在計算機算 15 乘以 8	com.sec.android.app.popupcalculator	FAIL	FAIL	FAIL	11-22 18:08:47.687 27903  8472 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=109 success=0.99 (execution flag=true)
+051	MEDIUM	在聯絡人新增聯絡人	com.samsung.android.app.contacts	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:09:42.599 27903  8815 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+052	MEDIUM	在電話查看未接來電	com.samsung.android.dialer	SUCCESS		SUCCESS	11-22 18:10:46.296 27903  9603 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=電話 app=電話 via=direct matched_by=noun command=在電話查看未接來電
+053	MEDIUM	在 Spotify 搜尋周杰倫	com.spotify.music	SUCCESS		SUCCESS	11-22 18:11:21.315 27903 10055 I WAE_CAPS: record pkg=com.spotify.music purpose=A5.1 ok=true
+054	MEDIUM	在 Spotify 播放每日推薦	com.spotify.music	SUCCESS		SUCCESS	11-22 18:11:54.488 27903 11232 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=推薦 app=Chrome via=uri matched_by=noun command=在 Spotify 播放每日推薦
+055	MEDIUM	在設定裡查看通知設定	com.android.settings	FAIL	FAIL	FAIL	11-22 18:12:34.184 27903 11884 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=119 success=0.99 (execution flag=true)
+056	MEDIUM	在設定裡查看隱私權	com.android.settings	FAIL	FAIL	FAIL	11-22 18:13:29.291 27903 12317 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=129 success=0.99 (execution flag=true)
+057	MEDIUM	在設定裡查看語言與輸入	com.android.settings	FAIL	FAIL	FAIL	11-22 18:14:24.848 27903 12639 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=139 success=0.99 (execution flag=true)
+058	MEDIUM	在設定裡查看關於手機	com.android.settings	SUCCESS		SUCCESS	11-22 18:15:11.598 27903 12893 I WAE_GEN5: result=SUCCESS noun_type=PRODUCT noun=手機 app=手機護眼 via=direct matched_by=noun command=在設定裡查看關於手機
+059	MEDIUM	在 Chrome 開啟新分頁並搜尋台灣	com.android.chrome	FAIL	UNKNOWN	UNKNOWN	11-22 18:15:56.014 27903 13513 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=149 success=0.99 (execution flag=true)
+060	MEDIUM	在 YouTube Music 搜尋歌單	com.google.android.apps.youtube.music	FAIL	FAIL	FAIL	11-22 18:16:46.158 27903 14164 I WAE_PROGRAM: eligible pkg=com.sec.android.app.launcher edge=id:taskView exec=154 success=0.99 (execution flag=true)
+061	HARD	在設定裡把 Wi-Fi 關掉再打開	com.android.settings	SUCCESS		SUCCESS	11-22 18:17:55.234 27903 14580 I WAE_HEALTH: pkg=com.android.settings.intelligence health=0.02 coverage=0.03 freshness=1.00 success=0.67 negative=0.00 → REBUILD
+062	HARD	在設定裡找到開發人員選項並查看 USB 偵錯狀態	com.android.settings	FAIL	FAIL	FAIL	11-22 18:18:17.464 27903 15090 I WAE_HEALTH: pkg=com.android.settings.intelligence health=0.03 coverage=0.05 freshness=1.00 success=0.71 negative=0.00 → REBUILD
+063	HARD	在設定裡查看某個 App 的權限	com.android.settings	SUCCESS		SUCCESS	11-22 18:19:01.305 27903 15480 I WAE_GEN5: result=SUCCESS noun_type=APP noun=App app=設定 via=open matched_by=noun command=在設定裡查看某個 App 的權限
+064	HARD	在設定裡把螢幕逾時改成 1 分鐘	com.android.settings	FAIL	FAIL	FAIL	11-22 18:19:43.183 27903 15720 I WAE_HEALTH: pkg=com.android.settings.intelligence health=0.05 coverage=0.06 freshness=1.00 success=0.77 negative=0.00 → REBUILD
+065	HARD	在設定裡關閉某個 App 的通知再開回來	com.android.settings	SUCCESS		SUCCESS	11-22 18:20:28.579 27903 15960 I WAE_GEN5: result=SUCCESS noun_type=APP noun=App app=設定 via=open matched_by=noun command=在設定裡關閉某個 App 的通知再開回來
+066	HARD	在 Chrome 搜尋餐廳並找評分最高的	com.android.chrome	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:21:05.135 27903 16138 I WAE_GEN5: predicate ok 'PΦ:task_done(3)'
+067	HARD	在 Chrome 開啟無痕視窗搜尋	com.android.chrome	UNKNOWN	SUCCESS	SUCCESS	11-22 18:22:05.417 27903 18314 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+068	HARD	在 YouTube 搜尋並篩選本週上傳	com.google.android.youtube	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:23:10.279 27903 19424 I WAE_GEN5: predicate ok 'PΦ:task_done(3)'
+069	HARD	在 YouTube 訂閱一個頻道	com.google.android.youtube	SUCCESS		SUCCESS	11-22 18:24:12.551 27903 20890 I WAE_GEN5: result=SUCCESS noun_type=BOOKING noun=在 YouTube 閱一個頻道 app=YouTube via=direct matched_by=verb command=在 YouTube 訂閱一個頻道
+070	HARD	在地圖搜尋咖啡店並看評價	com.google.android.apps.maps	FAIL	FAIL	FAIL	11-22 18:24:51.434 27903 21728 I WAE_HEALTH: pkg=com.android.settings.intelligence health=0.05 coverage=0.06 freshness=1.00 success=0.86 negative=0.00 → REBUILD
+071	HARD	在地圖規劃步行路線	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 18:25:41.029 27903 22417 I WAE_GEN5: result=SUCCESS noun_type=PLACE noun=路線 app=地圖 via=uri matched_by=noun command=在地圖規劃步行路線
+072	HARD	在地圖切換衛星檢視	com.google.android.apps.maps	SUCCESS		SUCCESS	11-22 18:26:12.310 27903 22870 I WAE_GEN5: result=SUCCESS noun_type=PLACE noun=地圖 app=地圖 via=direct matched_by=noun command=在地圖切換衛星檢視
+073	HARD	在相簿建立新相簿並命名	com.google.android.apps.photos	SUCCESS		SUCCESS	11-22 18:26:44.866 27903 23287 I WAE_GEN5: result=SUCCESS noun_type=PLACE noun=立新 app=地圖 via=uri matched_by=noun command=在相簿建立新相簿並命名
+074	HARD	在相簿分享一張照片	com.google.android.apps.photos	SUCCESS		SUCCESS	11-22 18:27:16.154 27903 23728 I WAE_GEN5: result=SUCCESS noun_type=MEDIA noun=照片 app=YouTube via=uri matched_by=noun command=在相簿分享一張照片
+075	HARD	在時鐘設定週一到週五的鬧鐘	com.sec.android.app.clockpackage	SUCCESS		SUCCESS	11-22 18:27:47.044 27903 24193 I WAE_GEN5: result=SUCCESS noun_type=SETTING noun=在時鐘週一到週五的鬧鐘 app=時鐘 via=direct matched_by=verb command=在時鐘設定週一到週五的鬧鐘
+076	HARD	在時鐘刪除一個鬧鐘	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:28:18.363 27903 24545 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+077	HARD	在計算機換算匯率	com.sec.android.app.popupcalculator	SUCCESS		SUCCESS	11-22 18:29:22.097 27903 25132 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=匯率 app=Chrome via=uri matched_by=noun command=在計算機換算匯率
+078	HARD	在聯絡人編輯一個聯絡人的電話	com.samsung.android.app.contacts	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:29:54.971 27903 25471 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+079	HARD	在電話輸入號碼但不要撥出	com.samsung.android.dialer	SUCCESS		SUCCESS	11-22 18:30:57.786 27903 26477 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=電話 app=電話 via=direct matched_by=noun command=在電話輸入號碼但不要撥出
+080	HARD	在 Spotify 建立播放清單	com.spotify.music	SUCCESS		SUCCESS	11-22 18:31:29.990 27903 26731 I WAE_GEN5: result=SUCCESS noun_type=MEDIA noun=在 Spotify 建立清單 app=Spotify via=direct matched_by=verb command=在 Spotify 建立播放清單
+081	HARD	在 Spotify 播放某張專輯	com.spotify.music	SUCCESS		SUCCESS	11-22 18:32:04.704 27903 27805 I WAE_GEN5: result=SUCCESS noun_type=MEDIA noun=專輯 app=YouTube via=uri matched_by=noun command=在 Spotify 播放某張專輯
+082	HARD	在設定裡查看 App 的電池使用限制	com.android.settings	SUCCESS		SUCCESS	11-22 18:32:32.868 27903 28722 I WAE_GEN5: result=SUCCESS noun_type=APP noun=App app=設定 via=open matched_by=noun command=在設定裡查看 App 的電池使用限制
+083	HARD	在設定裡關閉背景資料再開回來	com.android.settings	SUCCESS		SUCCESS	11-22 18:33:04.799 27903 28974 I WAE_GEN5: result=SUCCESS noun_type=INFO noun=資料 app=Chrome via=uri matched_by=noun command=在設定裡關閉背景資料再開回來
+084	HARD	在 Chrome 下載一個檔案	com.android.chrome	SUCCESS		SUCCESS	11-22 18:33:38.033 27903 29281 I WAE_GEN5: result=SUCCESS noun_type=FILE noun=檔案 app=我的檔案 via=direct matched_by=noun command=在 Chrome 下載一個檔案
+085	HARD	在 YouTube 開啟字幕	com.google.android.youtube	SUCCESS		SUCCESS	11-22 18:34:07.547 27903 29835 I WAE_GEN5: result=SUCCESS noun_type=APP noun=在 YouTube 字幕 app=YouTube via=direct matched_by=verb command=在 YouTube 開啟字幕
+086	EXTREME	在設定裡找到飛航模式，開啟後再關閉，最後確認狀態	com.android.settings	FAIL	FAIL	FAIL	11-22 18:34:56.218 27903 30304 I WAE_HEALTH: pkg=com.android.settings.intelligence health=0.06 coverage=0.06 freshness=1.00 success=0.90 negative=0.00 → REBUILD
+087	EXTREME	在設定裡把 Wi-Fi 關掉再打開，最後回到設定首頁	com.android.settings	CLEAR_WIN	FAIL	FAIL	11-22 18:36:09.877 27903 30711 I WAE_EXEC: L4 Dispatched: goal='把 Wi-Fi 關掉' kind=TAP target='Wi-Fi' bounds=[660, 457, 764, 486] ok=true
+088	EXTREME	在設定裡依序關閉藍牙、定位、NFC	com.android.settings	FAIL	FAIL	FAIL	11-22 18:37:07.802 27903 31057 I WAE_VISION: detect: raw=247 nms=24 188ms shape=[5,8400]
+089	EXTREME	在 Chrome 搜尋三個不同關鍵字後回到第一個分頁	com.android.chrome	FAIL	UNKNOWN	UNKNOWN	11-22 18:37:50.690 27903 31406 I WAE_GEN5: predicate ok 'PΦ:task_done(3)'
+090	EXTREME	在 YouTube 搜尋一部影片，看幾秒後返回再搜尋另一部	com.google.android.youtube	SUCCESS		SUCCESS	11-22 18:38:54.120 27903 32167 I WAE_CAPS: record pkg=com.google.android.youtube purpose=A5.1 ok=true
+091	EXTREME	在地圖搜尋加油站，規劃路線後改成步行	com.google.android.apps.maps	FAIL	FAIL	FAIL	11-22 18:39:30.876 27903   785 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=48 success=0.98 (execution flag=true)
+092	EXTREME	在相簿把一張照片加入最愛後再取消	com.google.android.apps.photos	SUCCESS		SUCCESS	11-22 18:40:16.632 27903  1914 I WAE_GEN5: result=SUCCESS noun_type=MEDIA noun=照片 app=YouTube via=uri matched_by=noun command=在相簿把一張照片加入最愛後再取消
+093	EXTREME	在時鐘新增鬧鐘、確認清單、再刪除它	com.sec.android.app.clockpackage	UNKNOWN	UNKNOWN	UNKNOWN	11-22 18:40:50.549 27903  2341 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「內容」，可以再說得具體一點嗎？'
+094	EXTREME	在設定裡開啟省電模式並確認電量顯示	com.android.settings	SUCCESS		SUCCESS	11-22 18:41:54.201 27903  3509 I WAE_GEN5: result=SUCCESS noun_type=APP noun=在設定裡省電模式並確認電量顯示 app=設定 via=direct matched_by=verb command=在設定裡開啟省電模式並確認電量顯示
+095	EXTREME	在設定裡把語言改成英文再改回中文	com.android.settings	FAIL	FAIL	FAIL	11-22 18:42:36.067 27903  3903 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=65 success=0.99 (execution flag=true)
+096	EXTREME	在 Chrome 開啟網站後用頁內搜尋找關鍵字	com.android.chrome	UNKNOWN	FAIL	FAIL	11-22 18:43:23.214 27903  4340 I WAE_GEN5: predicate ask 'PΦ:ask(TASK) 我在畫面上找不到「在 Chrome 網站後用頁內」，可以再說得具體一點嗎？'
+097	EXTREME	在 YouTube 搜尋後回到首頁再打開訂閱	com.google.android.youtube	SUCCESS		SUCCESS	11-22 18:44:32.685 27903  5381 I WAE_CAPS: record pkg=com.google.android.youtube purpose=A5.1 ok=true
+098	EXTREME	在計算機連續算三個不同算式並清除	com.sec.android.app.popupcalculator	FAIL	FAIL	FAIL	11-22 18:44:53.972 27903  6069 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=95 success=0.99 (execution flag=true)
+099	EXTREME	在設定裡查看儲存空間後清除快取再確認	com.android.settings	FAIL	FAIL	FAIL	11-22 18:45:59.369 27903  6468 I WAE_PROGRAM: eligible pkg=com.android.settings.intelligence edge=id:search_src_text exec=116 success=0.99 (execution flag=true)
