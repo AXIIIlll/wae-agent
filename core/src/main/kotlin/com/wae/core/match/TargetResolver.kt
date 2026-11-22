@@ -38,7 +38,12 @@ class TargetResolver(
     private val aliases: Map<String, String> = emptyMap(),
     private val similarity: Similarity? = null,
     private val minSimilarity: Float = DEFAULT_MIN_SIMILARITY,
-    private val tieEpsilon: Float = DEFAULT_TIE_EPSILON
+    private val tieEpsilon: Float = DEFAULT_TIE_EPSILON,
+    /**
+     * 多定義比對器（P1）：看得到整個控制項（含身份字串），
+     * 所以純圖示按鈕也有機會命中。有注入時優先於只看文字的 [similarity]。
+     */
+    private val scorer: ControlScorer? = null
 ) {
 
     fun resolve(
@@ -49,23 +54,32 @@ class TargetResolver(
         val wanted = TextHash.normalize(theme)
         if (wanted.isEmpty()) return Resolution.Missing(theme)
 
-        val eligible = candidates.filter { it.label.isNotBlank() }
+        // 前兩階（精確／別名）只能比文字，所以只考慮有標籤的元素；
+        // 但**不能**把沒有標籤的元素整體濾掉——純圖示按鈕只有身份字串，
+        // 一旦先濾掉，第三階就永遠看不到它（地圖「路線」就是這樣卡住的）。
+        val labelled = candidates.filter { it.label.isNotBlank() }
 
         // 1. 精確
-        eligible.firstOrNull { TextHash.normalize(it.label) == wanted }
+        labelled.firstOrNull { TextHash.normalize(it.label) == wanted }
             ?.let { return Resolution.Found(it, Via.EXACT) }
 
         // 2. 別名／同義（例：「藍芽」→「藍牙」）
         val expanded = aliases[wanted]?.let { TextHash.normalize(it) }
         if (!expanded.isNullOrEmpty()) {
-            eligible.firstOrNull { TextHash.normalize(it.label) == expanded }
+            labelled.firstOrNull { TextHash.normalize(it.label) == expanded }
                 ?.let { return Resolution.Found(it, Via.ALIAS) }
         }
 
-        // 3. 語意相似（沒有模型就跳過這一階）
-        if (similarity != null) {
-            val scored = eligible
-                .map { it to similarity.score(wanted, TextHash.normalize(it.label)) }
+        // 3. 語意相似（沒有模型／比對器就跳過這一階）
+        if (similarity != null || scorer != null) {
+            val pool = if (scorer != null) candidates else labelled
+            val scored = pool
+                .map { control ->
+                    // 多定義優先：多視圖證據（文字＋圖示）比單看標籤可靠
+                    val s = scorer?.score(wanted, com.wae.core.predicate.FrameControl(control))
+                        ?: similarity!!.score(wanted, TextHash.normalize(control.label))
+                    control to s
+                }
                 .filter { (_, s) -> s >= minSimilarity }
                 .sortedByDescending { (_, s) -> s }
             if (scored.isNotEmpty()) {

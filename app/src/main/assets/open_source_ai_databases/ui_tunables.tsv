@@ -42,6 +42,7 @@ match.weight.state	0.15	開關狀態相符的權重
 match.weight.usable	0.08	元件可用（enabled）的權重
 match.similarity_floor	0.62	低於這個分數就不動作（寧可反問，不要點錯）
 match.trace_enabled	1	是否寫解析軌跡（filesDir/eval/resolution_trace.tsv；只寫不讀）
+match.definitions_enabled	0	是否用多定義比對（1/0；預設關，先真機 A/B）
 
 # ── App 選擇 ──────────────────────────────────────────────
 app.confident_score	1.5	App 選擇的絕對信心門檻

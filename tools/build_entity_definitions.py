@@ -24,8 +24,8 @@ from collections import defaultdict
 MIN_SPEC = 0.05
 VIEW_WEIGHTS = [
     ("TEXT", "0.55", "中文詞（使用者怎麼說）"),
+    ("ICON", "0.55", "圖示名：字面證據，強度與文字相同（沒有文字時唯一的訊號）"),
     ("DESC", "0.15", "contentDescription（開發者怎麼描述）"),
-    ("ICON", "0.15", "圖示名（沒有文字時唯一的訊號）"),
     ("ROLE", "0.08", "控制項角色（按鈕／開關／輸入框）"),
     ("STATE", "0.07", "開關狀態"),
 ]

@@ -327,6 +327,9 @@ object PredicateRuntime {
                     similarity = PredicateAgent.LabelSimilarity { goal, cand ->
                         DecisionRanker.textScore(goal, cand, context)
                     },
+                    // 多定義比對（P1）：能看到整個控制項，所以圖示按鈕也有機會命中；
+                    // 開關預設關閉，退回上面的純文字相似度。
+                    controlScorer = com.wae.agent.core.match.MatchSource.scorer(context),
                     similarityFloor = com.wae.agent.core.runtime.Tunables.getFloat(
                         context, "match.similarity_floor", 0.62f
                     ),

@@ -1,6 +1,27 @@
 # 多定義目標解析（加權最大 × 兄弟負向 × 多視圖 × 驗證器兜底）
 
-> 狀態：計畫，尚未實作。日期 2026-11-22。
+> 狀態：P0 完成、P1 進行中。日期 2026-11-22。
+
+## 實作進度（2026-11-22）
+
+| 階段 | 狀態 | 產物 |
+|---|---|---|
+| P0 生成器＋三表＋解析器＋軌跡 | 完成 | `tools/build_entity_definitions.py`、`ui_entity_definitions.tsv`（3114 entity／11197 定義）、`ui_entity_groups.tsv`、`ui_view_weights.tsv`、`core/.../match/DefinitionTable.kt`、`app/.../ResolutionTrace.kt` |
+| P1 加權最大＋單一出口 | 進行中 | `core/.../match/DefinitionMatcher.kt`、`app/.../match/MatchSource.kt`、`PredicateAgent.Context.controlScorer`；開關 `match.definitions_enabled`（預設 0） |
+| P2 兄弟負向 | 未開始 | `exclusivity` 已在群組表 |
+| P3 多視圖融合 | 未開始 | DESC／ROLE／STATE 視圖目前留空 |
+| P4 定義 provenance → 精準 ban | 未開始 | 反例鍵尚未帶定義索引 |
+| P5 門檻重校準＋真機 A/B | 未開始 | 需要 P1 的軌跡資料 |
+
+踩過的彎路（別重踩）：
+
+- 生成器一開始用「圖示名前綴」join 中文別名，把 Wi-Fi 潑到 `wifi_calling`、`ADD_CREATE_NEW`。
+  改成只做**精確 join**：寧可少接幾條，也不要污染資料。
+- 一般列（多數）的 role 都是 `GENERAL_UI_ICON`，直接拿 role 當 entity 會讓 4267 列塌成 32 個實體。
+  改成「有具體 role 用 role，否則用圖示名」。
+- ICON 比對不能用折疊字串（`/`、`_` 會被吃掉，`add` 就會誤中 `address`），
+  要用原字串加「前後非英數字」的 token 邊界。
+
 > 這份文件回答一件事：把「目標解析」從「一個說法對一個標籤」升級成
 > 「一個目標多個說法、多個視圖，取加權最大，錯了就精準 ban」。
 > 每一階段都能單獨上線、單獨回滾；量測方法寫在最後，沒有數字就不算完成。

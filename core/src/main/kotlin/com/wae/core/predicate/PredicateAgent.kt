@@ -97,6 +97,11 @@ object PredicateAgent {
         val expectedPkg: String = "",
         /** 語意相似度（決策模型）；預設不啟用。 */
         val similarity: LabelSimilarity = LabelSimilarity { _, _ -> 0f },
+        /**
+         * 多定義比對器（P1）：看得到整個控制項，所以能用「圖示、角色、狀態」等
+         * 文字以外的證據；有注入時優先於 [similarity]（後者只看得到標籤）。
+         */
+        val controlScorer: com.wae.core.match.ControlScorer? = null,
         /** 語意相似度的採用門檻（低於此值不動作）。 */
         val similarityFloor: Float = 0.60f,
         /** 已經試過、但畫面沒有進展的元素鍵（避免同一動作重複十次）。 */
@@ -181,7 +186,11 @@ object PredicateAgent {
             // 由型別先篩，避免整頁 40+ 個元素都送進去。
             val pool = (if (needKind != null) w.controls.filter { it.kind == needKind } else w.controls).take(12)
             val scored = pool
-                .map { c -> c to ctx.similarity.score(labelAtom, c.label) }
+                .map { c ->
+                    val s = ctx.controlScorer?.score(labelAtom, c)
+                        ?: ctx.similarity.score(labelAtom, c.label)
+                    c to s
+                }
                 .filter { it.second >= ctx.similarityFloor }
                 .maxByOrNull { it.second }
             if (scored != null && (best == null || best.second > 1)) {

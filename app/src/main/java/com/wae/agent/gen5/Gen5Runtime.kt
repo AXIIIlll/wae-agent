@@ -3,6 +3,7 @@ package com.wae.agent.gen5
 import android.content.Context
 import android.util.Log
 import com.wae.agent.core.WaeVisionAccessibilityService
+import com.wae.agent.core.match.MatchSource
 import com.wae.core.config.BundledData
 import com.wae.core.config.Config
 import com.wae.core.config.ConfigParser
@@ -645,7 +646,10 @@ object Gen5Runtime {
         )
 
         // 目標解析的語意階（B8）：MiniLM 沒載入時自動退回前兩階
-        val resolver = com.wae.core.match.TargetResolver(similarity = MiniLmSimilarity(context))
+        val resolver = com.wae.core.match.TargetResolver(
+            similarity = MiniLmSimilarity(context),
+            scorer = MatchSource.scorer(context)
+        )
         // App 名稱 → 套件名（B20）：讓「開 App」有誠實的後置條件
         val appResolver = object : com.wae.core.pipeline.AppResolver {
             override fun resolve(label: String): String? = AppCatalog.resolveLabel(context, label)
