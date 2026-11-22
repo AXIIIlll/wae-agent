@@ -179,6 +179,7 @@ object PredicateLexiconLoader {
             // 而不是交給分類器猜（實測分類器會判成 CREATE）。
             val prefixes = ArrayList<String>()
             val suffixes = ArrayList<String>()
+            val conjunctions = ArrayList<String>()
             readLines(context, "$DB/ui_grammar_particles.tsv").forEach { line ->
                 val p = line.split('\t')
                 if (p.size < 2) return@forEach
@@ -187,12 +188,14 @@ object PredicateLexiconLoader {
                 when (p[1].trim().uppercase()) {
                     "PREFIX" -> prefixes.add(term)
                     "SUFFIX" -> suffixes.add(term)
+                    "CONJUNCTION" -> conjunctions.add(term)
                 }
             }
             com.wae.core.predicate.LanguageWords.install(
                 seps, leads, search, labels, verbs, opens,
                 prefixes = prefixes,
-                suffixes = suffixes
+                suffixes = suffixes,
+                conjunctions = conjunctions
             )
 
             val dismiss = ArrayList<String>()

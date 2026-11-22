@@ -37,6 +37,12 @@ class LanguageWordsFrameTest {
     }
 
     @Test
+    fun `preposition plus search word is enough even without a place particle`() {
+        // 實測：「在 Chrome 搜尋今天天氣並打開第一個結果」被分類器判成 CREATE 0.94
+        assertEquals("FIND", LanguageWords.typeOfFrame("在 Chrome 搜尋今天天氣並打開第一個結果"))
+    }
+
+    @Test
     fun `plain search without a place marker is left to the head verb rule`() {
         // 「搜尋貓咪」句首就是動詞，交給 typeOfHead；這裡不該搶
         assertNull(LanguageWords.typeOfFrame("搜尋貓咪"))

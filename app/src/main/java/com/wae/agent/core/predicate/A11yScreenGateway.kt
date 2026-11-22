@@ -41,6 +41,62 @@ class A11yScreenGateway(
         return frame
     }
 
+    /**
+     * 搜尋入口的關鍵字（選擇器家族 SEARCH_ENTRY），來自 `ui_selector_families.tsv`。
+     *
+     * 為什麼要身份字串：設定頁的搜尋入口常常只有放大鏡圖示——label 是空的，
+     * 或只有「搜」一個字，純文字比對永遠找不到（實測 14 題卡在這裡）。
+     */
+    @Volatile
+    private var entryKeywords: Set<String>? = null
+
+    private fun searchEntryKeywords(): Set<String> {
+        entryKeywords?.let { return it }
+        val loaded = com.wae.core.util.Degrade.orElse("gateway:searchEntryKeywords", emptySet<String>()) {
+            context.assets.open("open_source_ai_databases/ui_selector_families.tsv")
+                .bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    val acc = HashSet<String>()
+                    for (raw in lines) {
+                        val line = raw.trim()
+                        if (line.isEmpty() || line.startsWith("#")) continue
+                        val cells = line.split('\t')
+                        if (cells.size < 2) continue
+                        if (cells[1].trim().equals("SEARCH_ENTRY", true)) acc.add(cells[0].trim().lowercase())
+                    }
+                    acc
+                }
+        }
+        entryKeywords = loaded
+        return loaded
+    }
+
+    /**
+     * 挑「最像搜尋入口」的控制項。順序很重要：
+     * 可編輯且像搜尋 → 像搜尋（含圖示身份）→ 任何輸入框。
+     */
+    private fun pickSearchEntry(controls: List<Control>, keywords: Set<String>): Control? {
+        if (controls.isEmpty()) return null
+        val searchWords = com.wae.core.predicate.LanguageWords.searchWords()
+
+        fun byLabel(c: Control): Boolean {
+            val l = c.label
+            if (l.isBlank()) return false
+            if (searchWords.any { TextFold.containsFold(l, it) }) return true
+            // 「搜」這種被截斷的單字提示：搜尋詞以它開頭就算
+            return l.length <= 2 && searchWords.any { it.startsWith(l) }
+        }
+
+        fun byId(c: Control): Boolean {
+            val id = c.key.lowercase()
+            return keywords.any { k -> k.isNotBlank() && com.wae.core.match.DefinitionMatcher.containsToken(id, k) }
+        }
+
+        val field = com.wae.core.model.ControlKind.FIELD
+        return controls.firstOrNull { it.kind == field && (byLabel(it) || byId(it)) }
+            ?: controls.firstOrNull { byLabel(it) || byId(it) }
+            ?: controls.firstOrNull { it.kind == field }
+    }
+
     /** 印出所有可見視窗的層級資訊：id / type / layer / 套件。 */
     private fun dumpWindows() {
         val ws = runCatching { service.windows }.getOrNull() ?: return
@@ -121,18 +177,56 @@ class A11yScreenGateway(
 
         // FIND：target 是「要搜尋的字」，不是搜尋框本身 → 找搜尋框、點它、打進去
         if (op == TaskNode.Op.FIND) {
-            // ① 先找「進入輸入模式」的入口：搜尋框，或任何可編輯欄位
-            val f0 = popupFrame
-            val entry = f0.controls.firstOrNull { c ->
-                val l = c.label
-                l.isNotBlank() && com.wae.core.predicate.LanguageWords.searchWords()
-                    .any { com.wae.core.predicate.TextFold.containsFold(l, it) }
-            } ?: f0.controls.firstOrNull { it.kind == com.wae.core.model.ControlKind.FIELD }
-            val entryNode = entry?.let { NodeRegistry.get(it.key) }
+            // ① 先找「進入輸入模式」的入口。實測設定頁的搜尋入口常常只有圖示
+            //    （label 是空的、或只有「搜」一個字），所以不能只比文字：
+            //    依序看「可編輯 + 像搜尋」→「像搜尋」→「身份字串含 SEARCH_ENTRY 關鍵字」→「任何輸入框」。
+            val keywords = searchEntryKeywords()
+            var entry: Control? = null
+            var entryNode: AccessibilityNodeInfo? = null
+            var lastCount = -1
+            // 最多試 10 次、每次等 500ms：剛啟動的 App 常常還沒把無障礙樹長好，
+            // 太早抓會拿到幾乎空的畫面（實測 FIND 失敗都是 controls=0，不是找不到元素）。
+            for (attempt in 0 until 10) {
+                val frameNow = if (attempt == 0) popupFrame else capture()
+                lastCount = frameNow.controls.size
+                val picked = pickSearchEntry(frameNow.controls, keywords)
+                if (picked != null) {
+                    val node = NodeRegistry.get(picked.key)
+                    if (node != null) {
+                        entry = picked
+                        entryNode = node
+                        break
+                    }
+                }
+                if (attempt < 9) Thread.sleep(500)
+            }
+
+            // 退路：畫面抓不到、但游標已經在某個可編輯欄位（例如搜尋框早就開著）→ 直接輸入。
+            // 使用者實測就是這個情況：「它進了搜尋之後壓根沒打字」。
             if (entryNode == null) {
-                android.util.Log.i("WAE_TASK", "FIND 找不到搜尋入口")
+                val focused = com.wae.core.util.Degrade.orNull("find:focus") {
+                    service.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+                }
+                if (focused != null && focused.isEditable) {
+                    val args = android.os.Bundle().apply {
+                        putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, target)
+                    }
+                    val ok = DeviceIO.perform(focused, AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+                    DeviceIO.perform(
+                        focused,
+                        AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id,
+                        android.os.Bundle()
+                    )
+                    android.util.Log.i("WAE_TASK", "FIND 用焦點欄位直接輸入 target='$target' ok=$ok")
+                    return ok
+                }
+            }
+
+            if (entryNode == null) {
+                android.util.Log.i("WAE_TASK", "FIND 找不到搜尋入口 controls=$lastCount")
                 return false
             }
+            android.util.Log.i("WAE_TASK", "FIND 入口='" + entry!!.label + "' id=" + entry.key.substringAfterLast('/'))
             DeviceIO.tap(service, entryNode) || DeviceIO.perform(entryNode, AccessibilityNodeInfo.ACTION_CLICK)
             Thread.sleep(600)
 

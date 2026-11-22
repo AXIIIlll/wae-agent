@@ -39,6 +39,10 @@ object LanguageWords {
     @Volatile
     private var suffixes: List<String> = emptyList()
 
+    /** 連接詞（並／並且…）：後面接的是「下一個動作」，不是同一句話的內容。 */
+    @Volatile
+    private var conjunctions: List<String> = emptyList()
+
     /** 由 App 在啟動時注入（見 `PredicateLexiconLoader`）。 */
     fun install(
         separators: List<String>,
@@ -49,7 +53,8 @@ object LanguageWords {
         openWords: List<String> = emptyList(),
         verbTypes: List<Pair<String, String>> = emptyList(),
         prefixes: List<String> = emptyList(),
-        suffixes: List<String> = emptyList()
+        suffixes: List<String> = emptyList(),
+        conjunctions: List<String> = emptyList()
     ) {
         this.separators = separators.sortedByDescending { it.length }
         this.leads = leads.sortedByDescending { it.length }
@@ -60,7 +65,17 @@ object LanguageWords {
         this.verbTypes = verbTypes.sortedByDescending { it.first.length }
         this.prefixes = prefixes.sortedByDescending { it.length }
         this.suffixes = suffixes.sortedByDescending { it.length }
+        this.conjunctions = conjunctions.sortedByDescending { it.length }
     }
+
+    /** 介詞（在／到／進…）：不是內容，只是位置標記。 */
+    fun prefixes(): List<String> = prefixes
+
+    /** 方位助詞（中／裡／内…）：不是內容。 */
+    fun suffixes(): List<String> = suffixes
+
+    /** 連接詞（並／並且…）：後面接的是下一個動作。 */
+    fun conjunctions(): List<String> = conjunctions
 
     fun separators(): List<String> = separators
 
@@ -81,12 +96,16 @@ object LanguageWords {
     fun backWords(): List<String> = labels.filterKeys { it.startsWith("back") }.values.toList()
 
     /**
-     * 句型判定（句首不是動詞時用）：「在／到／進 X 裡／中 搜尋 Y」＝ FIND。
+     * 句型判定（句首不是動詞時用）：「在／到／進 … 搜尋 Y」＝ FIND。
      *
      * 為什麼要這個：分類器對這種句型會誤判（實測「在設定裡搜尋藍牙」被判成 CREATE，
-     * 信心 0.83），而句首是「在」，[typeOfHead] 的動詞優先規則接不到。
-     * 這裡只用文法助詞（`ui_grammar_particles.tsv`）與搜尋詞（`ui_language_words.tsv`），
-     * 不列任何 App 名稱或名詞。
+     * 信心 0.83；「在 Chrome 搜尋今天天氣」被判成 0.94），而句首是介詞，
+     * [typeOfHead] 的動詞優先規則接不到。
+     *
+     * 判準刻意寬鬆：**有搜尋詞 + 有介詞**就算 FIND。方位助詞（裡／中）不是必要條件，
+     * 因為「在 Chrome 搜尋…」沒有方位詞，但仍明顯是搜尋。沒有搜尋詞的句子不受影響
+     * （「在設定裡開啟藍牙」不會被誤判）。
+     * 詞彙全部來自 TSV（`ui_grammar_particles.tsv`、`ui_language_words.tsv`）。
      */
     fun typeOfFrame(text: String): String? {
         val t = text.trim()
@@ -94,8 +113,7 @@ object LanguageWords {
         val hasSearch = searchWords.any { it.isNotEmpty() && t.contains(it) }
         if (!hasSearch) return null
         val hasPrefix = prefixes.any { it.isNotEmpty() && t.contains(it) }
-        val hasSuffix = suffixes.any { it.isNotEmpty() && t.contains(it) }
-        return if (hasPrefix && hasSuffix) "FIND" else null
+        return if (hasPrefix) "FIND" else null
     }
 
     /** 句首動詞 → 任務型別（資料驅動）。 */
@@ -117,5 +135,6 @@ object LanguageWords {
         verbTypes = emptyList()
         prefixes = emptyList()
         suffixes = emptyList()
+        conjunctions = emptyList()
     }
 }

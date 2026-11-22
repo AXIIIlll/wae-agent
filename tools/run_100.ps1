@@ -49,10 +49,20 @@ function Classify([string]$log) {
   # 優先序：taskResult（基準訊號）→ outcome → result。
   # 一定要取「最後一次」：先前用 Match（第一次）會把中途的 result=ABSTAIN
   # 當成最終結果，實際最後是 taskResult=FAIL。
-  foreach ($key in @('taskResult', 'outcome', 'result')) {
-    $ms = [regex]::Matches($text, ('(?:' + $key + ')=([A-Z_]+)'))
-    if ($ms.Count -gt 0) { return @{ v = $ms[$ms.Count - 1].Groups[1].Value; d = $detail } }
+  // 任務層的 status 也是正式訊號（TaskExecutor 成功時不一定會再印 taskResult）
+  //   WAE_TASK: status=DONE / ASK / FAILED
+  $all = [regex]::Matches($text, '(?:taskResult|outcome|result)=([A-Z_]+)|status=(DONE|ASK|FAILED)')
+  if ($all.Count -eq 0) { return @{ v = "UNKNOWN"; d = $detail } }
+  $last = $all[$all.Count - 1]
+  $v = if ($last.Groups[1].Success) { $last.Groups[1].Value } else { $last.Groups[2].Value }
+  // 語意對映：DONE＝任務層完成；CLEAR_WIN＝決策層選出明確贏家並已執行
+  //（沒有 taskResult 時最接近成功的訊號）；REJECT＝決策被駁回，等於沒做成。
+  switch ($v) {
+    'DONE' { $v = 'SUCCESS' }
+    'CLEAR_WIN' { $v = 'SUCCESS' }
+    'REJECT' { $v = 'FAIL' }
   }
+  return @{ v = $v; d = $detail }
   return @{ v = "UNKNOWN"; d = $detail }
 }
 

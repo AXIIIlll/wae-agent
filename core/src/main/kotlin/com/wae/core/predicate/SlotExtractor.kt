@@ -99,6 +99,28 @@ object SlotExtractor {
             }
         }
 
+        // ④ **只取第一個動作**：後面接的「並打開第一個結果」是下一個動作，不是查詢字。
+        //    實測：「在 Chrome 搜尋今天天氣並打開第一個結果」曾把整串丟去搜尋。
+        //    切點來自資料：SEPARATOR（然後／接著／再…）與 CONJUNCTION（並／並且…）。
+        val cutMarkers = LanguageWords.separators() + LanguageWords.conjunctions()
+        val cut = cutMarkers
+            .mapNotNull { m -> content.indexOf(m).takeIf { it > 0 } }
+            .minOrNull()
+        if (cut != null) content = content.substring(0, cut).trim()
+
+        // ⑤ 功能詞不是內容：介詞（在／到／進）與方位助詞（中／裡／内）只是位置標記。
+        //    只丟「獨立成詞」的功能詞，避免把「中壢」「內湖」這種地名切壞。
+        val functionWords = (LanguageWords.prefixes() + LanguageWords.suffixes()).toSet()
+        if (functionWords.isNotEmpty()) {
+            content = content.split(' ')
+                .filter { it.isNotEmpty() && it !in functionWords }
+                .joinToString(" ")
+                .trim()
+        }
+        content = content.replace(Regex("\\s+"), " ")
+            .trim()
+            .trim('，', ',', '。', '的', '、')
+
         return Slots(
             time = time,
             person = person,

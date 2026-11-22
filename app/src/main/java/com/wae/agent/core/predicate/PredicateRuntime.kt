@@ -86,7 +86,12 @@ object PredicateRuntime {
                     WaeOpenSourceDatabaseRegistry
                         .resolveTargetAppFromDatabaseOrDevice(context, command)?.displayName
                 }.getOrNull()
-                var slots = com.wae.core.predicate.SlotExtractor.extract(command)
+                // App 名稱要當成已知片段從查詢裡剪掉，否則「在 Chrome 搜尋天氣」會把
+                // 「Chrome」也塞進搜尋字串（實測）。
+                var slots = com.wae.core.predicate.SlotExtractor.extract(
+                    command,
+                    knownNames = listOfNotNull(app)
+                )
                 // 對象若是人名 → 先查通訊錄；0 個或 ≥2 個就反問，不要猜
                 if (pred.label == "TRANSFER" && !slots.person.isNullOrBlank()) {
                     val found = ContactResolver.find(context, slots.person!!)
