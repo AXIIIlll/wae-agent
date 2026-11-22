@@ -32,6 +32,13 @@ object LanguageWords {
     @Volatile
     private var verbTypes: List<Pair<String, String>> = emptyList()
 
+    /** 介詞（在／到／進…）與方位助詞（中／裡／内…），由 ui_grammar_particles.tsv 注入。 */
+    @Volatile
+    private var prefixes: List<String> = emptyList()
+
+    @Volatile
+    private var suffixes: List<String> = emptyList()
+
     /** 由 App 在啟動時注入（見 `PredicateLexiconLoader`）。 */
     fun install(
         separators: List<String>,
@@ -40,7 +47,9 @@ object LanguageWords {
         labels: Map<String, String>,
         taskVerbs: List<String> = emptyList(),
         openWords: List<String> = emptyList(),
-        verbTypes: List<Pair<String, String>> = emptyList()
+        verbTypes: List<Pair<String, String>> = emptyList(),
+        prefixes: List<String> = emptyList(),
+        suffixes: List<String> = emptyList()
     ) {
         this.separators = separators.sortedByDescending { it.length }
         this.leads = leads.sortedByDescending { it.length }
@@ -49,6 +58,8 @@ object LanguageWords {
         this.verbs = taskVerbs.sortedBy { it.length }
         this.opens = openWords.sortedByDescending { it.length }
         this.verbTypes = verbTypes.sortedByDescending { it.first.length }
+        this.prefixes = prefixes.sortedByDescending { it.length }
+        this.suffixes = suffixes.sortedByDescending { it.length }
     }
 
     fun separators(): List<String> = separators
@@ -69,6 +80,24 @@ object LanguageWords {
     /** 返回語意的所有詞（key 以 back 開頭，例如 back / back_en）。 */
     fun backWords(): List<String> = labels.filterKeys { it.startsWith("back") }.values.toList()
 
+    /**
+     * 句型判定（句首不是動詞時用）：「在／到／進 X 裡／中 搜尋 Y」＝ FIND。
+     *
+     * 為什麼要這個：分類器對這種句型會誤判（實測「在設定裡搜尋藍牙」被判成 CREATE，
+     * 信心 0.83），而句首是「在」，[typeOfHead] 的動詞優先規則接不到。
+     * 這裡只用文法助詞（`ui_grammar_particles.tsv`）與搜尋詞（`ui_language_words.tsv`），
+     * 不列任何 App 名稱或名詞。
+     */
+    fun typeOfFrame(text: String): String? {
+        val t = text.trim()
+        if (t.isEmpty()) return null
+        val hasSearch = searchWords.any { it.isNotEmpty() && t.contains(it) }
+        if (!hasSearch) return null
+        val hasPrefix = prefixes.any { it.isNotEmpty() && t.contains(it) }
+        val hasSuffix = suffixes.any { it.isNotEmpty() && t.contains(it) }
+        return if (hasPrefix && hasSuffix) "FIND" else null
+    }
+
     /** 句首動詞 → 任務型別（資料驅動）。 */
     fun typeOfHead(text: String): String? {
         val t = text.trim()
@@ -86,5 +115,7 @@ object LanguageWords {
         verbs = emptyList()
         opens = emptyList()
         verbTypes = emptyList()
+        prefixes = emptyList()
+        suffixes = emptyList()
     }
 }

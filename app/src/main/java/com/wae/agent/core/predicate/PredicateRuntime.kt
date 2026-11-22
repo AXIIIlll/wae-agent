@@ -73,10 +73,13 @@ object PredicateRuntime {
             Degrade.orNull("classifier:load") { TaskTypeClassifier.ensureLoaded(context) }
             // **句首動詞優先**：確定性高於模型（「導航到…」一定是 NAVIGATE）
             val headType = com.wae.core.predicate.LanguageWords.typeOfHead(command)
-            val pred: TaskTypeClassifier.Prediction? = if (headType != null) {
-                TaskTypeClassifier.Prediction(headType, 1.0f)
-            } else {
-                Degrade.orNull("classifier:classify") { TaskTypeClassifier.classify(command) }
+            // 次之是文法句型（「在 X 裡搜尋 Y」＝ FIND）：句首是「在」，動詞規則接不到，
+            // 直接交給分類器會誤判成 CREATE（實測 0.83），於是計畫出「新增」而失敗。
+            val frameType = com.wae.core.predicate.LanguageWords.typeOfFrame(command)
+            val pred: TaskTypeClassifier.Prediction? = when {
+                headType != null -> TaskTypeClassifier.Prediction(headType, 1.0f)
+                frameType != null -> TaskTypeClassifier.Prediction(frameType, 1.0f)
+                else -> Degrade.orNull("classifier:classify") { TaskTypeClassifier.classify(command) }
             }
             if (pred != null && pred.confidence >= TaskTypeClassifier.MIN_CONFIDENCE) {
                 val app = runCatching {

@@ -69,6 +69,16 @@ class BenchmarkTasksActivity : Activity() {
             setTextColor(Color.parseColor("#9AA0A6"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
             setPadding(0, dp(6), 0, dp(10))
+            // 長按標題列＝把進度重設回第 1 題（SharedPreferences 在記憶體有快取，
+            // 直接刪檔不會生效，所以一定要有這個入口）
+            setOnLongClickListener {
+                nextIndex = 0
+                selected = 0
+                prefs().edit().putInt(KEY_NEXT, 0).apply()
+                toast("進度已重設，回到 001")
+                refresh()
+                true
+            }
         }
         root.addView(progressView)
 
@@ -112,10 +122,10 @@ class BenchmarkTasksActivity : Activity() {
 
     private fun loadTasks() {
         tasks.clear()
-        val lines = runCatching {
+        val lines = com.wae.core.util.Degrade.orElse("benchmark:loadTasks", emptyList<String>()) {
             assets.open("open_source_ai_databases/ui_benchmark_tasks.tsv")
                 .bufferedReader(Charsets.UTF_8).use { it.readLines() }
-        }.getOrDefault(emptyList())
+        }
         val parsed = ArrayList<Task>()
         for (raw in lines) {
             val line = raw.trim()
@@ -170,7 +180,7 @@ class BenchmarkTasksActivity : Activity() {
             return
         }
         toast("執行 " + t.id + "：" + t.command)
-        runCatching { svc.runAgentCommand(t.command) }
+        com.wae.core.util.Degrade.orNull("benchmark:run") { svc.runAgentCommand(t.command) }
     }
 
     private fun passSelected() {

@@ -175,7 +175,25 @@ object PredicateLexiconLoader {
                     "OPEN" -> opens.add(word)
                 }
             }
-            com.wae.core.predicate.LanguageWords.install(seps, leads, search, labels, verbs, opens)
+            // 文法助詞（介詞／方位助詞）：讓「在設定裡搜尋X」這種句型能被判定成 FIND，
+            // 而不是交給分類器猜（實測分類器會判成 CREATE）。
+            val prefixes = ArrayList<String>()
+            val suffixes = ArrayList<String>()
+            readLines(context, "$DB/ui_grammar_particles.tsv").forEach { line ->
+                val p = line.split('\t')
+                if (p.size < 2) return@forEach
+                val term = p[0].trim()
+                if (term.isEmpty()) return@forEach
+                when (p[1].trim().uppercase()) {
+                    "PREFIX" -> prefixes.add(term)
+                    "SUFFIX" -> suffixes.add(term)
+                }
+            }
+            com.wae.core.predicate.LanguageWords.install(
+                seps, leads, search, labels, verbs, opens,
+                prefixes = prefixes,
+                suffixes = suffixes
+            )
 
             val dismiss = ArrayList<String>()
             val never = ArrayList<String>()

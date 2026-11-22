@@ -41,15 +41,58 @@ function Get-TaskRows {
 }
 
 function Classify([string]$log) {
-  $lines = ($log -split "`n") | Where-Object { $_ -match 'WAE_' }
+  # 只看 WAE_ 行，且排除背景探索（WAE_EXPLORE 是 shadow，跟這題結果無關）
+  $lines = ($log -split "`n") | Where-Object { $_ -match 'WAE_' -and $_ -notmatch 'WAE_EXPLORE' }
   if (-not $lines) { return @{ v = "NONE"; d = "" } }
   $text = $lines -join "`n"
-  foreach ($k in @("outcome=SUCCESS", "result=SUCCESS", "taskResult=SUCCESS")) {
-    if ($text.Contains($k)) { return @{ v = "SUCCESS"; d = $lines[-1].Trim() } }
+  $detail = $lines[-1].Trim()
+  # 優先序：taskResult（基準訊號）→ outcome → result。
+  # 一定要取「最後一次」：先前用 Match（第一次）會把中途的 result=ABSTAIN
+  # 當成最終結果，實際最後是 taskResult=FAIL。
+  foreach ($key in @('taskResult', 'outcome', 'result')) {
+    $ms = [regex]::Matches($text, ('(?:' + $key + ')=([A-Z_]+)'))
+    if ($ms.Count -gt 0) { return @{ v = $ms[$ms.Count - 1].Groups[1].Value; d = $detail } }
   }
-  $m = [regex]::Match($text, '(?:outcome|result|taskResult)=([A-Z_]+)')
-  if ($m.Success) { return @{ v = $m.Groups[1].Value; d = $lines[-1].Trim() } }
-  return @{ v = "UNKNOWN"; d = $lines[-1].Trim() }
+  return @{ v = "UNKNOWN"; d = $detail }
+}
+
+function Get-UiXml {
+  Invoke-Adb @('shell', 'uiautomator', 'dump', '/sdcard/wae_bench.xml') | Out-Null
+  return ((Invoke-Adb @('shell', 'cat', '/sdcard/wae_bench.xml')) -join "`n")
+}
+
+function Find-Bounds([string]$xml, [string]$text) {
+  $m = [regex]::Match($xml, ('text="' + [regex]::Escape($text) + '"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'))
+  if (-not $m.Success) {
+    $m = [regex]::Match($xml, ('bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*text="' + [regex]::Escape($text) + '"'))
+  }
+  if (-not $m.Success) { return $null }
+  return @{
+    x = ([int]$m.Groups[1].Value + [int]$m.Groups[3].Value) / 2
+    y = ([int]$m.Groups[2].Value + [int]$m.Groups[4].Value) / 2
+  }
+}
+
+# 回到「可以按執行」的輸入頁。App 跑完會停在「任務已完成」卡片（要按「知道了」），
+# 執行中按鈕會變「停止」；這兩種都不能直接找「執行」。
+function Get-InputScreen {
+  for ($i = 0; $i -lt 6; $i++) {
+    $xml = Get-UiXml
+    if ($xml -match 'text="執行"') { return $xml }
+    $known = Find-Bounds $xml "知道了"
+    if ($known) {
+      Invoke-Adb @('shell', 'input', 'tap', "$([int]$known.x)", "$([int]$known.y)") | Out-Null
+      Start-Sleep -Seconds 1
+      continue
+    }
+    if ($xml -match 'text="停止"') {
+      Start-Sleep -Seconds 3
+      continue
+    }
+    Invoke-Adb @('shell', 'input', 'keyevent', 'KEYCODE_BACK') | Out-Null
+    Start-Sleep -Milliseconds 1200
+  }
+  return $null
 }
 
 function Invoke-OneRun {
@@ -69,13 +112,11 @@ function Invoke-OneRun {
   Invoke-Adb @('shell', 'am', 'start', '-n', 'com.wae.agent/.MainActivity') | Out-Null
   Start-Sleep -Seconds 3
 
-  Invoke-Adb @('shell', 'uiautomator', 'dump', '/sdcard/wae_bench.xml') | Out-Null
-  $xml = ((Invoke-Adb @('shell', 'cat', '/sdcard/wae_bench.xml')) -join "`n")
-  $m = [regex]::Match($xml, 'text="執行"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"')
-  if (-not $m.Success) { return @{ v = "NO_BUTTON"; d = "找不到執行按鈕" } }
-  $x = ([int]$m.Groups[1].Value + [int]$m.Groups[3].Value) / 2
-  $y = ([int]$m.Groups[2].Value + [int]$m.Groups[4].Value) / 2
-  Invoke-Adb @('shell', 'input', 'tap', "$([int]$x)", "$([int]$y)") | Out-Null
+  $xml = Get-InputScreen
+  if ($null -eq $xml) { return @{ v = "NO_BUTTON"; d = "回不到輸入頁" } }
+  $b = Find-Bounds $xml "執行"
+  if ($null -eq $b) { return @{ v = "NO_BUTTON"; d = "找不到執行按鈕" } }
+  Invoke-Adb @('shell', 'input', 'tap', "$([int]$b.x)", "$([int]$b.y)") | Out-Null
 
   Start-Sleep -Seconds $WaitSeconds
   $log = (Invoke-Adb @('logcat', '-d')) -join "`n"

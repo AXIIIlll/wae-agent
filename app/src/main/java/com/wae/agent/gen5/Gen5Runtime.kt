@@ -740,16 +740,21 @@ object Gen5Runtime {
         steps: List<com.wae.core.rule.MethodExpander.Step>
     ): String? {
         val first = steps.firstOrNull() as? com.wae.core.rule.MethodExpander.Step.Cmd ?: return null
-        val label = first.text.removePrefix("打開").removePrefix("開啟").removePrefix("用").trim()
-        if (label.isEmpty() || label == first.text) return null
         val apps = runCatching {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
         }.getOrDefault(emptyList())
-        val found = apps.any {
-            it.label.equals(label, true) || it.label.contains(label, true) ||
-                it.pkg.endsWith("." + label.lowercase())
-        }
-        return if (found) null else label
+        return com.wae.agent.core.app.MissingAppGuard.missingLabel(
+            firstStepText = first.text,
+            // 系統目標（Wi-Fi／藍牙／飛航／亮度）不是 App：不能因為「找不到這個 App」就判死，
+            // 實測「打開 Wi-Fi」就是在這一關被判成 app_not_installed。
+            isSystemTarget = { label -> com.wae.core.system.SystemTargets.normalize(label) != null },
+            isInstalled = { label ->
+                apps.any {
+                    it.label.equals(label, true) || it.label.contains(label, true) ||
+                        it.pkg.endsWith("." + label.lowercase())
+                }
+            }
+        )
     }
 
     /** 名詞 fallback（只在前面的句型／路由都沒接手時執行）。 */
