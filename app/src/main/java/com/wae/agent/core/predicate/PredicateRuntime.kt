@@ -8,6 +8,7 @@ import com.wae.agent.gen5.A11yFrameSource
 import com.wae.agent.gen5.DeviceIO
 import com.wae.agent.gen5.NodeRegistry
 import com.wae.core.model.Frame
+import com.wae.core.util.Degrade
 import com.wae.core.predicate.AgentAction
 import com.wae.core.predicate.NlPredicateCompiler
 import com.wae.core.predicate.PredicateAgent
@@ -44,8 +45,8 @@ object PredicateRuntime {
         maxSteps: Int = 12,
         maxScrolls: Int = 4
     ): Result {
-        runCatching { TinyBert.ensureLoaded(context) }
-        runCatching { DecisionRanker.warmUp(context) }
+        Degrade.orNull("warmup:TinyBert") { TinyBert.ensureLoaded(context) }
+        Degrade.orNull("warmup:DecisionRanker") { DecisionRanker.warmUp(context) }
         // ── 缺口 1：序列指令（「開 WiFi，然後開藍牙」）──
         val clauses = com.wae.core.predicate.ClauseSplitter.split(command)
         if (clauses.size > 1) {
@@ -69,13 +70,13 @@ object PredicateRuntime {
 
         // ── ⑤ 分類器 + 槽位 → 任務樹（失敗則回退動作詞切分）──
         run {
-            runCatching { TaskTypeClassifier.ensureLoaded(context) }
+            Degrade.orNull("classifier:load") { TaskTypeClassifier.ensureLoaded(context) }
             // **句首動詞優先**：確定性高於模型（「導航到…」一定是 NAVIGATE）
             val headType = com.wae.core.predicate.LanguageWords.typeOfHead(command)
             val pred: TaskTypeClassifier.Prediction? = if (headType != null) {
                 TaskTypeClassifier.Prediction(headType, 1.0f)
             } else {
-                runCatching { TaskTypeClassifier.classify(command) }.getOrNull()
+                Degrade.orNull("classifier:classify") { TaskTypeClassifier.classify(command) }
             }
             if (pred != null && pred.confidence >= TaskTypeClassifier.MIN_CONFIDENCE) {
                 val app = runCatching {
@@ -440,7 +441,7 @@ object PredicateRuntime {
                     // 最多啟動兩次：避免「開了又被導到別的 App」造成無限重開
                     if (launchCount < 2) {
                         launchCount += 1
-                        runCatching { A11yScreenGateway(service, context).launchAndNormalize(action.pkg) }
+                        Degrade.orNull("launch:${action.pkg}") { A11yScreenGateway(service, context).launchAndNormalize(action.pkg) }
                         Thread.sleep(SETTLE_MS * 3)
                     } else {
                         tried.add(action.pkg)
@@ -473,13 +474,14 @@ object PredicateRuntime {
         return true
     }
 
-    private fun isInstalled(context: Context, pkg: String): Boolean =        runCatching {
+    private fun isInstalled(context: Context, pkg: String): Boolean =
+        Degrade.orElse("isInstalled($pkg)", false) {
             context.packageManager.getPackageInfo(pkg, 0)
             true
-        }.getOrDefault(false)
+        }
 
     private fun capture(service: WaeVisionAccessibilityService, context: Context): Frame =
-        runCatching { A11yFrameSource(service, context).capture() }.getOrDefault(Frame.EMPTY)
+        Degrade.orElse("capture", Frame.EMPTY) { A11yFrameSource(service, context).capture() }
 
     /**
      * 點一個元素。**三層備援**：

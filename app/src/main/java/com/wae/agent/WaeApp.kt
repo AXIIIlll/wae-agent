@@ -17,6 +17,8 @@ class WaeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         installCrashGuard()
+        // 可降級的失敗一律留痕（core 不碰 Android，log 由 App 接上）
+        com.wae.core.util.Degrade.logger = { msg -> android.util.Log.w("WAE_DEGRADE", msg) }
         // P1：套用使用者在設定裡選的 A/B 旗標（預設全關）
         runCatching { com.wae.agent.core.runtime.RuntimeFlags.applyFromPrefs(this) }
         // S57：移除 Vosk 後，清掉舊版解壓的 65MB 模型（升級後自動回收空間）

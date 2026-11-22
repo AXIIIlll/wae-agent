@@ -56,6 +56,10 @@ $adb="E:\WAE\android-sdk\platform-tools\adb.exe"
 - **一個概念一個鍵（2026-11-22）**：任務預算只認 `budget.max_steps` / `budget.max_wallclock_ms` / `budget.max_high_risk`，
   兩條執行路徑都從 `com.wae.agent.core.runtime.BudgetSource` 取；不准再新增 `agent.max_steps` 這類同義鍵，
   `BudgetSingleSourceTest` 會擋。細節見 `docs/WAE_Gen5_Architecture.md` §19.4.1。
+- **錯誤處理（2026-11-22）**：可降級的失敗一律用
+  `com.wae.core.util.Degrade.orNull / orElse / orEmpty(where) { ... }`（會留 log，App 在 `WaeApp` 接到 `WAE_DEGRADE`），
+  不要用 `runCatching { ... }.getOrNull()` 安靜吞錯。不能降級的地方就讓例外往上丟。
+  `SilentFailureRatchetTest` 會擋「吞錯數量增加」；還債時把測試裡的 baseline 調降。
 - 三個守門測試必須綠：`NoAppSpecificCodeTest`、`GreenZoneGuardTest`、`DataSourcePolicyTest`。
 
 ## 5. 決策頭（S29）與 APK 大小
