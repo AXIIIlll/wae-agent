@@ -1,0 +1,33 @@
+# 兄弟群（負向自動生成用）：同群的其他 entity 會成為彼此的負向定義
+# 格式：group <TAB> exclusivity <TAB> note（0＝不互斥，1＝完全互斥）
+action	0.7	288 個 entity；同群視為互斥，負向強度可調
+actions	0.7	83 個 entity；同群視為互斥，負向強度可調
+activities	0.7	59 個 entity；同群視為互斥，負向強度可調
+alert	0.7	6 個 entity；同群視為互斥，負向強度可調
+android	0.7	129 個 entity；同群視為互斥，負向強度可調
+audio&video	0.7	80 個 entity；同群視為互斥，負向強度可調
+av	0.7	79 個 entity；同群視為互斥，負向強度可調
+business	0.7	59 個 entity；同群視為互斥，負向強度可調
+communicate	0.7	27 個 entity；同群視為互斥，負向強度可調
+communication	0.7	51 個 entity；同群視為互斥，負向強度可調
+content	0.7	43 個 entity；同群視為互斥，負向強度可調
+device	0.7	205 個 entity；同群視為互斥，負向強度可調
+editor	0.7	93 個 entity；同群視為互斥，負向強度可調
+file	0.7	26 個 entity；同群視為互斥，負向強度可調
+hardware	0.7	209 個 entity；同群視為互斥，負向強度可調
+home	0.7	148 個 entity；同群視為互斥，負向強度可調
+household	0.7	93 個 entity；同群視為互斥，負向強度可調
+image	0.7	194 個 entity；同群視為互斥，負向強度可調
+images	0.7	69 個 entity；同群視為互斥，負向強度可調
+maps	0.7	157 個 entity；同群視為互斥，負向強度可調
+navigation	0.7	8 個 entity；同群視為互斥，負向強度可調
+notification	0.7	47 個 entity；同群視為互斥，負向強度可調
+places	0.7	79 個 entity；同群視為互斥，負向強度可調
+privacy	0.7	19 個 entity；同群視為互斥，負向強度可調
+search	0.7	27 個 entity；同群視為互斥，負向強度可調
+social	0.7	396 個 entity；同群視為互斥，負向強度可調
+text	0.7	219 個 entity；同群視為互斥，負向強度可調
+toggle	0.7	1 個 entity；同群視為互斥，負向強度可調
+transit	0.7	66 個 entity；同群視為互斥，負向強度可調
+travel	0.7	23 個 entity；同群視為互斥，負向強度可調
+ui actions	0.7	131 個 entity；同群視為互斥，負向強度可調

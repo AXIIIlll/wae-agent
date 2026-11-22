@@ -340,6 +340,17 @@ object PredicateRuntime {
                 "WAE_PHI",
                 "step=$steps dist=$dist pkg='${frame.pkg}' n=${frame.controls.size} action=$action"
             )
+            // 軌跡（只寫不讀）：之後用執行結果當標籤，量「解析對不對」不必人工標註
+            ResolutionTrace.record(
+                context = context,
+                pkg = frame.pkg,
+                frameFp = frame.fp,
+                query = goalLabel,
+                step = steps,
+                action = action.toString(),
+                candidates = frame.controls.size,
+                note = "phi"
+            )
             // 把「它看到的畫面」印出來：模型只讀文字，除錯也只看同一份文字
             if (steps == 1 || steps % 3 == 0) {
                 android.util.Log.i(
