@@ -36,7 +36,8 @@ function Get-TaskRows {
     $c = $line.Split("`t")
     if ($c.Count -lt 4) { continue }
     $run = if ($c.Count -ge 6) { $c[5].Trim().ToLower() } else { 'ok' }
-    $rows += [pscustomobject]@{ id = $c[0]; tier = $c[1]; command = $c[2]; pkg = $c[3]; run = $run }
+    $reason = if ($c.Count -ge 7) { $c[6].Trim() } else { '目標 App 已停用' }
+    $rows += [pscustomobject]@{ id = $c[0]; tier = $c[1]; command = $c[2]; pkg = $c[3]; run = $run; reason = $reason }
   }
   return $rows
 }
@@ -149,8 +150,8 @@ foreach ($t in $rows) {
   Write-Output ("-- {0} [{1}] {2}" -f $t.id, $t.tier, $t.command)
   if ($t.run -eq 'skip') {
     # 這台裝置上該 App 被停用（實測 YouTube Music 是 disabled），跑不了 → 記 SKIP 不計分
-    Write-Output "   SKIP（目標 App 已停用）"
-    (@($t.id, $t.tier, $t.command, $t.pkg, "SKIP", "", "SKIP", "目標 App 已停用") -join "`t") |
+    Write-Output ("   SKIP（" + $t.reason + "）")
+    (@($t.id, $t.tier, $t.command, $t.pkg, "SKIP", "", "SKIP", $t.reason) -join "`t") |
       Out-File -FilePath $Out -Encoding utf8 -Append
     continue
   }
