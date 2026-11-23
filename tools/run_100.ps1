@@ -35,7 +35,8 @@ function Get-TaskRows {
     if ($line -eq "" -or $line.StartsWith("#")) { continue }
     $c = $line.Split("`t")
     if ($c.Count -lt 4) { continue }
-    $rows += [pscustomobject]@{ id = $c[0]; tier = $c[1]; command = $c[2]; pkg = $c[3] }
+    $run = if ($c.Count -ge 6) { $c[5].Trim().ToLower() } else { 'ok' }
+    $rows += [pscustomobject]@{ id = $c[0]; tier = $c[1]; command = $c[2]; pkg = $c[3]; run = $run }
   }
   return $rows
 }
@@ -49,14 +50,14 @@ function Classify([string]$log) {
   # 優先序：taskResult（基準訊號）→ outcome → result。
   # 一定要取「最後一次」：先前用 Match（第一次）會把中途的 result=ABSTAIN
   # 當成最終結果，實際最後是 taskResult=FAIL。
-  // 任務層的 status 也是正式訊號（TaskExecutor 成功時不一定會再印 taskResult）
-  //   WAE_TASK: status=DONE / ASK / FAILED
+  # 任務層的 status 也是正式訊號（TaskExecutor 成功時不一定會再印 taskResult）
+  #   WAE_TASK: status=DONE / ASK / FAILED
   $all = [regex]::Matches($text, '(?:taskResult|outcome|result)=([A-Z_]+)|status=(DONE|ASK|FAILED)')
   if ($all.Count -eq 0) { return @{ v = "UNKNOWN"; d = $detail } }
   $last = $all[$all.Count - 1]
   $v = if ($last.Groups[1].Success) { $last.Groups[1].Value } else { $last.Groups[2].Value }
-  // 語意對映：DONE＝任務層完成；CLEAR_WIN＝決策層選出明確贏家並已執行
-  //（沒有 taskResult 時最接近成功的訊號）；REJECT＝決策被駁回，等於沒做成。
+  # 語意對映：DONE＝任務層完成；CLEAR_WIN＝決策層選出明確贏家並已執行
+  #（沒有 taskResult 時最接近成功的訊號）；REJECT＝決策被駁回，等於沒做成。
   switch ($v) {
     'DONE' { $v = 'SUCCESS' }
     'CLEAR_WIN' { $v = 'SUCCESS' }
@@ -86,7 +87,7 @@ function Find-Bounds([string]$xml, [string]$text) {
 # 回到「可以按執行」的輸入頁。App 跑完會停在「任務已完成」卡片（要按「知道了」），
 # 執行中按鈕會變「停止」；這兩種都不能直接找「執行」。
 function Get-InputScreen {
-  for ($i = 0; $i -lt 6; $i++) {
+  for ($i = 0; $i -lt 4; $i++) {
     $xml = Get-UiXml
     if ($xml -match 'text="執行"') { return $xml }
     $known = Find-Bounds $xml "知道了"
@@ -100,13 +101,14 @@ function Get-InputScreen {
       continue
     }
     Invoke-Adb @('shell', 'input', 'keyevent', 'KEYCODE_BACK') | Out-Null
-    Start-Sleep -Milliseconds 1200
+    Start-Sleep -Milliseconds 800
   }
   return $null
 }
 
 function Invoke-OneRun {
   param([string]$command, [string]$pkg)
+  Invoke-Adb @('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP') | Out-Null
   if ($pkg -ne "") { Invoke-Adb @('shell', 'am', 'force-stop', $pkg) | Out-Null }
   Invoke-Adb @('shell', 'input', 'keyevent', 'KEYCODE_HOME') | Out-Null
   Start-Sleep -Milliseconds 700
@@ -143,6 +145,13 @@ if (-not (Test-Path $Out)) {
 
 foreach ($t in $rows) {
   Write-Output ("-- {0} [{1}] {2}" -f $t.id, $t.tier, $t.command)
+  if ($t.run -eq 'skip') {
+    # 這台裝置上該 App 被停用（實測 YouTube Music 是 disabled），跑不了 → 記 SKIP 不計分
+    Write-Output "   SKIP（目標 App 已停用）"
+    (@($t.id, $t.tier, $t.command, $t.pkg, "SKIP", "", "SKIP", "目標 App 已停用") -join "`t") |
+      Out-File -FilePath $Out -Encoding utf8 -Append
+    continue
+  }
   $r1 = Invoke-OneRun $t.command $t.pkg
   Write-Output ("   1st: {0}" -f $r1.v)
   $final = $r1.v

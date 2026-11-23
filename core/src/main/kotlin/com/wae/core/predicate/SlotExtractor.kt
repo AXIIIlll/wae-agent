@@ -121,6 +121,19 @@ object SlotExtractor {
             .trim()
             .trim('，', ',', '。', '的', '、')
 
+        // ⑥ 最後再剪一次「句首單字動詞」：介詞被拿掉之後動詞才露出來
+        //    （「在時鐘看世界時間」→ 去掉「在／時鐘」後剩下「看世界時間」）。
+        var trimmed = true
+        while (trimmed) {
+            trimmed = false
+            for (v in verbs().filter { it.length == 1 }) {
+                if (content.startsWith(v) && content.length > v.length) {
+                    content = content.removePrefix(v).trim()
+                    trimmed = true
+                }
+            }
+        }
+
         return Slots(
             time = time,
             person = person,
