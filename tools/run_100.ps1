@@ -46,7 +46,9 @@ function Classify([string]$log) {
   $lines = ($log -split "`n") | Where-Object { $_ -match 'WAE_' -and $_ -notmatch 'WAE_EXPLORE' }
   if (-not $lines) { return @{ v = "NONE"; d = "" } }
   $text = $lines -join "`n"
-  $detail = $lines[-1].Trim()
+  # 存「有用的那幾行」：任務層/決策層/接地層的最後 3 行，才看得出失敗原因
+  $useful = $lines | Where-Object { $_ -match 'WAE_TASK:|WAE_GEN5:|WAE_GROUNDING:|WAE_EXEC:' }
+  $detail = if ($useful) { (($useful | Select-Object -Last 3) -join ' || ') } else { $lines[-1].Trim() }
   # 優先序：taskResult（基準訊號）→ outcome → result。
   # 一定要取「最後一次」：先前用 Match（第一次）會把中途的 result=ABSTAIN
   # 當成最終結果，實際最後是 taskResult=FAIL。

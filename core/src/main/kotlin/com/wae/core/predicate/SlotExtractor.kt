@@ -134,6 +134,15 @@ object SlotExtractor {
             }
         }
 
+        // ⑦ 去掉尾端的「容器詞」：使用者說「查看鬧鐘清單」，但畫面上的頁籤只寫「鬧鐘」。
+        //    容器詞來自資料（CONTAINER），不是程式內建清單；只去掉尾端、只去一次。
+        for (w in LanguageWords.containerWords()) {
+            if (content.endsWith(w) && content.length > w.length + 1) {
+                content = content.removeSuffix(w).trim()
+                break
+            }
+        }
+
         return Slots(
             time = time,
             person = person,

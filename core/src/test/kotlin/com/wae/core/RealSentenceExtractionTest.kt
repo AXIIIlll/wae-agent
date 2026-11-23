@@ -27,6 +27,7 @@ class RealSentenceExtractionTest {
         val search = HashSet<String>()
         val verbs = ArrayList<String>()
         val opens = ArrayList<String>()
+        val containers = ArrayList<String>()
         for (raw in words.readLines(Charsets.UTF_8)) {
             val line = raw.trim()
             if (line.isEmpty() || line.startsWith("#")) continue
@@ -40,6 +41,7 @@ class RealSentenceExtractionTest {
                 "SEARCH" -> search.add(w)
                 "TASKVERB" -> verbs.add(w)
                 "OPEN" -> opens.add(w)
+                "CONTAINER" -> containers.add(w)
             }
         }
         val prefixes = ArrayList<String>()
@@ -61,7 +63,8 @@ class RealSentenceExtractionTest {
         LanguageWords.install(
             separators = seps, leads = leads, searchWords = search, labels = emptyMap(),
             taskVerbs = verbs, openWords = opens,
-            prefixes = prefixes, suffixes = suffixes, conjunctions = conjunctions
+            prefixes = prefixes, suffixes = suffixes, conjunctions = conjunctions,
+            containerWords = containers
         )
         return true
     }

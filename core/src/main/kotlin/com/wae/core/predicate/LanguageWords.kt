@@ -43,6 +43,10 @@ object LanguageWords {
     @Volatile
     private var conjunctions: List<String> = emptyList()
 
+    /** 容器詞（清單／列表／頁面…）：使用者會說「查看鬧鐘清單」，但畫面上的頁籤只寫「鬧鐘」。 */
+    @Volatile
+    private var containerWords: List<String> = emptyList()
+
     /** 由 App 在啟動時注入（見 `PredicateLexiconLoader`）。 */
     fun install(
         separators: List<String>,
@@ -54,7 +58,8 @@ object LanguageWords {
         verbTypes: List<Pair<String, String>> = emptyList(),
         prefixes: List<String> = emptyList(),
         suffixes: List<String> = emptyList(),
-        conjunctions: List<String> = emptyList()
+        conjunctions: List<String> = emptyList(),
+        containerWords: List<String> = emptyList()
     ) {
         this.separators = separators.sortedByDescending { it.length }
         this.leads = leads.sortedByDescending { it.length }
@@ -66,6 +71,7 @@ object LanguageWords {
         this.prefixes = prefixes.sortedByDescending { it.length }
         this.suffixes = suffixes.sortedByDescending { it.length }
         this.conjunctions = conjunctions.sortedByDescending { it.length }
+        this.containerWords = containerWords.sortedByDescending { it.length }
     }
 
     /** 介詞（在／到／進…）：不是內容，只是位置標記。 */
@@ -76,6 +82,9 @@ object LanguageWords {
 
     /** 連接詞（並／並且…）：後面接的是下一個動作。 */
     fun conjunctions(): List<String> = conjunctions
+
+    /** 容器詞（清單／列表…）：只用在「去掉尾端」，不會當成內容。 */
+    fun containerWords(): List<String> = containerWords
 
     fun separators(): List<String> = separators
 
@@ -136,5 +145,6 @@ object LanguageWords {
         prefixes = emptyList()
         suffixes = emptyList()
         conjunctions = emptyList()
+        containerWords = emptyList()
     }
 }
