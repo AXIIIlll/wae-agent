@@ -1,4 +1,4 @@
-package com.wae.agent.core
+package com.wae.core
 
 import com.wae.core.predicate.LanguageWords
 import org.junit.Assert.assertEquals
@@ -12,7 +12,8 @@ import org.junit.Test
  * 背景：Qwen 之外的任務分類器（tiny BERT）把「在設定裡搜尋藍牙」判成 CREATE（信心 0.83），
  * 於是計畫出「新增」步驟，整題失敗。句首是「在」，動詞優先規則接不到。
  *
- * 這個判定的資料全部來自 TSV（搜尋詞、介詞、方位助詞），這裡只驗證「規則本身」。
+ * 這個判定的資料全部來自 TSV（搜尋詞、介詞、方位助詞、打開動詞、序數標記），
+ * 這裡只驗證「規則本身」。
  */
 class LanguageWordsFrameTest {
 
@@ -25,7 +26,9 @@ class LanguageWordsFrameTest {
             searchWords = setOf("搜尋", "找", "查"),
             labels = emptyMap(),
             prefixes = listOf("在", "到", "進"),
-            suffixes = listOf("裡", "中", "内")
+            suffixes = listOf("裡", "中", "内"),
+            openWords = listOf("打開", "開啟"),
+            firstMarkers = listOf("第一個", "第一筆", "第一首")
         )
     }
 
@@ -37,9 +40,17 @@ class LanguageWordsFrameTest {
     }
 
     @Test
-    fun `preposition plus search word is enough even without a place particle`() {
+    fun `search that asks to open the result is FIND_OPEN`() {
         // 實測：「在 Chrome 搜尋今天天氣並打開第一個結果」被分類器判成 CREATE 0.94
-        assertEquals("FIND", LanguageWords.typeOfFrame("在 Chrome 搜尋今天天氣並打開第一個結果"))
+        assertEquals("FIND_OPEN", LanguageWords.typeOfFrame("在 Chrome 搜尋今天天氣並打開第一個結果"))
+        assertEquals("FIND_OPEN", LanguageWords.typeOfFrame("在設定裡搜尋飛航模式並打開"))
+        assertEquals("FIND_OPEN", LanguageWords.typeOfFrame("在 YouTube 搜尋音樂並播放第一首"))
+    }
+
+    @Test
+    fun `open verb before the search word does not make it FIND_OPEN`() {
+        // 「開啟」出現在搜尋詞之前 → 不算要打開搜尋結果
+        assertEquals("FIND", LanguageWords.typeOfFrame("在設定裡開啟藍牙後搜尋裝置"))
     }
 
     @Test

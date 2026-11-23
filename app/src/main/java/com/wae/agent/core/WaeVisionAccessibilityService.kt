@@ -229,6 +229,8 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         runCatching { startAgentDebugWatcher() }
+        // 測試用的最上層大字（TYPE_ACCESSIBILITY_OVERLAY）：人工驗證時看得到「現在第幾題」
+        com.wae.core.util.Degrade.orNull("hud:attach") { com.wae.agent.core.debug.DebugHud.attach(this) }
         activeInstance = this
         // 模型 mmap 與 15MB 級資料庫載入不可阻塞服務連線執行緒（會拖慢首個事件派發）
         Thread {
@@ -553,6 +555,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         serviceDestroyed = true
         super.onDestroy()
+        com.wae.core.util.Degrade.orNull("hud:detach") { com.wae.agent.core.debug.DebugHud.detach() }
         runCatching { floatingOverlay?.destroy() }
         floatingOverlay = null
         if (activeInstance === this) {

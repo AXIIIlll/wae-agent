@@ -47,6 +47,10 @@ object LanguageWords {
     @Volatile
     private var containerWords: List<String> = emptyList()
 
+    /** 「第一個／第一筆／第一首…」：出現在搜尋詞之後代表要打開結果，而不是只看結果。 */
+    @Volatile
+    private var firstMarkers: List<String> = emptyList()
+
     /** 由 App 在啟動時注入（見 `PredicateLexiconLoader`）。 */
     fun install(
         separators: List<String>,
@@ -59,7 +63,8 @@ object LanguageWords {
         prefixes: List<String> = emptyList(),
         suffixes: List<String> = emptyList(),
         conjunctions: List<String> = emptyList(),
-        containerWords: List<String> = emptyList()
+        containerWords: List<String> = emptyList(),
+        firstMarkers: List<String> = emptyList()
     ) {
         this.separators = separators.sortedByDescending { it.length }
         this.leads = leads.sortedByDescending { it.length }
@@ -72,6 +77,7 @@ object LanguageWords {
         this.suffixes = suffixes.sortedByDescending { it.length }
         this.conjunctions = conjunctions.sortedByDescending { it.length }
         this.containerWords = containerWords.sortedByDescending { it.length }
+        this.firstMarkers = firstMarkers
     }
 
     /** 介詞（在／到／進…）：不是內容，只是位置標記。 */
@@ -85,6 +91,9 @@ object LanguageWords {
 
     /** 容器詞（清單／列表…）：只用在「去掉尾端」，不會當成內容。 */
     fun containerWords(): List<String> = containerWords
+
+    /** 序數標記（第一個／第一筆…）。 */
+    fun firstMarkers(): List<String> = firstMarkers
 
     fun separators(): List<String> = separators
 
@@ -119,10 +128,21 @@ object LanguageWords {
     fun typeOfFrame(text: String): String? {
         val t = text.trim()
         if (t.isEmpty()) return null
-        val hasSearch = searchWords.any { it.isNotEmpty() && t.contains(it) }
-        if (!hasSearch) return null
+        val searchAt = searchWords
+            .filter { it.isNotEmpty() }
+            .map { t.indexOf(it) }
+            .filter { it >= 0 }
+            .minOrNull() ?: return null
         val hasPrefix = prefixes.any { it.isNotEmpty() && t.contains(it) }
-        return if (hasPrefix) "FIND" else null
+        if (!hasPrefix) return null
+
+        // 「搜尋」之後是否還要「打開／播放第一個」？
+        // 例：「在設定裡搜尋飛航模式並打開」→ 要進去；「在設定裡搜尋藍牙」→ 停在結果頁。
+        // 只看搜尋詞之後的字，避免「打開設定並搜尋 X」被誤判成要打開結果。
+        val tail = t.substring(searchAt)
+        val wantsOpen = opens.any { it.length >= 2 && tail.contains(it) } ||
+            firstMarkers.any { it.isNotEmpty() && tail.contains(it) }
+        return if (wantsOpen) "FIND_OPEN" else "FIND"
     }
 
     /** 句首動詞 → 任務型別（資料驅動）。 */
@@ -146,5 +166,6 @@ object LanguageWords {
         suffixes = emptyList()
         conjunctions = emptyList()
         containerWords = emptyList()
+        firstMarkers = emptyList()
     }
 }

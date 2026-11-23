@@ -25,7 +25,18 @@ object TaskPlanner {
                 if (target.isBlank()) null else TaskNode.Leaf(TaskNode.Op.LAUNCH, target)
             }
 
+            // 純搜尋：啟動 → 在搜尋框輸入 → 停在結果頁。
+            // 以前這裡多一個 PICK，所以「在設定裡搜尋藍牙」會變成「進入藍牙頁」。
             "FIND" -> {
+                if (content.isBlank()) return null
+                val steps = ArrayList<TaskNode>()
+                if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
+                steps.add(TaskNode.Leaf(TaskNode.Op.FIND, content))
+                TaskNode.Seq(steps)
+            }
+
+            // 搜尋後打開（「並打開第一個」「並播放第一首」）：才需要 PICK。
+            "FIND_OPEN" -> {
                 if (content.isBlank()) return null
                 val steps = ArrayList<TaskNode>()
                 if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))

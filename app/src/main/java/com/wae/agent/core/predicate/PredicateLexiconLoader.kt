@@ -161,6 +161,7 @@ object PredicateLexiconLoader {
             val verbs = ArrayList<String>()
             val opens = ArrayList<String>()
             val containers = ArrayList<String>()
+            val firsts = ArrayList<String>()
             readLines(context, "$DB/ui_language_words.tsv").forEach { line ->
                 val p = line.split('\t')
                 if (p.size < 2) return@forEach
@@ -174,6 +175,7 @@ object PredicateLexiconLoader {
                     "LABEL" -> labels[word] = p.getOrNull(2)?.trim().orEmpty().ifEmpty { word }
                     "TASKVERB" -> verbs.add(word)
                     "CONTAINER" -> containers.add(word)
+                    "ORDINAL_FIRST" -> firsts.add(word)
                     "OPEN" -> opens.add(word)
                 }
             }
@@ -198,7 +200,8 @@ object PredicateLexiconLoader {
                 prefixes = prefixes,
                 suffixes = suffixes,
                 conjunctions = conjunctions,
-                containerWords = containers
+                containerWords = containers,
+                firstMarkers = firsts
             )
 
             val dismiss = ArrayList<String>()
