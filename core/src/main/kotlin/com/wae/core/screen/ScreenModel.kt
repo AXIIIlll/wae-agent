@@ -38,6 +38,12 @@ data class ScreenOption(
     val top: Int,
     val right: Int,
     val bottom: Int,
+    /** 元件資源名（同名元件的唯一區分依據）。 */
+    val viewId: String = "",
+    /** 視窗層級：0＝彈出層、1＝主視窗。 */
+    val layer: Int = 1,
+    /** 是否位在網頁內容裡（排除 Chrome 頁面內嵌的三點）。 */
+    val inWeb: Boolean = false,
     /** 同一個標籤出現多次時用來區分（1 起算）。 */
     val ordinal: Int
 ) {

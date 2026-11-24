@@ -157,13 +157,14 @@ class A11yScreenGateway(
             lastMatches = emptyList()
             return -1 to 0f
         }
+        val boost = conceptBoost(target, pairs.map { it.second })
         val scored = pairs.mapIndexed { i, pair ->
             val option = pair.second
-            val labelScore = DecisionRanker.textScore(target, option.label, context)
+            val direct = labelScore(target, option.label, boost)
             val groupScore = if (option.group.isNotEmpty()) {
                 DecisionRanker.textScore(target, option.group, context)
             } else 0f
-            Triple(i, option, maxOf(labelScore, groupScore * 0.8f))
+            Triple(i, option, maxOf(direct, groupScore * 0.8f))
         }
         lastMatches = pairs.map { it.first to DecisionRanker.textScore(target, it.second.label, context) }
 
@@ -227,32 +228,67 @@ class A11yScreenGateway(
     override fun openOverflowMenu(): Boolean {
         val labels = com.wae.core.predicate.LanguageWords.menuLabels()
         if (labels.isEmpty()) return false
-        // Chrome 的工具列常常比頁面晚出現（實測第一次抓只有頁面內容、沒有選單按鈕），
-        // 所以要重試幾次，而不是抓到一次就放棄。
         val attempts = com.wae.agent.core.runtime.Tunables.getInt(context, "menu.find_attempts", 3)
         val delayMs = com.wae.agent.core.runtime.Tunables.getLong(context, "menu.find_delay_ms", 400L)
-        var hit: Control? = null
+
+        // 候選：標籤含任一個 MENU 詞（三點選單的無障礙標籤五花八門）
+        var candidates: List<Control> = emptyList()
+        var lastFrame: Frame = Frame.EMPTY
         for (i in 0 until attempts) {
             val f = capture()
-            hit = f.controls.firstOrNull { c ->
+            lastFrame = f
+            candidates = f.controls.filter { c ->
                 val fold = com.wae.core.predicate.TextFold.fold(c.label)
-                // 用「包含」而不是「完全相同」：三點選單的無障礙標籤五花八門
-                // （Chrome 是「自訂及管理 Google Chrome」、Samsung 是「更多選項」…），
-                // 只要標籤裡含有選單詞就當成選單入口。這條規則套用在**所有** MENU 資料列。
                 fold.isNotEmpty() && labels.any { l ->
-                    val target = com.wae.core.predicate.TextFold.fold(l)
-                    target.isNotEmpty() && fold.contains(target)
+                    val t = com.wae.core.predicate.TextFold.fold(l)
+                    t.isNotEmpty() && fold.contains(t)
                 }
             }
-            if (hit != null) break
+            if (candidates.isNotEmpty()) break
             if (i < attempts - 1) Thread.sleep(delayMs)
         }
-        val found = hit ?: run {
+        if (candidates.isEmpty()) {
             android.util.Log.i("WAE_MENU", "no overflow menu after $attempts tries")
             return false
         }
-        android.util.Log.i("WAE_MENU", "open overflow menu: '" + found.label + "'")
-        return act(TaskNode.Op.PICK, found.label, "")
+
+        // 排序（通用）：用「不在網頁內容 / 在上方 / 在右側 / 有資源名」排除頁面內嵌那顆三點。
+        val dm = context.resources.displayMetrics
+        val pairs = optionsOf(lastFrame)
+        val byKey = pairs.associate { it.first.key to it.second }
+        val ranked = com.wae.core.screen.MenuRanker.rank(
+            options = candidates.mapNotNull { byKey[it.key] },
+            screenHeightPx = dm.heightPixels,
+            screenWidthPx = dm.widthPixels
+        )
+        val ordered = ranked.mapNotNull { r -> candidates.firstOrNull { c -> byKey[c.key]?.id == r.option.id } }
+        val pool = if (ordered.isNotEmpty()) ordered else candidates
+
+        // 依序嘗試；點下去之後如果沒有出現新的彈出層，就換下一個候選。
+        val maxTries = com.wae.agent.core.runtime.Tunables.getInt(context, "menu.candidate_tries", 2)
+        for ((index, cand) in pool.withIndex()) {
+            if (index >= maxTries) break
+            val why = ranked.firstOrNull { it.option.label == cand.label }?.reason ?: "plain"
+            android.util.Log.i("WAE_MENU", "try overflow[$index] = '" + cand.label + "' (" + why + ")")
+            val before = capture()
+            val tapped = act(TaskNode.Op.PICK, cand.label, "")
+            if (!tapped) continue
+            Thread.sleep(com.wae.agent.core.runtime.Tunables.getLong(context, "menu.open_wait_ms", 350L))
+            val after = capture()
+            // 成功判準：出現新的彈出層選項，或可選項數量明顯變化
+            val popupAppeared = optionsOf(after).any { it.second.layer == 0 } &&
+                !optionsOf(before).any { it.second.layer == 0 }
+            val grew = after.controls.size > before.controls.size
+            if (popupAppeared || grew) {
+                android.util.Log.i("WAE_MENU", "overflow opened by '" + cand.label + "' popup=" + popupAppeared + " grew=" + grew)
+                return true
+            }
+            // 點錯了：按返回復原，再試下一個候選
+            com.wae.core.util.Degrade.orNull("menu:backOut") { service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK) }
+            Thread.sleep(200)
+        }
+        android.util.Log.i("WAE_MENU", "all overflow candidates failed (" + pool.size + " candidates)")
+        return false
     }
 
     override fun alreadySatisfied(leaf: TaskNode.Leaf): Boolean {
@@ -560,18 +596,43 @@ class A11yScreenGateway(
             if (blocked) banned.add(com.wae.core.plan.PlanMatcher.banKey(f.pkg, label, "PICK"))
         }
 
+        val boost = conceptBoost(target, pairs.map { it.second })
         val step = com.wae.core.plan.PlanStep(action = "PICK", target = target)
         val started = android.os.SystemClock.uptimeMillis()
         val candidate = com.wae.core.plan.PlanMatcher.best(
             step = step,
             screen = screen,
-            scoreOf = { goal, label -> DecisionRanker.textScore(goal, label, context) },
+            scoreOf = { goal, label -> labelScore(goal, label, boost) },
             banned = banned,
             packageName = f.pkg
         )
         val elapsed = android.os.SystemClock.uptimeMillis() - started
 
         if (candidate == null || candidate.reason == "banned") {
+            // 最近似退路：原本會直接失敗，這裡再多試一次（要求明顯領先，不亂猜）
+            val nearest = com.wae.core.util.Degrade.orNull("gateway:nearest") {
+                com.wae.core.screen.ConceptMatcher.nearest(
+                    target,
+                    pairs.map { it.second.label },
+                    floor = com.wae.agent.core.runtime.Tunables.getFloat(
+                        context, "match.nearest_floor", 0.45f
+                    ),
+                    margin = com.wae.agent.core.runtime.Tunables.getFloat(
+                        context, "match.nearest_margin", 0.10f
+                    )
+                )
+            }
+            if (nearest != null) {
+                val nearIdx = pairs.indexOfFirst { it.second.label == nearest.first }
+                if (nearIdx >= 0) {
+                    android.util.Log.i(
+                        "WAE_OPTION",
+                        "bestControl '$target' → nearest '${nearest.first}' dice=%.2f".format(nearest.second)
+                    )
+                    recordPlanTrace(f, target, pairs.size, nearest.first, nearest.second, false, elapsed)
+                    return pairs[nearIdx].first
+                }
+            }
             android.util.Log.i(
                 "WAE_OPTION",
                 "bestControl '$target' → 沒得選（options=${pairs.size} banned=${banned.size}）"
@@ -620,6 +681,30 @@ class A11yScreenGateway(
             val dir = java.io.File(context.filesDir, "eval").apply { mkdirs() }
             java.io.File(dir, "plan_trace.tsv").appendText(trace.toTsv() + "\n", Charsets.UTF_8)
         }
+    }
+
+    /**
+     * 概念同族加分（通用）：
+     * 「通話記錄」在撥號 App 只顯示「最近」時，字面永遠對不上；
+     * 但同一頁還有「鍵盤／聯絡人」時，就能判斷「最近」是通話記錄。
+     */
+    private fun conceptBoost(target: String, options: List<com.wae.core.screen.ScreenOption>): Set<String> {
+        val table = com.wae.agent.core.plan.ConceptLexicon.table(context)
+        if (table.concepts.isEmpty()) return emptySet()
+        val concept = com.wae.core.util.Degrade.orNull("gateway:conceptOf") { table.conceptOf(target) }?.id
+        return com.wae.core.util.Degrade.orEmpty("gateway:familyLabels") {
+            com.wae.core.screen.ConceptMatcher
+                .familyLabelsFor(concept, options.map { it.label }, table)
+                .toList()
+        }.toSet()
+    }
+
+    /** 標籤分數：字面優先，其次才是同族推論（同族分數低於包含，避免壓過真正相符的標籤）。 */
+    private fun labelScore(target: String, label: String, boost: Set<String>): Float {
+        val direct = DecisionRanker.textScore(target, label, context)
+        if (direct >= 0.85f) return direct
+        val isFamily = boost.any { com.wae.core.predicate.TextFold.fold(it) == com.wae.core.predicate.TextFold.fold(label) }
+        return if (isFamily) maxOf(direct, com.wae.core.screen.ConceptMatcher.FAMILY_SCORE) else direct
     }
 
     /** 上一幀指紋（changed 條件用）。 */

@@ -78,6 +78,21 @@ data class Control(
     val label: String = "",
     val textHash: String = "",
     val bounds: RectI,
+    /**
+     * 元件資源名（`viewIdResourceName`，例如 `com.android.chrome:id/menu_button`）。
+     * 用途：同名元件（例如畫面上兩個「更多選項」）只能靠它區分。
+     */
+    val viewId: String = "",
+    /**
+     * 視窗層級：0＝彈出層（選單／對話框，最上層）、1＝主視窗。
+     * 用途：決策時優先看使用者眼前那一層。
+     */
+    val layer: Int = 1,
+    /**
+     * 是否位在網頁內容裡（祖先含 WebView）。
+     * 用途：Chrome 頁面內嵌的三點與工具列三點標籤相同，靠這個把內嵌那顆排除。
+     */
+    val inWeb: Boolean = false,
     val enabled: Boolean = true,
     /**
      * 無障礙樹判定「可以點」：本身可點，或**祖先可點**（清單列的常見寫法：TextView 有文字、Row 才是可點的）。

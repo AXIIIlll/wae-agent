@@ -106,6 +106,9 @@ object OptionExtractor {
                 top = c.bounds.top,
                 right = c.bounds.right,
                 bottom = c.bounds.bottom,
+                viewId = c.viewId,
+                layer = c.layer,
+                inWeb = c.inWeb,
                 ordinal = ordinal
             )
             pairs.add(c to option)

@@ -73,3 +73,7 @@ plan.trace_enabled	1	是否寫計畫軌跡（filesDir/eval/plan_trace.tsv）
 ocr.region_expand_px	48	區域式 OCR：以可疑元素為中心往外擴多少像素
 ocr.region_min_area	2000	區域式 OCR：小於這個面積的區域不看（避免碎片）
 ocr.region_max	4	區域式 OCR：一次最多看幾個區域
+match.nearest_floor	0.45	找不到完全相符時，「最近似」的最低相似度（字元 bigram Dice）
+match.nearest_margin	0.10	最近似必須領先第二名的差距（避免瞎猜）
+menu.candidate_tries	2	選單按鈕點錯時，最多再試幾個候選
+menu.open_wait_ms	350	點選單後等彈出層出現的時間

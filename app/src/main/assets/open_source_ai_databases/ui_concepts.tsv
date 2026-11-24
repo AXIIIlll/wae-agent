@@ -1,0 +1,27 @@
+# 概念與同族詞表（語言層級；不含任何 App 名稱、不含套件名）
+#
+# 為什麼需要：同一個概念在不同 App 上可能只顯示簡寫
+#   例：「通話記錄」在撥號 App 的頁籤上只寫「最近」。
+# 只看字面永遠對不上，所以用兩層通用資料：
+#   CONCEPT：概念的明確說法（直接比對）
+#   FAMILY ＋ MEMBER：同族詞，只有在同族同時出現 2 個以上時才算數
+#     （單獨一個「最近」在檔案管理器也有，不能當通話記錄）
+#
+# 格式:
+#   CONCEPT <conceptId> <domain1|domain2> <說法1|說法2|...>
+#   FAMILY  <familyId>  <成員1|成員2|...>
+#   MEMBER  <conceptId> <familyId> <成員>
+
+CONCEPT	CALL_HISTORY	PHONE	通話記錄|通話紀錄|通話記錄清單|來電記錄|未接來電|已接來電|通話明細
+CONCEPT	BROWSER_HISTORY	BROWSER|GOOGLE_BROWSER	歷史記錄|歷史紀錄|瀏覽記錄|瀏覽紀錄|瀏覽歷史|歷史
+CONCEPT	BOOKMARKS	BROWSER|GOOGLE_BROWSER	書籤|我的書籤|已儲存的書籤
+CONCEPT	DOWNLOADS	BROWSER|GOOGLE_BROWSER	下載|下載內容|下載項目
+
+# 撥號 App 的分頁群
+FAMILY	PHONE_TABS	鍵盤|撥號|電話|聯絡人|通訊錄|最近|通話|語音信箱|最愛
+# 瀏覽器選單群
+FAMILY	BROWSER_MENU	新分頁|新無痕式分頁|書籤|歷史記錄|歷史紀錄|下載|設定|列印|翻譯|分享
+
+MEMBER	CALL_HISTORY	PHONE_TABS	最近
+MEMBER	CALL_HISTORY	PHONE_TABS	通話
+MEMBER	BROWSER_HISTORY	BROWSER_MENU	歷史

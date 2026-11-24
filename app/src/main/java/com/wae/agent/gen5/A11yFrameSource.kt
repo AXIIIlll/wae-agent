@@ -52,10 +52,11 @@ class A11yFrameSource(
             }
         }
         for (popup in popupRoots) {
-            walk(popup, controls, depth = 0, counter = intArrayOf(0))
+            // layer=0：這一層是使用者眼前看到的彈出層（選單／對話框）
+            walk(popup, controls, depth = 0, counter = intArrayOf(0), layer = 0)
         }
         val popupCount = controls.size
-        walk(root, controls, depth = 0, counter = intArrayOf(0))
+        walk(root, controls, depth = 0, counter = intArrayOf(0), layer = 1)
         if (popupCount > 0) {
             // 彈出視窗的元素排在前面：比對時 firstOrNull 會先看到選單項目
             android.util.Log.i("WAE_WINDOWS", "popup controls=$popupCount total=${controls.size}")
@@ -132,7 +133,8 @@ class A11yFrameSource(
         node: AccessibilityNodeInfo,
         out: MutableList<Control>,
         depth: Int,
-        counter: IntArray
+        counter: IntArray,
+        layer: Int = 1
     ) {
         if (depth > MAX_DEPTH || counter[0] >= MAX_NODES) return
         counter[0]++
@@ -148,7 +150,7 @@ class A11yFrameSource(
         if (visible && onScreen) {
             val key = keyOf(node, rect)
             NodeRegistry.put(key, node)
-            out.add(controlOf(node, key, rect))
+            out.add(controlOf(node, key, rect, layer))
         }
 
         for (i in 0 until node.childCount) {
@@ -208,7 +210,7 @@ class A11yFrameSource(
         return false
     }
 
-    private fun controlOf(node: AccessibilityNodeInfo, key: String, rect: Rect): Control {
+    private fun controlOf(node: AccessibilityNodeInfo, key: String, rect: Rect, layer: Int = 1): Control {
         val text = node.text?.toString().orEmpty()
             .ifEmpty { node.contentDescription?.toString().orEmpty() }
         val cls = node.className?.toString().orEmpty()
@@ -245,8 +247,27 @@ class A11yFrameSource(
                 selected = if (node.isSelected) true else null,
                 text = text.ifEmpty { null }
             ),
-            source = Channel.A11Y
+            source = Channel.A11Y,
+            viewId = node.viewIdResourceName?.toString().orEmpty(),
+            layer = layer,
+            inWeb = isInWebContent(node)
         )
+    }
+
+    private fun isInWebContent(node: AccessibilityNodeInfo): Boolean {
+        var cur: AccessibilityNodeInfo? = node
+        var depth = 0
+        while (cur != null && depth < 12) {
+            val cls = cur.className?.toString().orEmpty()
+            if (cls.contains("WebView", ignoreCase = true) ||
+                cls.contains("webview", ignoreCase = true)
+            ) {
+                return true
+            }
+            cur = cur.parent
+            depth++
+        }
+        return false
     }
 
     /**
