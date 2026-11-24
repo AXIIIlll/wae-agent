@@ -77,7 +77,7 @@ class SilentFailureRatchetTest {
         const val BASELINE_DECISION_CORE = 41
 
         /** 2026-11-22：同一天的全 App 數字（565 → 558）。 */
-        const val BASELINE_APP = 558
+        const val BASELINE_APP = 553
 
         /** 至少要有這麼多處真的用 Degrade（目前 9）。 */
         const val BASELINE_DEGRADE_USES = 9

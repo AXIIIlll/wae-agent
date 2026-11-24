@@ -21,7 +21,10 @@ class AgentController(
         cancelled = false
         val loop = loopFactory(onProgress)
         val outcome = loop.run(goal)
-        runCatching { AgentHistory.save(context, goal, null, outcome) }
+        // 歷史寫入失敗不影響這次執行，但要留痕（原本是靜默 runCatching）
+        com.wae.core.util.Degrade.orNull("agentController:saveHistory") {
+            AgentHistory.save(context, goal, null, outcome)
+        }
         return outcome
     }
 }

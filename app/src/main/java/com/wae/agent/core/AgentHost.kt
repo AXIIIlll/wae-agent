@@ -20,7 +20,9 @@ class AgentHost(private val service: WaeVisionAccessibilityService) {
     /** 助理呼叫：用 Agent 執行目標（背景執行緒，進度顯示在 overlay）。 */
     fun run(goal: String) {
         kotlin.concurrent.thread(name = "wae-agent-run", isDaemon = true) {
-            runCatching {
+            // 整段是「UI 進度顯示＋跑 Agent」：任何一步失敗都不該讓執行緒炸掉，
+            // 但要留下痕跡（原本是裸 runCatching，錯誤完全看不到）。
+            com.wae.core.util.Degrade.orNull("agentHost:run") {
                 val voiceProgress = VoiceProgressOverlay(service)
                 voiceProgress.show("規劃中…")
                 val out = AgentRunner(service).run(
@@ -32,7 +34,8 @@ class AgentHost(private val service: WaeVisionAccessibilityService) {
                     },
                     onStep = { msg ->
                         // I：每一步即時更新（"第 2/3 步：按下播放"）
-                        runCatching { voiceProgress.update(msg) }
+                        com.wae.core.util.Degrade.orNull("agentHost:step") { voiceProgress.update(msg) }
+                        Unit
                     }
                 )
                 // 失敗時把「哪一步、為什麼」直接顯示，不要只說「失敗了」
@@ -58,8 +61,8 @@ class AgentHost(private val service: WaeVisionAccessibilityService) {
     fun root(): android.view.accessibility.AccessibilityNodeInfo? = service.agentRoot()
 
     /** 播放驗證的第二訊號：系統是否正在輸出音訊。 */
-    fun isAudioPlaying(): Boolean = runCatching {
+    fun isAudioPlaying(): Boolean = com.wae.core.util.Degrade.orElse("agentHost:isAudioPlaying", false) {
         val am = service.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
         am.isMusicActive
-    }.getOrDefault(false)
+    }
 }

@@ -93,7 +93,7 @@ class VerifyRules(
         // 播放類條件：畫面沒有字、但音訊真的在播 → 也算成功（雙訊號）
         val playbackSignal = !hit &&
             playbackWords.any { expected.lowercase().contains(it.lowercase()) } &&
-            runCatching { isPlaybackActive() }.getOrDefault(false)
+            com.wae.core.util.Degrade.orElse("verifyRules:isPlaybackActive", false) { isPlaybackActive() }
         if (playbackSignal) {
             return VerifyResult(VerifyOutcome.OK, evidence = "audio active", screenChanged = changed)
         }
