@@ -75,16 +75,16 @@ class AssistActivity : Activity() {
     }
 
     override fun onDestroy() {
-        runCatching { sherpaAsr?.close() }
+        com.wae.core.util.Degrade.orNull("assist:closeAsr") { sherpaAsr?.close() }
         sherpaAsr = null
-        runCatching { controller?.destroy() }
+        com.wae.core.util.Degrade.orNull("assist:destroyController") { controller?.destroy() }
         controller = null
         super.onDestroy()
     }
 
     // ── 視窗模糊 + 提亮 + 覆蓋底部三鍵 ─────────────────────
     private fun applyBlurredWindow() {
-        runCatching {
+        com.wae.core.util.Degrade.orNull("assist:applyBlurredWindow") {
             window.setDimAmount(0.0f)
             window.statusBarColor = Color.TRANSPARENT
             window.navigationBarColor = Color.TRANSPARENT
@@ -113,7 +113,7 @@ class AssistActivity : Activity() {
 
     /** P0：顯示「上一步」復原卡（10 分鐘內、可復原的動作） */
     private fun refreshUndoCard() {
-        val last = runCatching { SessionHistory.lastUndoable(applicationContext) }.getOrNull()
+        val last = com.wae.core.util.Degrade.orNull("assist:lastUndoable") { SessionHistory.lastUndoable(applicationContext) }
         if (last == null) {
             if (::undoRow.isInitialized) undoRow.visibility = View.GONE
             return
@@ -125,7 +125,7 @@ class AssistActivity : Activity() {
 
     /** 復原：通用做法是先按 BACK 回到上一層／關閉剛打開的內容 */
     private fun performUndo() {
-        runCatching {
+        com.wae.core.util.Degrade.orNull("assist:performUndo") {
             WaeVisionAccessibilityService.activeInstance
                 ?.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
             SessionHistory.markLastUndone(applicationContext)
@@ -141,7 +141,7 @@ class AssistActivity : Activity() {
 
     /** 真正把底部三鍵藏起來（onCreate 時視窗還沒 focus，必須在 focus 後再呼叫一次） */
     private fun hideNavigationBar() {
-        runCatching {
+        com.wae.core.util.Degrade.orNull("assist:hideNavigationBar") {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.insetsController?.let { ctl ->
                     ctl.systemBarsBehavior =
@@ -379,7 +379,7 @@ class AssistActivity : Activity() {
         if (typingMode) return
         input.hint = "在聽…"
         mic.alpha = 1f
-        runCatching { wave.speed = 2.2f }
+        com.wae.core.util.Degrade.orNull("assist:waveSpeed22") { wave.speed = 2.2f }
 
         // 需要錄音權限
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) !=
@@ -411,7 +411,7 @@ class AssistActivity : Activity() {
                         if (testFile.isFile) {
                             Thread {
                                 val t0 = android.os.SystemClock.elapsedRealtime()
-                                val text = runCatching { sherpaAsr?.recognizeWavFile(testFile) }.getOrNull()
+                                val text = com.wae.core.util.Degrade.orNull("assist:recognizeWav") { sherpaAsr?.recognizeWavFile(testFile) }
                                 val dt = android.os.SystemClock.elapsedRealtime() - t0
                                 VoiceLog.event(TAG_EVENT, "SHERPA_TEST ${dt}ms")
                                 // 端到端驗證：sherpa_test_exec 存在 → 辨識結果直接送管線
@@ -595,7 +595,7 @@ class AssistActivity : Activity() {
         }
         confirmText.text = hint + text
         confirmRow.visibility = View.VISIBLE
-        runCatching { controller?.stop() }
+        com.wae.core.util.Degrade.orNull("assist:stopController") { controller?.stop() }
     }
 
     /** 安全模式：前 N 次語音指令一律要確認（可避免剛安裝就誤動作） */
@@ -616,7 +616,7 @@ class AssistActivity : Activity() {
         bundledVoiceStarted = false
         input.setText("")
         input.clearFocus()
-        runCatching { controller?.stop() }
+        com.wae.core.util.Degrade.orNull("assist:stopController") { controller?.stop() }
         runCatching {
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN)
         }
@@ -626,10 +626,10 @@ class AssistActivity : Activity() {
     private fun switchToTyping() {
         if (typingMode) return
         typingMode = true
-        runCatching { controller?.stop() }
+        com.wae.core.util.Degrade.orNull("assist:stopController") { controller?.stop() }
         input.hint = "打字後按 ↑"
         mic.alpha = 0.5f
-        runCatching { wave.speed = 2.6f }
+        com.wae.core.util.Degrade.orNull("assist:waveSpeed26") { wave.speed = 2.6f }
         input.requestFocus()
         runCatching {
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
@@ -659,7 +659,7 @@ class AssistActivity : Activity() {
             VoiceLog.event(TAG_EVENT, "AGENT_DISPATCH")
             finish()
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                runCatching { agentSvc.runAgentCommand(text) }
+                com.wae.core.util.Degrade.orNull("assist:runAgent") { agentSvc.runAgentCommand(text) }
             }, HANDOFF_DELAY_MS)
             return
         }
@@ -668,7 +668,7 @@ class AssistActivity : Activity() {
             SessionHistory.append(applicationContext, text, voice = fromVoice)
             if (fromVoice) VoiceFeedback.speak(applicationContext, "好的")
         }
-        runCatching { controller?.stop() }
+        com.wae.core.util.Degrade.orNull("assist:stopController") { controller?.stop() }
         val svc = WaeVisionAccessibilityService.activeInstance
         if (svc == null) {
             finish()
@@ -679,7 +679,7 @@ class AssistActivity : Activity() {
         finish()
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             // H3：語音先走 Gen-5（有動作就算它處理），完全沒動作才退回舊路徑
-            val gen5Enabled = runCatching { com.wae.agent.gen5.Gen5Runtime.isEnabled(this) }.getOrDefault(false)
+            val gen5Enabled = com.wae.core.util.Degrade.orElse("assist:gen5Enabled", false) { com.wae.agent.gen5.Gen5Runtime.isEnabled(this) }
             if (gen5Enabled) {
                 Thread {
                     val result = runCatching {
@@ -696,11 +696,11 @@ class AssistActivity : Activity() {
                             )
                         }
                     } else {
-                        runCatching { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
+                        com.wae.core.util.Degrade.orNull("assist:overlayExecute") { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
                     }
                 }.start()
             } else {
-                runCatching { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
+                com.wae.core.util.Degrade.orNull("assist:overlayExecute") { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
             }
             VoiceLog.event(TAG_EVENT, "HANDOFF_DISPATCHED")
         }, HANDOFF_DELAY_MS)
