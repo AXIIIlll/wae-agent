@@ -48,7 +48,7 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
         val ctx: Context = service
         val t0 = SystemClock.elapsedRealtime()
         // 通用前置：先回首頁，避免上一個測試殘留畫面干擾
-        runCatching { service.agentHome() }
+        com.wae.core.util.Degrade.orNull("agentRunner:home") { service.agentHome() }
         Thread.sleep(600)
         // 已安裝 App 目錄（含 metadata 類別/別名）＋ 最近使用量；不再只取前 60 個名稱。
         val catalog = com.wae.agent.core.app.InstalledAppCatalog.load(ctx)
@@ -63,7 +63,7 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                 val ocrA11yThreshold = com.wae.agent.core.runtime.Tunables.getInt(ctx, "perception.ocr_a11y_threshold", 6)
                 val ocrMaxLines = com.wae.agent.core.runtime.Tunables.getInt(ctx, "perception.ocr_max_lines", 30)
                 if (obs.elements.size < ocrA11yThreshold) {
-                    runCatching {
+                    com.wae.core.util.Degrade.orNull("agentRunner:ocr") {
                         val bmp = service.captureScreenForPerception()
                         if (bmp != null) {
                             val lines = com.wae.agent.vision.PpOcrEngine.detectAndRecognize(bmp, ocrMaxLines)

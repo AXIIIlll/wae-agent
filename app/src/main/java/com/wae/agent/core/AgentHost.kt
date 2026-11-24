@@ -21,7 +21,7 @@ class AgentHost(private val service: WaeVisionAccessibilityService) {
     fun run(goal: String) {
         kotlin.concurrent.thread(name = "wae-agent-run", isDaemon = true) {
             // 整段是「UI 進度顯示＋跑 Agent」：任何一步失敗都不該讓執行緒炸掉，
-            // 但要留下痕跡（原本是裸 runCatching，錯誤完全看不到）。
+            // 但要留下痕跡（原本是靜默吞掉，錯誤完全看不到）。
             com.wae.core.util.Degrade.orNull("agentHost:run") {
                 val voiceProgress = VoiceProgressOverlay(service)
                 voiceProgress.show("規劃中…")

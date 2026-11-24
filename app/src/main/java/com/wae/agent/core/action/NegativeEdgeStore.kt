@@ -223,9 +223,9 @@ object NegativeEdgeStore {
                 val sel = o.optString("sel", "")
                 val op = o.optString("op", "")
                 if (pkg.isEmpty() || sel.isEmpty() || op.isEmpty()) continue
-                val reason = runCatching {
+                val reason = com.wae.core.util.Degrade.orElse("negativeEdge:reason", NegativeReason.NO_EFFECT) {
                     NegativeReason.valueOf(o.optString("reason", "NO_EFFECT"))
-                }.getOrDefault(NegativeReason.NO_EFFECT)
+                }
                 val e = NegativeEdge(
                     pkg = pkg,
                     selector = sel,
