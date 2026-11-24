@@ -43,7 +43,7 @@ object TaskPlanner {
                 if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
                 // 這裡**不能**用 FIND：FIND 的語意是「找搜尋框並輸入」，
                 // 而 VIEW 要的是「點畫面上那一頁的入口」（例如時鐘底部的「世界時鐘」頁籤）。
-                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content))
+                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content, post = "changed"))
                 TaskNode.Seq(steps)
             }
 
@@ -53,7 +53,7 @@ object TaskPlanner {
                 val steps = ArrayList<TaskNode>()
                 if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
                 steps.add(TaskNode.Leaf(TaskNode.Op.FIND, content))
-                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content))
+                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content, post = "changed"))
                 TaskNode.Seq(steps)
             }
 
@@ -62,7 +62,7 @@ object TaskPlanner {
                 val steps = ArrayList<TaskNode>()
                 if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
                 steps.add(TaskNode.Leaf(TaskNode.Op.FIND, content))
-                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content))
+                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content, post = "changed"))
                 // 導航要再按「路線」才會真的開始（少了這步只到地點頁）
                 steps.add(TaskNode.Leaf(TaskNode.Op.PICK, LanguageWords.label("route")))
                 TaskNode.Seq(steps)
@@ -76,7 +76,7 @@ object TaskPlanner {
                 val steps = ArrayList<TaskNode>()
                 if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
                 steps.add(TaskNode.Leaf(TaskNode.Op.FIND, content))
-                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content))
+                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content, post = "changed"))
                 steps.add(TaskNode.Leaf(TaskNode.Op.SHARE, LanguageWords.label("share")))
                 steps.add(TaskNode.Leaf(TaskNode.Op.PICK, person))
                 steps.add(TaskNode.Leaf(TaskNode.Op.SEND, LanguageWords.label("send")))

@@ -19,7 +19,11 @@ sealed class TaskNode {
         /** 目標描述（給 grounding 用的自然語言，不是選擇器）。 */
         val target: String = "",
         /** 參數（例如要填入的文字、要設定的值）。 */
-        val arg: String = ""
+        val arg: String = "",
+        /** 執行前必須成立（PlanCondition 語法；空字串＝不設條件）。 */
+        val pre: String = "",
+        /** 執行後必須成立；不成立就當這一步失敗，讓上層重規劃。 */
+        val post: String = ""
     ) : TaskNode()
 
     /** 依序（然後／再）。 */

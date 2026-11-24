@@ -622,6 +622,29 @@ class A11yScreenGateway(
         }
     }
 
+    /** 上一幀指紋（changed 條件用）。 */
+    private var previousFp: String = ""
+
+    /**
+     * 目前畫面的「事實」：套件、指紋、可選標籤、開關狀態、動作前指紋。
+     * 計畫的前置／後置條件就是靠這份資料判斷。
+     */
+    override fun facts(): com.wae.core.plan.PlanCondition.Facts {
+        val f = frame
+        val pairs = com.wae.core.util.Degrade.orEmpty("gateway:facts") { optionsOf(f) }
+        val labels = pairs.map { it.second.label }
+        val checked = pairs.mapNotNull { p ->
+            p.second.checked?.let { p.second.label to it }
+        }.toMap()
+        return com.wae.core.plan.PlanCondition.Facts(
+            packageName = f.pkg,
+            fingerprint = f.fp,
+            labels = labels,
+            checked = checked,
+            previousFingerprint = previousFp
+        )
+    }
+
     /** 這一幀的「可選項」清單（與 OptionResolver 共用同一套抽取規則）。 */
     private fun optionsOf(f: Frame): List<Pair<Control, com.wae.core.screen.ScreenOption>> {
         val height = com.wae.core.util.Degrade.orElse("gateway:screenHeight", 0) {

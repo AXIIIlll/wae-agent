@@ -57,6 +57,33 @@ object UserCommandEntry {
     ): Boolean {
         val svc = WaeVisionAccessibilityService.activeInstance ?: return false
 
+        // ⓪ L1 明確度：先決定「這句話我懂不懂」，再決定要不要動手。
+        //    訊號全部可量測：句型有沒有命中、App 有沒有解析、目標物有沒有抽到、詞彙認不認識。
+        //    只有「四個訊號全缺」才擋下來（避免誤擋正常指令）。
+        val frameType = com.wae.core.predicate.LanguageWords.typeOfFrame(raw)
+        val earlyGoals = com.wae.core.util.Degrade.orEmpty("entry:decomposeGate") {
+            WaeV26PipelineOrchestrator.decomposeCommandIntoLocalGoals(raw, context)
+        }
+        val appResolved = earlyGoals.any { it.targetPackageHint.isNotEmpty() }
+        val targetExtracted = earlyGoals.any {
+            it.targetPackageHint.isNotEmpty() || it.inputPayload.isNotBlank() || it.goalText.trim().length > 2
+        }
+        val coverage = com.wae.core.util.Degrade.orElse("entry:coverage", 0f) {
+            com.wae.agent.core.plan.CommandLexicon.coverage(context, raw)
+        }
+        val signals = com.wae.core.plan.Ambiguity.Signals(
+            frameType = frameType,
+            appResolved = appResolved,
+            targetExtracted = targetExtracted,
+            lexiconCoverage = coverage
+        )
+        val verdict = com.wae.core.plan.Ambiguity.decide(signals)
+        Log.i("WAE_ENTRY", "ambiguity=${verdict} " + com.wae.core.plan.Ambiguity.describe(signals) + " cmd='$raw'")
+        if (verdict == com.wae.core.plan.Ambiguity.Verdict.UNKNOWN) {
+            onStatus("我不確定這是不是指令，可以換個說法")
+            return true
+        }
+
         // ① 系統值（音量／亮度）在「規劃之前」就攔下來。
         //    實測「把音量調低」會被 Task 層當成「去設定找音量」，回報 DONE 但音量 7→7 沒動。
         val sysHandled = com.wae.core.util.Degrade.orNull("entry:sysValue") {

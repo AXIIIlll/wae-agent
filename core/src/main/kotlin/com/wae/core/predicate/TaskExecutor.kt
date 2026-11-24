@@ -42,6 +42,12 @@ object TaskExecutor {
 
         /** 選單打開後要等多久才再擷取（各 App 動畫長短不同，交由實作提供）。 */
         fun menuSettleMs(): Long = 900L
+
+        /**
+         * 目前的畫面事實（套件、指紋、可選標籤、開關狀態、動作前指紋）。
+         * 預設回空值＝沒有資訊，條件會因此判不成立（寧可看到 false，也不要假裝成立）。
+         */
+        fun facts(): com.wae.core.plan.PlanCondition.Facts = com.wae.core.plan.PlanCondition.Facts()
     }
 
     enum class Status { DONE, ASK, FAILED }
@@ -70,10 +76,17 @@ object TaskExecutor {
     fun run(
         expanded: TaskExpander.Expanded,
         gateway: ScreenGateway,
-        groundFloor: Float = 0.55f
+        groundFloor: Float = 0.55f,
+        vars: com.wae.core.plan.PlanVars = com.wae.core.plan.PlanVars()
     ): Result {
         val outcomes = ArrayList<StepOutcome>()
-        expanded.leaves.forEachIndexed { i, leaf ->
+        expanded.leaves.forEachIndexed { i, rawLeaf ->
+            // 變數替換：target／arg 可以寫 $name，執行前換成已捕捉到的值
+            val leaf = rawLeaf.copy(
+                target = vars.substitute(rawLeaf.target),
+                arg = vars.substitute(rawLeaf.arg)
+            )
+
             // 幂等：已經成立就跳過（「如果沒開就開」在這裡自然成立）
             if (gateway.alreadySatisfied(leaf)) {
                 outcomes.add(StepOutcome(i, leaf, true, "already"))
@@ -105,11 +118,36 @@ object TaskExecutor {
             var attempt = 0
             while (attempt < 2) {
                 attempt += 1
+                // 前置條件：明確不成立就不要動作（例如計畫要求在某個 App 內做）
+                if (leaf.pre.isNotBlank()) {
+                    val facts = gateway.facts()
+                    if (!com.wae.core.plan.PlanCondition.holds(leaf.pre, facts)) {
+                        outcomes.add(StepOutcome(i, leaf, false, "precondition_failed(${leaf.pre})"))
+                        return Result(
+                            Status.FAILED, outcomes, i,
+                            "「${leaf.target}」的前置條件不成立：${com.wae.core.plan.PlanCondition.describe(leaf.pre)}"
+                        )
+                    }
+                }
+
                 val (idx, score) = gateway.find(leaf.target)
                 lastScore = score
                 if (score >= groundFloor && idx >= 0) {
                     everFound = true
                     if (gateway.act(leaf.op, leaf.target, leaf.arg)) {
+                        // 後置條件：說要變就必須真的變，否則視為這一步沒成（讓上層重規劃）
+                        if (leaf.post.isNotBlank() &&
+                            !com.wae.core.plan.PlanCondition.holds(leaf.post, gateway.facts())
+                        ) {
+                            outcomes.add(
+                                StepOutcome(i, leaf, false, "postcondition_failed(${leaf.post})")
+                            )
+                            return Result(
+                                Status.FAILED, outcomes, i,
+                                "「${leaf.target}」做完但後置條件不成立：" +
+                                    com.wae.core.plan.PlanCondition.describe(leaf.post)
+                            )
+                        }
                         acted = true
                         break
                     }
