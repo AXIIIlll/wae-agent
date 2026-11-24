@@ -47,3 +47,5 @@ plans/*
 !plans/ANCHORS.md
 # 暫存與工具產物（不屬於專案）
 .tmp/
+# 由外部工具產生（會一直重生），不進版控
+tools/dsh-wae-kit/
