@@ -101,14 +101,14 @@ class SherpaAsr(context: Context) {
             return
         }
         worker = kotlin.concurrent.thread(name = "sherpa-listen") {
-            val ar = runCatching { createAudioRecord() }.getOrNull()
+            val ar = com.wae.core.util.Degrade.orNull("asr:createAudioRecord") { createAudioRecord() }
             if (ar == null) {
                 running = false
                 onError("麥克風初始化失敗")
                 return@thread
             }
             audioRecord = ar
-            val s = runCatching { rec.createStream() }.getOrNull()
+            val s = com.wae.core.util.Degrade.orNull("asr:createStream") { rec.createStream() }
             if (s == null) {
                 running = false
                 onError("無法建立語音串流")
@@ -161,10 +161,10 @@ class SherpaAsr(context: Context) {
                 if (running) onError(t.message ?: "語音辨識失敗")
             } finally {
                 running = false
-                runCatching { ar.stop() }
-                runCatching { ar.release() }
+                com.wae.core.util.Degrade.orNull("asr:stopRecord") { ar.stop() }
+                com.wae.core.util.Degrade.orNull("asr:releaseRecord") { ar.release() }
                 audioRecord = null
-                runCatching { s.release() }
+                com.wae.core.util.Degrade.orNull("asr:releaseStream") { s.release() }
                 stream = null
             }
         }
@@ -172,15 +172,15 @@ class SherpaAsr(context: Context) {
 
     fun stop() {
         running = false
-        runCatching { audioRecord?.stop() }
-        runCatching { worker?.join(300) }
+        com.wae.core.util.Degrade.orNull("asr:stopRecord2") { audioRecord?.stop() }
+        com.wae.core.util.Degrade.orNull("asr:joinWorker") { worker?.join(300) }
         worker = null
     }
 
     fun close() {
         stop()
-        runCatching { stream?.release() }
-        runCatching { recognizer?.release() }
+        com.wae.core.util.Degrade.orNull("asr:releaseStream2") { stream?.release() }
+        com.wae.core.util.Degrade.orNull("asr:releaseRecognizer") { recognizer?.release() }
         recognizer = null
     }
 
@@ -226,7 +226,7 @@ class SherpaAsr(context: Context) {
             VoiceLog.error(TAG, "sherpa wav failed", t)
             null
         } finally {
-            runCatching { s.release() }
+            com.wae.core.util.Degrade.orNull("asr:releaseStream") { s.release() }
         }
     }
 
@@ -242,7 +242,7 @@ class SherpaAsr(context: Context) {
         onFinal: (String) -> Unit,
         onError: (String) -> Unit
     ) {
-        val s = runCatching { rec.createStream() }.getOrNull()
+        val s = com.wae.core.util.Degrade.orNull("asr:createStream") { rec.createStream() }
         if (s == null) {
             running = false
             onError("無法建立語音串流")
@@ -310,7 +310,7 @@ class SherpaAsr(context: Context) {
             if (running) onError(t.message ?: "語音辨識失敗")
         } finally {
             running = false
-            runCatching { s.release() }
+            com.wae.core.util.Degrade.orNull("asr:releaseStream") { s.release() }
             stream = null
         }
     }
@@ -329,7 +329,7 @@ class SherpaAsr(context: Context) {
             minBuf * 2
         )
         if (ar.state != AudioRecord.STATE_INITIALIZED) {
-            runCatching { ar.release() }
+            com.wae.core.util.Degrade.orNull("asr:releaseRecord") { ar.release() }
             throw IllegalStateException("AudioRecord 無法初始化")
         }
         return ar
@@ -366,7 +366,7 @@ class SherpaAsr(context: Context) {
         // hotwords：提升指令詞命中率（模型沒有熱詞功能時會被忽略）
         val hw = File(root, "hotwords.txt")
         if (!hw.isFile) {
-            runCatching {
+            com.wae.core.util.Degrade.orNull("asr:hotwords") {
                 appContext.assets.open("sherpa/hotwords.txt").use { input ->
                     FileOutputStream(hw).use { out -> input.copyTo(out) }
                 }

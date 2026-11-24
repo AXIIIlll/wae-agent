@@ -102,7 +102,7 @@ class AndroidActuator(
 
     /** 文字真的進去了才算數（設定搜尋列實測會靜默忽略 SET_TEXT）。 */
     private fun readBackContains(node: AccessibilityNodeInfo, expected: String): Boolean {
-        val now = runCatching { node.text?.toString() }.getOrNull().orEmpty()
+        val now = com.wae.core.util.Degrade.orElse("actuator:readNodeText", "") { node.text?.toString() ?: "" }
         if (now.isEmpty()) return false
         return now.contains(expected)
     }
@@ -243,11 +243,11 @@ class AndroidActuator(
             ?: return RawResult.noEffect("app_not_found")
         val launch = AppCatalog.launchIntent(context, pkg)
             ?: return RawResult.noEffect("no_launch_intent:$pkg")
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:launch", RawResult.noEffect("launch_failed")) {
             context.startActivity(launch)
             lastTargetPkg = pkg
             RawResult.applied("launch:$pkg")
-        }.getOrElse { RawResult.noEffect("launch_failed") }
+        }
     }
 
     /**
@@ -262,7 +262,7 @@ class AndroidActuator(
         // 先看「這個任務剛開的是哪個 App」：代理人跑在自己的畫面裡，
         // 只看前景會查到 com.wae.agent（然後永遠找不到搜尋 action）。
         val foreground = lastTargetPkg
-            ?: runCatching { service.rootInActiveWindow?.packageName?.toString() }.getOrNull().orEmpty()
+            ?: com.wae.core.util.Degrade.orElse("actuator:foregroundPkg", "") { service.rootInActiveWindow?.packageName?.toString() ?: "" }
         val action = SearchActions.actionFor(context, foreground)
             ?: return RawResult.noEffect("no_search_intent")
         val intent = Intent(action).apply {
@@ -270,10 +270,10 @@ class AndroidActuator(
             putExtra("query", query)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:searchIntent", RawResult.noEffect("search_intent_failed")) {
             context.startActivity(intent)
             RawResult.applied("search_intent:" + foreground)
-        }.getOrElse { RawResult.noEffect("search_intent_failed") }
+        }
     }
 
     /** 分享相簿裡最近一張照片（需要讀取媒體權限；沒有就誠實回失敗）。 */
@@ -288,10 +288,10 @@ class AndroidActuator(
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         means.pkg?.let { send.setPackage(it) }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:sharePhoto", RawResult.noEffect("share_photo_failed")) {
             context.startActivity(send)
             RawResult.applied("share_photo:" + (means.pkg ?: "chooser"))
-        }.getOrElse { RawResult.noEffect("share_photo_failed") }
+        }
     }
 
     /** 分享截圖（D11 延伸）：自己拍、自己存、用 content:// 交給目標 App，不需要任何媒體權限。 */
