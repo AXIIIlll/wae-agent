@@ -229,19 +229,19 @@ class SettingsActivity : Activity() {
             setPadding(dp(14), dp(10), dp(14), dp(10))
         }
         box.addView(checkRow("無障礙服務", a11y, "已開啟", "去開啟") {
-            runCatching { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            com.wae.core.util.Degrade.orNull("settings:openAccessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         })
         box.addView(checkRow("助理角色", role, "已設定", "去設定") {
-            val rm = runCatching { getSystemService(RoleManager::class.java) }.getOrNull()
+            val rm = com.wae.core.util.Degrade.orNull("settings:roleManager") { getSystemService(RoleManager::class.java) }
             if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT) && !rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
-                runCatching { startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)) }
+                com.wae.core.util.Degrade.orNull("settings:defaultApps") { startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)) }
             }
         })
         box.addView(checkRow("麥克風", mic, "已授權", "去授權") {
-            runCatching { requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 1002) }
+            com.wae.core.util.Degrade.orNull("settings:requestMic") { requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 1002) }
         })
         box.addView(checkRow("語音服務", voice, "可用", "去設定") {
-            runCatching { startActivity(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)) }
+            com.wae.core.util.Degrade.orNull("settings:voiceInput") { startActivity(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)) }
         })
         rows.addView(box, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
@@ -295,19 +295,19 @@ class SettingsActivity : Activity() {
         return enabled.contains(packageName + "/")
     }
 
-    private fun isAssistantRole(): Boolean = runCatching {
-        val rm = getSystemService(RoleManager::class.java) ?: return false
+    private fun isAssistantRole(): Boolean = com.wae.core.util.Degrade.orElse("settings:isAssistantRole", false) {
+        val rm = getSystemService(RoleManager::class.java) ?: return@orElse false
         rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT) && rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)
-    }.getOrDefault(false)
+    }
 
-    private fun isVoiceAvailable(): Boolean = runCatching {
+    private fun isVoiceAvailable(): Boolean = com.wae.core.util.Degrade.orElse("settings:isVoiceAvailable", false) {
         val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         packageManager.resolveActivity(intent, 0) != null ||
             android.speech.SpeechRecognizer.isRecognitionAvailable(this)
-    }.getOrDefault(false)
+    }
 
     private fun hasAsset(path: String): Boolean =
-        runCatching { assets.open(path).use { true } }.getOrDefault(false)
+        com.wae.core.util.Degrade.orElse("settings:assetExists", false) { assets.open(path).use { true } }
 
     // ── 工具 ────────────────────────────────────────────────
     private fun runSelfTest() {
@@ -316,7 +316,7 @@ class SettingsActivity : Activity() {
                 .setTitle("先開無障礙")
                 .setMessage("自我測試會真的去按按鈕，沒有無障礙只會全部失敗。")
                 .setPositiveButton("去開啟") { _, _ ->
-                    runCatching { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+                    com.wae.core.util.Degrade.orNull("settings:openAccessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
                 }
                 .setNegativeButton("算了", null)
                 .show()
@@ -329,11 +329,13 @@ class SettingsActivity : Activity() {
             .create()
         progress.show()
         Thread {
-            val results = runCatching { SelfTest.run(this) { step ->
-                runOnUiThread { runCatching { progress.setMessage(step) } }
-            } }.getOrDefault(emptyList())
+            val results = com.wae.core.util.Degrade.orEmpty("settings:selfTest") {
+                SelfTest.run(this) { step ->
+                    runOnUiThread { com.wae.core.util.Degrade.orNull("settings:progress") { progress.setMessage(step) } }
+                }
+            }
             runOnUiThread {
-                runCatching { progress.dismiss() }
+                com.wae.core.util.Degrade.orNull("settings:dismissProgress") { progress.dismiss() }
                 val pass = results.count { it.pass }
                 AlertDialog.Builder(this)
                     .setTitle(if (pass == results.size) "全部通過（$pass/${results.size}）" else "有失敗（$pass/${results.size}）")
