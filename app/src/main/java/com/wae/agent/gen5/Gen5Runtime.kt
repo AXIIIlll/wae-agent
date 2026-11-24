@@ -43,50 +43,50 @@ object Gen5Runtime {
         java.io.File(context.filesDir, "last_command.txt")
 
     private fun rememberLastCommand(context: android.content.Context, command: String) {
-        runCatching { lastCommandFile(context).writeText(command, Charsets.UTF_8) }
+        com.wae.core.util.Degrade.orNull("gen5:lastCommand") { lastCommandFile(context).writeText(command, Charsets.UTF_8) }
     }
 
     private fun readLastCommand(context: android.content.Context): String? =
-        runCatching {
+        com.wae.core.util.Degrade.orNull("gen5:readLastCommand") {
             val f = lastCommandFile(context)
             if (!f.exists()) null else f.readText(Charsets.UTF_8).trim().ifEmpty { null }
-        }.getOrNull()
+        }
 
     /** 「不是這個」「錯了」：把上一次那一步禁掉。 */
     private fun banLastAction(
         context: android.content.Context,
         store: com.wae.core.memory.MemoryBundle
     ): Boolean {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("gen5:banLastAction", false) {
             val file = java.io.File(context.filesDir, "mem/receipts.tsv")
-            if (!file.exists()) return@runCatching false
+            if (!file.exists()) return@orElse false
             val last = file.bufferedReader(Charsets.UTF_8).useLines { lines ->
                 lines.filter { it.isNotBlank() && !it.startsWith("#") }.lastOrNull()
-            } ?: return@runCatching false
+            } ?: return@orElse false
             val cells = last.split('\t')
-            if (cells.size < 6) return@runCatching false
+            if (cells.size < 6) return@orElse false
             val frameFp = cells[1]
             val steps = cells[5]
             // 取「最後一個後置條件成立的步驟」——那才是使用者看到的那一下
             val step = steps.split(';').lastOrNull { it.split('|').getOrNull(3) == "1" }
-                ?: return@runCatching false
+                ?: return@orElse false
             val parts = step.split('|')
-            if (parts.size < 2) return@runCatching false
+            if (parts.size < 2) return@orElse false
             store.memory.ban(effectKey = parts[0], means = parts[1], frameFp = frameFp)
-        }.getOrDefault(false)
+        }
     }
 
     /** 讀上一次的結果文字（`gen5_result.txt` 的最後一行，去掉指令前綴）。 */
     private fun readLastResultText(context: android.content.Context): String? {
-        return runCatching {
-            val dir = context.getExternalFilesDir(null) ?: return@runCatching null
+        return com.wae.core.util.Degrade.orNull("gen5:readLastResultText") {
+            val dir = context.getExternalFilesDir(null) ?: return@orNull null
             val file = java.io.File(dir, "gen5_result.txt")
-            if (!file.exists()) return@runCatching null
+            if (!file.exists()) return@orNull null
             val line = file.readLines(Charsets.UTF_8).lastOrNull { it.isNotBlank() }
-                ?: return@runCatching null
+                ?: return@orNull null
             val text = line.substringAfter('\t', "").trim()
             text.ifEmpty { null }
-        }.getOrNull()
+        }
     }
 
     private fun copyToClipboard(context: android.content.Context, text: String): Boolean {
@@ -514,7 +514,7 @@ object Gen5Runtime {
 
         // 名詞 fallback：句型與路由都認不得時，用「名詞→型別→App 類別」
         // 例：「我想找 AI 資料」→ INFO → 瀏覽器搜尋；「我想找醫院」→ PLACE → 地圖
-        runCatching { nounFallback(context, command) }.getOrNull()?.let { return it }
+        com.wae.core.util.Degrade.orNull("gen5:nounFallback") { nounFallback(context, command) }?.let { return it }
 
         // ── 使用者糾正（G7）──────────────────────────────────────────
         // 「不是這個」= 把上一次成功的那一步禁掉（同一畫面 × 效果 × 手段）。
@@ -572,7 +572,7 @@ object Gen5Runtime {
         val solver = MeansSolver(config)
         // 系統權限對話框（例如相機第一次要位置權限）：蓋在目標 App 上面，
         // 這時候點任何圖示都只是亂點。直接說「需要你去按允許」比亂點誠實。
-        val frontPkg = runCatching { service.rootInActiveWindow?.packageName?.toString() }.getOrNull().orEmpty()
+        val frontPkg = com.wae.core.util.Degrade.orElse("gen5:frontPkg", "") { service.rootInActiveWindow?.packageName?.toString() ?: "" }
         if (frontPkg.contains(PERMISSION_CONTROLLER)) {
             val text = "ABSTAIN reason=permission_missing steps=0 dialog=$frontPkg"
             Log.i(TAG, "result=$text command=$command")
@@ -583,7 +583,7 @@ object Gen5Runtime {
             )
         }
         // H5：長任務看得到進度（語音與按鈕共用同一條 overlay）
-        val overlay = runCatching { com.wae.agent.core.VoiceProgressOverlay(service) }.getOrNull()
+        val overlay = com.wae.core.util.Degrade.orNull("gen5:overlay") { com.wae.agent.core.VoiceProgressOverlay(service) }
         val progress: (String) -> Unit = { text ->
             if (text.isNotEmpty()) Log.i(TAG, "progress: $text")
             runCatching {
@@ -682,7 +682,7 @@ object Gen5Runtime {
             programs = store.programs,
             preconditions = BundledData.preconditions(),
             onProgress = progress,
-            sleeper = { ms -> runCatching { Thread.sleep(ms) } }
+            sleeper = { ms -> com.wae.core.util.Degrade.orNull("gen5:sleep") { Thread.sleep(ms) }; Unit }
         )
 
         val outcome = runCatching { agent.run(command) }.getOrElse { t ->
@@ -700,8 +700,8 @@ object Gen5Runtime {
                 "controls=${probeFrame.controls.size} icons=${probeFrame.controls.count { it.source == com.wae.core.model.Channel.ICON }} " +
                 "ocr=${probeFrame.controls.count { it.source == com.wae.core.model.Channel.OCR }}")
         }
-        runCatching { memory.flush() }
-        runCatching { store.save() }
+        com.wae.core.util.Degrade.orNull("gen5:memoryFlush") { memory.flush() }
+        com.wae.core.util.Degrade.orNull("gen5:storeSave") { store.save() }
         if (outcome is Outcome.Success) rememberLastCommand(context, command)
 
         // 拍照無法從畫面確認（沒有讀取媒體權限）→ 不假裝成功
@@ -812,12 +812,12 @@ object Gen5Runtime {
             }
             // 等 App 真的到前景再做 URI 搜尋（太早送會落到舊畫面）
             awaitForeground(service, app.pkg, 2500L)
-            val byUri = runCatching { OpExecutor.uriSearchFor(context, app.pkg, resolved.noun) }.getOrDefault(false)
+            val byUri = com.wae.core.util.Degrade.orElse("gen5:uriSearch", false) { OpExecutor.uriSearchFor(context, app.pkg, resolved.noun) }
             if (byUri) {
                 AppCapabilityStore.record(context, app.pkg, "noun:" + resolved.type, true)
                 return nounSuccess(resolved, app.label, "uri", command)
             }
-            val byA11y = runCatching { StepActor.searchHere(service, resolved.noun, context) }.getOrDefault(false)
+            val byA11y = com.wae.core.util.Degrade.orElse("gen5:searchHere", false) { StepActor.searchHere(service, resolved.noun, context) }
             if (byA11y) {
                 AppCapabilityStore.record(context, app.pkg, "noun:" + resolved.type, true)
                 return nounSuccess(resolved, app.label, "a11y", command)
@@ -845,7 +845,7 @@ object Gen5Runtime {
     ) {
         var waited = 0L
         while (waited < timeoutMs) {
-            val current = runCatching { service.rootInActiveWindow?.packageName?.toString() }.getOrNull()
+            val current = com.wae.core.util.Degrade.orNull("gen5:currentPkg") { service.rootInActiveWindow?.packageName?.toString() }
             if (current == pkg) return
             android.os.SystemClock.sleep(150L)
             waited += 150L
