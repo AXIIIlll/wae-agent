@@ -104,3 +104,10 @@ EXTREME n=15  成功率= ...     ← 這一層是「世界級」的門檻
 3. 評測器輪詢這兩個值，不讀畫面文字
 
 對應日誌：`WAE_EXEC taskResult=SUCCESS|FAIL seq=N`
+
+## 整理期間的驗證流程
+
+每次重構都要跑三道關卡：
+
+1. 單元測試：.gradlew.bat :core:test :app:testFullDebugUnitTest`n2. 債務指標：powershell -File tools\debt_report.ps1（只能下降）
+3. 真機 10 題：powershell -File tools\run_smoke_10.ps1（10/10 SUCCESS）
