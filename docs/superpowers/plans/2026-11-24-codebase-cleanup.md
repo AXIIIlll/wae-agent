@@ -17,8 +17,8 @@
 | 1 債務指標 | 完成 | `tools/debt_report.ps1` 四項 ok；commit `e6aa792` |
 | 2 清 emoji | 完成 | 32 → 0；`tools/strip_emoji.py`；commit `f8d02ad` |
 | 3 系統目標進 TSV | 完成 | `ui_system_targets.tsv` ＋ 5 個新測試；commit（Task 3） |
-| 4 runCatching | 進行中 | 593 → 590（第 1 批 5 處）；ratchet 558 → 553 |
-| 5 拆 Service | 未開始 | 目前 3977 行 |
+| 4 runCatching | 進行中 | 593 → **586**（2 批共 12 處）；ratchet 558 → 549 |
+| 5 拆 Service | 進行中 | 3977 → **3884**（已抽 BaselineRecovery）|
 | 6 拆 MainActivity | 未開始 | 目前 2078 行 |
 | 7 10 題回歸腳本 | 完成（待真機驗證） | `tools/run_smoke_10.ps1` |
 | 8 死碼／TODO | 未開始 | 46 筆 |
