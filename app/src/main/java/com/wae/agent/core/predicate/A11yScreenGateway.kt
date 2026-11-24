@@ -276,6 +276,15 @@ class A11yScreenGateway(
             Thread.sleep(com.wae.agent.core.runtime.Tunables.getLong(context, "menu.open_wait_ms", 350L))
             val after = capture()
             // 成功判準：出現新的彈出層選項，或可選項數量明顯變化
+            com.wae.core.util.Degrade.orNull("menu:dump") {
+                val opts = optionsOf(after)
+                android.util.Log.i(
+                    "WAE_MENU",
+                    "after open: options=" + opts.size + " popup=" +
+                        opts.count { it.second.layer == 0 } + " | " +
+                        opts.take(12).joinToString(" | ") { it.second.label.take(14) }
+                )
+            }
             val popupAppeared = optionsOf(after).any { it.second.layer == 0 } &&
                 !optionsOf(before).any { it.second.layer == 0 }
             val grew = after.controls.size > before.controls.size
@@ -461,7 +470,16 @@ class A11yScreenGateway(
             Thread.sleep(900)
             control = bestControl(capture(), target)
         }
-        if (control == null) return false
+        if (control == null) {
+            // 後援①：直接問無障礙「有沒有這個字」。
+            // 為什麼需要：選單／彈出層的項目有時不在我們自己 walk 的範圍
+            // （深度上限、視窗歸屬、或節點在系統 popup 裡），但 API 找得到。
+            if (clickByTextApi(target)) return true
+            // 後援②：OCR 定位（自繪元件、Canvas）
+            if (pickByOcr(target)) return true
+            android.util.Log.i("WAE_PICK", "PICK '$target' 三層都失敗（walk／byText／ocr）")
+            return false
+        }
         val beforeFp = f.fp
         val node = NodeRegistry.get(control.key)
         val ok = if (node == null) {
@@ -691,7 +709,10 @@ class A11yScreenGateway(
     private fun conceptBoost(target: String, options: List<com.wae.core.screen.ScreenOption>): Set<String> {
         val table = com.wae.agent.core.plan.ConceptLexicon.table(context)
         if (table.concepts.isEmpty()) return emptySet()
-        val concept = com.wae.core.util.Degrade.orNull("gateway:conceptOf") { table.conceptOf(target) }?.id
+        val folded = VariantFold.fold(context, target)
+        val concept = com.wae.core.util.Degrade.orNull("gateway:conceptOf") {
+            table.conceptOf(folded) ?: table.conceptOf(target)
+        }?.id
         return com.wae.core.util.Degrade.orEmpty("gateway:familyLabels") {
             com.wae.core.screen.ConceptMatcher
                 .familyLabelsFor(concept, options.map { it.label }, table)
@@ -705,6 +726,47 @@ class A11yScreenGateway(
         if (direct >= 0.85f) return direct
         val isFamily = boost.any { com.wae.core.predicate.TextFold.fold(it) == com.wae.core.predicate.TextFold.fold(label) }
         return if (isFamily) maxOf(direct, com.wae.core.screen.ConceptMatcher.FAMILY_SCORE) else direct
+    }
+
+    /**
+     * 後援：直接用無障礙 API 依文字找節點，再往上找可點的祖先。
+     *
+     * 為什麼自己 walk 之外還要這一條：選單／彈出層的節點可能落在
+     * 我們沒有走到的視窗（深度上限、視窗歸屬判定），但系統 API 是整棵樹搜。
+     * 這是「Chrome 選單開得起來、卻點不到歷史記錄」最直接的解法。
+     */
+    private fun clickByTextApi(target: String): Boolean {
+        val variants = linkedSetOf(target, VariantFold.fold(context, target))
+        val roots = ArrayList<android.view.accessibility.AccessibilityNodeInfo>(4)
+        com.wae.core.util.Degrade.orNull("pick:roots") {
+            service.rootInActiveWindow?.let { roots.add(it) }
+            service.windows?.forEach { w -> w.root?.let { roots.add(it) } }
+        }
+        for (root in roots) {
+            for (v in variants) {
+                val hits = com.wae.core.util.Degrade.orEmpty("pick:byText") {
+                    root.findAccessibilityNodeInfosByText(v) ?: emptyList()
+                }
+                for (hit in hits) {
+                    var cur: android.view.accessibility.AccessibilityNodeInfo? = hit
+                    var depth = 0
+                    while (cur != null && depth < 6) {
+                        if (cur.isClickable) {
+                            val ok = performOn(cur, TaskNode.Op.PICK, "")
+                            android.util.Log.i(
+                                "WAE_PICK",
+                                "byText '$v' → 可點祖先('" + (cur.text ?: cur.contentDescription).toString() + "') ok=$ok"
+                            )
+                            if (ok) return true
+                            break
+                        }
+                        cur = cur.parent
+                        depth++
+                    }
+                }
+            }
+        }
+        return false
     }
 
     /** 上一幀指紋（changed 條件用）。 */
