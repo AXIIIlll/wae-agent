@@ -45,3 +45,5 @@ _
 Thumbs.db
 plans/*
 !plans/ANCHORS.md
+# 暫存與工具產物（不屬於專案）
+.tmp/
