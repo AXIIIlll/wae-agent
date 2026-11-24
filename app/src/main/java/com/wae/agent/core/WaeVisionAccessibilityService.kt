@@ -1311,7 +1311,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 // 現在改成「有證據才返回」：只有在畫面上**真的看得到**
                 // 工具列返回箭頭（contentDescription 是返回／上一頁／Back，或 id 是 back/up）
                 // 且位於畫面上方時，才按 BACK；按完重新檢查，最多 baseline.max_back 次。
-                backOutToRootIfNested("launch:" + goal.targetPackageHint)
+                com.wae.agent.core.service.BaselineRecovery.backOutToRootIfNested(this, this, "launch:" + goal.targetPackageHint)
                 notifyUiStatus("✓ 已打開應用程式：${goal.targetPackageHint}", onStepUpdate)
                 return true
             }
@@ -3379,101 +3379,8 @@ class WaeVisionAccessibilityService : AccessibilityService() {
      *
      * 參數與開關都放 `ui_tunables.tsv`（baseline.enabled / baseline.max_back）。
      */
-    private fun backOutToRootIfNested(tag: String) {
-        if (!com.wae.agent.core.runtime.Tunables.getBool(this, "baseline.enabled", true)) return
-        val maxBacks = com.wae.agent.core.runtime.Tunables.getInt(this, "baseline.max_back", 3)
-        val delayMs = com.wae.agent.core.runtime.Tunables.getLong(this, "baseline.back_delay_ms", 450L)
-        if (maxBacks <= 0) return
-        val labels = com.wae.core.predicate.LanguageWords.backLabels()
-        if (labels.isEmpty()) return
-        var backs = 0
-        while (backs < maxBacks) {
-            val root = com.wae.core.util.Degrade.orNull("baseline:root") { rootInActiveWindow } ?: break
-            val fg = root.packageName?.toString().orEmpty()
-            if (fg.isEmpty() || fg == packageName) break
-            // 瀏覽器例外：Chrome 的返回箭頭是「上一頁」（瀏覽歷史），不是「上層」。
-            // 實測（2026-11-23，第 26 題）：開 Chrome 後自動按返回，會退回上一次的搜尋頁。
-            // 注意：這只擋「自動後退」；使用者明講「退回上一頁」時走的是計畫裡的 BACK 步驟，不受影響。
-            if (looksLikeBrowser(root)) {
-                Log.i("WAE_BASELINE", "$tag：偵測到網址列，跳過自動返回（瀏覽器的返回是上一頁）")
-                break
-            }
-            if (!hasTopBarBackAffordance(root, labels)) break
-            performGlobalAction(GLOBAL_ACTION_BACK)
-            backs++
-            SystemClock.sleep(delayMs)
-        }
-        if (backs > 0) {
-            Log.i("WAE_BASELINE", "$tag：在子頁面上，按了 $backs 次返回回到根頁")
-        }
-    }
-
-    /**
-     * 這是不是「瀏覽器類」畫面（有網址列）。
-     *
-     * 為什麼要判斷：瀏覽器的返回箭頭代表「上一頁」，不是「回上層」。
-     * 自動後退在瀏覽器上會把使用者帶回上一页（實測第 26 題退回到先前的搜尋結果）。
-     * 標記詞來自資料（`ui_language_words.tsv` 的 URL_BAR 列）。
-     */
-    private fun looksLikeBrowser(root: android.view.accessibility.AccessibilityNodeInfo): Boolean {
-        val markers = com.wae.core.predicate.LanguageWords.urlBarLabels()
-        if (markers.isEmpty()) return false
-        val queue = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
-        queue.addLast(root)
-        var visited = 0
-        while (queue.isNotEmpty() && visited < 200) {
-            val node = queue.removeFirst()
-            visited++
-            val isEditable = com.wae.core.util.Degrade.orElse("browser:editable", false) { node.isEditable }
-            if (isEditable) {
-                val text = (node.text?.toString().orEmpty() + " " + node.hintText?.toString().orEmpty() +
-                    " " + (node.contentDescription?.toString().orEmpty())).trim()
-                val folded = com.wae.core.predicate.TextFold.fold(text)
-                if (markers.any { m ->
-                        val t = com.wae.core.predicate.TextFold.fold(m)
-                        t.isNotEmpty() && folded.contains(t)
-                    }
-                ) return true
-            }
-            for (i in 0 until node.childCount) node.getChild(i)?.let { queue.addLast(it) }
-        }
-        return false
-    }
-
-    /** 畫面上方是否有「往上層」的可點入口（返回箭頭／上一頁）。 */    private fun hasTopBarBackAffordance(
-        root: android.view.accessibility.AccessibilityNodeInfo,
-        backLabels: List<String>
-    ): Boolean {
-        val metrics = resources.displayMetrics
-        // 比例與節點上限都放 Tunables：不同 App 的工具列高度不同，真機可調不用重編
-        val topRatio = com.wae.agent.core.runtime.Tunables.getFloat(this, "baseline.top_ratio", 0.28f)
-        val maxNodes = com.wae.agent.core.runtime.Tunables.getInt(this, "baseline.max_nodes", 160)
-        val widthRatio = com.wae.agent.core.runtime.Tunables.getFloat(this, "baseline.max_width_ratio", 0.33f)
-        val topLimit = (metrics.heightPixels * topRatio).toInt()
-        val queue = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
-        queue.addLast(root)
-        var visited = 0
-        while (queue.isNotEmpty() && visited < maxNodes) {
-            val node = queue.removeFirst()
-            visited++
-            val label = (node.text?.toString().orEmpty() + " " +
-                (node.contentDescription?.toString().orEmpty())).trim()
-            val viewId = node.viewIdResourceName.orEmpty()
-            val looksBack = com.wae.core.predicate.BaselineGuard.isBackLabel(label, backLabels) ||
-                com.wae.core.predicate.BaselineGuard.isBackViewId(viewId)
-            if (looksBack && node.isClickable) {
-                val rect = android.graphics.Rect()
-                node.getBoundsInScreen(rect)
-                if (rect.top in 0..topLimit && rect.width() in 1..(metrics.widthPixels * widthRatio).toInt()) return true
-            }
-            for (i in 0 until node.childCount) {
-                node.getChild(i)?.let { queue.addLast(it) }
-            }
-        }
-        return false
-    }
-
-    /** S33：收集目前畫面上所有 text / contentDescription（變數收集與守衛判定用） */    private fun collectVisibleScreenTexts(): List<String> {
+    /** S33：收集目前畫面上所有 text / contentDescription（變數收集與守衛判定用） */
+    private fun collectVisibleScreenTexts(): List<String> {
         val out = ArrayList<String>(32)
         val root = runCatching { rootInActiveWindow }.getOrNull() ?: return out
         val stack = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
