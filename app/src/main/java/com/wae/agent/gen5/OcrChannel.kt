@@ -30,7 +30,17 @@ class OcrChannel(
     fun isAvailable(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && PpOcrEngine.isReady
 
     /** 同步取一幀（最多等 timeoutMs）。失敗回空清單，不拋。 */
-    fun capture(timeoutMs: Long = DEFAULT_TIMEOUT_MS, maxLines: Int = DEFAULT_MAX_LINES): List<Control> {
+    /**
+     * 同步取一幀（最多等 timeoutMs）。失敗回空清單，不拋。
+     *
+     * @param region 只辨識這一塊（像素座標）；null＝整頁。
+     *               整頁 OCR 會被背景文字干擾又慢，所以呼叫端通常先規劃小區域。
+     */
+    fun capture(
+        region: android.graphics.Rect? = null,
+        timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+        maxLines: Int = DEFAULT_MAX_LINES
+    ): List<Control> {
         if (!isAvailable()) return emptyList()
         val latch = CountDownLatch(1)
         val out = ArrayList<Control>()
@@ -45,7 +55,9 @@ class OcrChannel(
                                 ?.copy(Bitmap.Config.ARGB_8888, false)
                             screenshot.hardwareBuffer.close()
                             if (bitmap != null) {
-                                out.addAll(toControls(bitmap, maxLines))
+                                val (cropBitmap, offX, offY) = cropTo(bitmap, region)
+                                out.addAll(toControls(cropBitmap, maxLines, offX, offY))
+                                if (cropBitmap !== bitmap) cropBitmap.recycle()
                                 bitmap.recycle()
                             }
                         }
@@ -63,7 +75,28 @@ class OcrChannel(
         return out
     }
 
-    private fun toControls(bitmap: Bitmap, maxLines: Int): List<Control> {
+    /** 裁切到指定區域（超出範圍會夾住）；回傳 bitmap 與它在原圖的位移。 */
+    private fun cropTo(
+        bitmap: Bitmap,
+        region: android.graphics.Rect?
+    ): Triple<Bitmap, Int, Int> {
+        if (region == null) return Triple(bitmap, 0, 0)
+        val l = region.left.coerceIn(0, bitmap.width - 1)
+        val t = region.top.coerceIn(0, bitmap.height - 1)
+        val r = region.right.coerceIn(l + 1, bitmap.width)
+        val b = region.bottom.coerceIn(t + 1, bitmap.height)
+        val cropped = com.wae.core.util.Degrade.orNull("ocr:crop") {
+            Bitmap.createBitmap(bitmap, l, t, r - l, b - t)
+        } ?: return Triple(bitmap, 0, 0)
+        return Triple(cropped, l, t)
+    }
+
+    private fun toControls(
+        bitmap: Bitmap,
+        maxLines: Int,
+        offsetX: Int = 0,
+        offsetY: Int = 0
+    ): List<Control> {
         val lines = runCatching { PpOcrEngine.detectAndRecognize(bitmap, maxLines) }
             .getOrDefault(emptyList())
         return lines.mapIndexed { index, line ->
@@ -73,7 +106,10 @@ class OcrChannel(
                 kind = ControlKind.ROW,
                 label = text,
                 textHash = TextHash.of(text),
-                bounds = RectI(line.rect.left, line.rect.top, line.rect.right, line.rect.bottom),
+                bounds = RectI(
+                    line.rect.left + offsetX, line.rect.top + offsetY,
+                    line.rect.right + offsetX, line.rect.bottom + offsetY
+                ),
                 enabled = true,
                 state = ControlState(text = text),
                 source = Channel.OCR

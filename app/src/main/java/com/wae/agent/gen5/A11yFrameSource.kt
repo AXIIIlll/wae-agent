@@ -61,11 +61,41 @@ class A11yFrameSource(
             android.util.Log.i("WAE_WINDOWS", "popup controls=$popupCount total=${controls.size}")
         }
 
-        // 稀疏畫面補 OCR：WebView／Flutter／Canvas 常常幾乎沒有節點
-        if (controls.size < ocrA11yThreshold && ocr != null && ocr.isAvailable()) {
-            val ocrControls = ocr.capture()
-            if (ocrControls.isNotEmpty()) {
-                controls.addAll(ocrControls)
+        // 區域式 OCR：只在「缺資訊的地方」辨識，而不是整頁。
+        // 觸發條件：節點太少（Canvas／Flutter），或這一幀有彈出視窗（選單項目常常不在 a11y 裡）。
+        if ((controls.size < ocrA11yThreshold || popupCount > 0) && ocr != null && ocr.isAvailable()) {
+            val dm = context.resources.displayMetrics
+            val regions = com.wae.core.screen.OcrRegionPlanner.plan(
+                controls = controls,
+                popupBounds = popupRoots.mapNotNull { r ->
+                    val rect = android.graphics.Rect()
+                    r.getBoundsInScreen(rect)
+                    if (rect.width() > 0 && rect.height() > 0) {
+                        com.wae.core.screen.OcrRegionPlanner.Region(
+                            rect.left, rect.top, rect.right, rect.bottom
+                        )
+                    } else null
+                },
+                screenWidth = dm.widthPixels,
+                screenHeight = dm.heightPixels,
+                expandPx = com.wae.agent.core.runtime.Tunables.getInt(context, "ocr.region_expand_px", 48),
+                minArea = com.wae.agent.core.runtime.Tunables.getInt(context, "ocr.region_min_area", 2000),
+                maxRegions = com.wae.agent.core.runtime.Tunables.getInt(context, "ocr.region_max", 4)
+            )
+            var added = 0
+            if (regions.isEmpty()) {
+                // 沒有任何可疑區域 → 退化成整頁（保持舊行為，避免「什麼都沒看」）
+                val ocrControls = ocr.capture()
+                if (ocrControls.isNotEmpty()) { controls.addAll(ocrControls); added = ocrControls.size }
+            } else {
+                for (region in regions) {
+                    val rect = android.graphics.Rect(region.left, region.top, region.right, region.bottom)
+                    val ocrControls = ocr.capture(region = rect)
+                    if (ocrControls.isNotEmpty()) { controls.addAll(ocrControls); added += ocrControls.size }
+                }
+                if (added > 0) {
+                    android.util.Log.i("WAE_OCR", "region ocr added=$added regions=${regions.size}")
+                }
             }
         }
 

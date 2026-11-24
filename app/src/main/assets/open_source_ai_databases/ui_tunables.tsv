@@ -70,3 +70,6 @@ screen.stable_frames	2	畫面穩定判定：連續幾次指紋相同才算穩
 screen.stable_ms	300	畫面穩定判定：至少停留幾毫秒
 screen.stable_polls	6	等穩定最多重試幾次（等不到就用最後一幀）
 plan.trace_enabled	1	是否寫計畫軌跡（filesDir/eval/plan_trace.tsv）
+ocr.region_expand_px	48	區域式 OCR：以可疑元素為中心往外擴多少像素
+ocr.region_min_area	2000	區域式 OCR：小於這個面積的區域不看（避免碎片）
+ocr.region_max	4	區域式 OCR：一次最多看幾個區域
