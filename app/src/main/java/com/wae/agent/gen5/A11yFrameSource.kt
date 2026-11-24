@@ -38,7 +38,28 @@ class A11yFrameSource(
 
         val pkg = root.packageName?.toString().orEmpty()
         val controls = ArrayList<Control>(64)
+        // 先走「上層彈出視窗」（選單、對話框、下拉）：這些是獨立視窗，
+        // rootInActiveWindow 只會拿到下面那個主視窗。
+        // 實測（2026-11-23）：Chrome 的三點選單打開後，擷取只看得到工具列，
+        // 「歷史紀錄」明明在畫面上卻找不到。
+        val popupRoots = ArrayList<android.view.accessibility.AccessibilityNodeInfo>()
+        com.wae.core.util.Degrade.orNull("frame:windows") {
+            val activeId = root.windowId
+            service.windows?.asReversed()?.forEach { w ->
+                if (w.id != activeId && w.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION) {
+                    w.root?.let { popupRoots.add(it) }
+                }
+            }
+        }
+        for (popup in popupRoots) {
+            walk(popup, controls, depth = 0, counter = intArrayOf(0))
+        }
+        val popupCount = controls.size
         walk(root, controls, depth = 0, counter = intArrayOf(0))
+        if (popupCount > 0) {
+            // 彈出視窗的元素排在前面：比對時 firstOrNull 會先看到選單項目
+            android.util.Log.i("WAE_WINDOWS", "popup controls=$popupCount total=${controls.size}")
+        }
 
         // 稀疏畫面補 OCR：WebView／Flutter／Canvas 常常幾乎沒有節點
         if (controls.size < ocrA11yThreshold && ocr != null && ocr.isAvailable()) {
@@ -145,6 +166,18 @@ class A11yFrameSource(
             c == "ScrollView" || c == "NestedScrollView" || c == "ConstraintLayout"
     }
 
+    /** 往上找 4 層，看有沒有可點的祖先（清單列很常見：文字在子節點、可點在父節點）。 */
+    private fun hasClickableAncestor(node: AccessibilityNodeInfo): Boolean {
+        var cur = node.parent
+        var depth = 0
+        while (cur != null && depth < 4) {
+            if (cur.isClickable) return true
+            cur = cur.parent
+            depth++
+        }
+        return false
+    }
+
     private fun controlOf(node: AccessibilityNodeInfo, key: String, rect: Rect): Control {
         val text = node.text?.toString().orEmpty()
             .ifEmpty { node.contentDescription?.toString().orEmpty() }
@@ -170,6 +203,10 @@ class A11yFrameSource(
             textHash = if (text.isEmpty()) "" else TextHash.of(text),
             bounds = RectI(rect.left, rect.top, rect.right, rect.bottom),
             enabled = node.isEnabled,
+            // 「可互動」＝可點、或祖先可點、或可聚焦。
+            // 為什麼要算 focusable：很多自訂頁籤是 clickable=false + focusable=true
+            // （實測三星時鐘的「鬧鐘／世界時鐘」頁籤），只認 clickable 會讓頁籤整個消失。
+            clickable = node.isClickable || hasClickableAncestor(node) || node.isFocusable,
             scrollable = node.isScrollable,
             classHint = cls,
             state = ControlState(

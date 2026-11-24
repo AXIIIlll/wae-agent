@@ -98,7 +98,7 @@ object SafetyAutomaton {
         return when (verdict) {
             Verdict.ALLOW -> "允許"
             Verdict.BLOCK -> "⛔ 已阻斷：$action 在 ${ctx.packageName} 被安全政策禁止"
-            Verdict.REQUIRE_CONFIRM -> "🖐 需人工確認：$action 命中金流/破壞性/公開發布關鍵字"
+            Verdict.REQUIRE_CONFIRM -> " 需人工確認：$action 命中金流/破壞性/公開發布關鍵字"
             Verdict.ABORT_SESSION -> "⛔ 任務中止：偵測到驗證碼/權限彈窗等風控頁面"
         }
     }

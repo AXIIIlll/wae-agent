@@ -1291,7 +1291,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         if (goal.targetPackageHint.isNotEmpty()) {
             val currentFgPkg = getActiveNonWaeRoot()?.packageName?.toString().orEmpty()
             if (currentFgPkg != goal.targetPackageHint) {
-                notifyUiStatus("🚀 正在啟動應用程式：${goal.targetPackageHint}...", onStepUpdate)
+                notifyUiStatus(" 正在啟動應用程式：${goal.targetPackageHint}...", onStepUpdate)
                 val launched = WaeOpenSourceDatabaseRegistry.launchAppByPackageName(this, goal.targetPackageHint)
                 Log.i("WAE_EXEC", "Launching targetPackageHint=${goal.targetPackageHint}, launched=$launched")
                 if (launched) {
@@ -1302,10 +1302,16 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 }
             }
             if (goal.actionKind == ActionKind.LAUNCH_APP) {
-                // S31（2026-11-14 使用者決定）：刪除「自動回根頁」規則。
-                // 原本會依姿態模型按 BACK 把 App 帶回根頁，但實測把 Maps 首頁誤判成
-                // SEARCH_RESULTS 後直接按 BACK 退出 App，導致後續目標全滅。
-                // 現在啟動 App 後不做任何 BACK，直接讓後續目標在目前畫面上找目標。
+                // S31（2026-11-14 使用者決定）：刪除「依姿態模型自動回根頁」的規則。
+                // 那個做法把 Maps 首頁誤判成 SEARCH_RESULTS 後按 BACK 直接退出 App。
+                //
+                // 2026-11-23 使用者回報的新問題：進入設定搜尋頁之後不會自己退出，
+                // 後面一連串任務都在同一個子頁面上找東西 → 全滅。
+                //
+                // 現在改成「有證據才返回」：只有在畫面上**真的看得到**
+                // 工具列返回箭頭（contentDescription 是返回／上一頁／Back，或 id 是 back/up）
+                // 且位於畫面上方時，才按 BACK；按完重新檢查，最多 baseline.max_back 次。
+                backOutToRootIfNested("launch:" + goal.targetPackageHint)
                 notifyUiStatus("✓ 已打開應用程式：${goal.targetPackageHint}", onStepUpdate)
                 return true
             }
@@ -1858,7 +1864,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                         "escalate(${decision.outcomeType}): top1=$top1Sim top2=$top2Sim " +
                             "p1=${"%.2f".format(decision.top1Prob)} → force OCR once"
                     )
-                    notifyUiStatus("🔎 信心不足，補跑一次文字辨識…", onStepUpdate)
+                    notifyUiStatus(" 信心不足，補跑一次文字辨識…", onStepUpdate)
                     continue
                 }
             }
@@ -1972,7 +1978,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             goal = goal
         )
         if (!sec.allowed) {
-            notifyUiStatus("🛡 ${sec.reason}", onStepUpdate)
+            notifyUiStatus(" ${sec.reason}", onStepUpdate)
             return false
         }
 
@@ -2030,7 +2036,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         )
         if (!actionDispatched) {
             // TOCTOU 發現畫面已變動：不扣減恢復配額，直接重跑 L1
-            notifyUiStatus("🔄 畫面於推理期間變動 (TOCTOU 攔截)，重新感知中...", onStepUpdate)
+            notifyUiStatus(" 畫面於推理期間變動 (TOCTOU 攔截)，重新感知中...", onStepUpdate)
             return false
         }
 
@@ -2245,7 +2251,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             posture.overlayPosture == PagePosture.BOTTOM_SHEET
         if (hasModalOverlay && counter.l2DismissCount < 1) {
             counter.l2DismissCount += 1
-            notifyUiStatus("🔄 [Level-2A 恢復] 偵測到頂層彈窗，自動關閉干擾層...", onStepUpdate)
+            notifyUiStatus(" [Level-2A 恢復] 偵測到頂層彈窗，自動關閉干擾層...", onStepUpdate)
             performGlobalAction(GLOBAL_ACTION_BACK)
             waitForUiQuiet(900L)
             return true
@@ -2258,7 +2264,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             val prevBottomNodeY = optionSet.selectableOptions.maxOfOrNull { it.grid[3] } ?: 0
             val scrollStartMs = SystemClock.uptimeMillis()
 
-            notifyUiStatus("🔄 [Level-2B 恢復] 向下滾動半屏尋路 (${counter.l2ScrollCount}/2)...", onStepUpdate)
+            notifyUiStatus(" [Level-2B 恢復] 向下滾動半屏尋路 (${counter.l2ScrollCount}/2)...", onStepUpdate)
             // P2：優先用無障礙滾動（可預測），失敗才用手勢
             performPreciseScrollDown()
             waitForUiQuiet(1200L)
@@ -2290,7 +2296,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         }
 
         notifyUiStatus(
-            "🖐 [Level-3 微教學 ($totalInterventions/3)] 找不到「${goal.goalText}」，請手動點一下目標元件",
+            " [Level-3 微教學 ($totalInterventions/3)] 找不到「${goal.goalText}」，請手動點一下目標元件",
             onStepUpdate
         )
         return false
@@ -2417,7 +2423,12 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             ActionKind.SUBMIT -> performSubmitCurrentInput()
             ActionKind.CLEAR_TEXT -> performSetTextOnFocused("")
             ActionKind.REPLACE_TEXT -> performSetTextOnFocused(goal.inputPayload)
-            ActionKind.ADJUST_VALUE -> performAdjustValue(goal, node, liveRect, target)
+            // 系統數值（音量／亮度）優先走系統 API 並讀回確認：
+            // 實測「把音量調低」會進設定找滑桿，掃不到就亂點、最後退回桌面抽屜。
+            // 這裡先用系統值處理，處理不了才回到畫面操作。
+            ActionKind.ADJUST_VALUE -> com.wae.agent.core.system.SystemValueBridge
+                .tryApply(this, goal.goalText, goal.inputPayload)
+                ?: performAdjustValue(goal, node, liveRect, target)
 
             ActionKind.TYPE -> {
                 var editableNode: AccessibilityNodeInfo? = if (node?.isEditable == true && node.isFocused) node else null
@@ -3357,8 +3368,112 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         return com.wae.agent.core.taskos.TaskRunner.run(session, executor)
     }
 
-    /** S33：收集目前畫面上所有 text / contentDescription（變數收集與守衛判定用） */
-    private fun collectVisibleScreenTexts(): List<String> {
+    /**
+     * 從「子頁面」退回到 App 根頁——只在**看得到返回箭頭**時才動作。
+     *
+     * 為什麼要這麼保守：S31 的教訓是「用姿態模型猜根頁」會把 Maps 首頁誤判成搜尋結果頁，
+     * 按了 BACK 直接把 App 關掉。現在改成純證據：
+     *   1. 前景不是 WAE 自己
+     *   2. 畫面上方（高度 28% 以內）有可點的「返回／上一頁／Back」或 id 含 back/up
+     *   3. 按完重新檢查，最多 baseline.max_back 次
+     *
+     * 參數與開關都放 `ui_tunables.tsv`（baseline.enabled / baseline.max_back）。
+     */
+    private fun backOutToRootIfNested(tag: String) {
+        if (!com.wae.agent.core.runtime.Tunables.getBool(this, "baseline.enabled", true)) return
+        val maxBacks = com.wae.agent.core.runtime.Tunables.getInt(this, "baseline.max_back", 3)
+        val delayMs = com.wae.agent.core.runtime.Tunables.getLong(this, "baseline.back_delay_ms", 450L)
+        if (maxBacks <= 0) return
+        val labels = com.wae.core.predicate.LanguageWords.backLabels()
+        if (labels.isEmpty()) return
+        var backs = 0
+        while (backs < maxBacks) {
+            val root = com.wae.core.util.Degrade.orNull("baseline:root") { rootInActiveWindow } ?: break
+            val fg = root.packageName?.toString().orEmpty()
+            if (fg.isEmpty() || fg == packageName) break
+            // 瀏覽器例外：Chrome 的返回箭頭是「上一頁」（瀏覽歷史），不是「上層」。
+            // 實測（2026-11-23，第 26 題）：開 Chrome 後自動按返回，會退回上一次的搜尋頁。
+            // 注意：這只擋「自動後退」；使用者明講「退回上一頁」時走的是計畫裡的 BACK 步驟，不受影響。
+            if (looksLikeBrowser(root)) {
+                Log.i("WAE_BASELINE", "$tag：偵測到網址列，跳過自動返回（瀏覽器的返回是上一頁）")
+                break
+            }
+            if (!hasTopBarBackAffordance(root, labels)) break
+            performGlobalAction(GLOBAL_ACTION_BACK)
+            backs++
+            SystemClock.sleep(delayMs)
+        }
+        if (backs > 0) {
+            Log.i("WAE_BASELINE", "$tag：在子頁面上，按了 $backs 次返回回到根頁")
+        }
+    }
+
+    /**
+     * 這是不是「瀏覽器類」畫面（有網址列）。
+     *
+     * 為什麼要判斷：瀏覽器的返回箭頭代表「上一頁」，不是「回上層」。
+     * 自動後退在瀏覽器上會把使用者帶回上一页（實測第 26 題退回到先前的搜尋結果）。
+     * 標記詞來自資料（`ui_language_words.tsv` 的 URL_BAR 列）。
+     */
+    private fun looksLikeBrowser(root: android.view.accessibility.AccessibilityNodeInfo): Boolean {
+        val markers = com.wae.core.predicate.LanguageWords.urlBarLabels()
+        if (markers.isEmpty()) return false
+        val queue = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
+        queue.addLast(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < 200) {
+            val node = queue.removeFirst()
+            visited++
+            val isEditable = com.wae.core.util.Degrade.orElse("browser:editable", false) { node.isEditable }
+            if (isEditable) {
+                val text = (node.text?.toString().orEmpty() + " " + node.hintText?.toString().orEmpty() +
+                    " " + (node.contentDescription?.toString().orEmpty())).trim()
+                val folded = com.wae.core.predicate.TextFold.fold(text)
+                if (markers.any { m ->
+                        val t = com.wae.core.predicate.TextFold.fold(m)
+                        t.isNotEmpty() && folded.contains(t)
+                    }
+                ) return true
+            }
+            for (i in 0 until node.childCount) node.getChild(i)?.let { queue.addLast(it) }
+        }
+        return false
+    }
+
+    /** 畫面上方是否有「往上層」的可點入口（返回箭頭／上一頁）。 */    private fun hasTopBarBackAffordance(
+        root: android.view.accessibility.AccessibilityNodeInfo,
+        backLabels: List<String>
+    ): Boolean {
+        val metrics = resources.displayMetrics
+        // 比例與節點上限都放 Tunables：不同 App 的工具列高度不同，真機可調不用重編
+        val topRatio = com.wae.agent.core.runtime.Tunables.getFloat(this, "baseline.top_ratio", 0.28f)
+        val maxNodes = com.wae.agent.core.runtime.Tunables.getInt(this, "baseline.max_nodes", 160)
+        val widthRatio = com.wae.agent.core.runtime.Tunables.getFloat(this, "baseline.max_width_ratio", 0.33f)
+        val topLimit = (metrics.heightPixels * topRatio).toInt()
+        val queue = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
+        queue.addLast(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < maxNodes) {
+            val node = queue.removeFirst()
+            visited++
+            val label = (node.text?.toString().orEmpty() + " " +
+                (node.contentDescription?.toString().orEmpty())).trim()
+            val viewId = node.viewIdResourceName.orEmpty()
+            val looksBack = com.wae.core.predicate.BaselineGuard.isBackLabel(label, backLabels) ||
+                com.wae.core.predicate.BaselineGuard.isBackViewId(viewId)
+            if (looksBack && node.isClickable) {
+                val rect = android.graphics.Rect()
+                node.getBoundsInScreen(rect)
+                if (rect.top in 0..topLimit && rect.width() in 1..(metrics.widthPixels * widthRatio).toInt()) return true
+            }
+            for (i in 0 until node.childCount) {
+                node.getChild(i)?.let { queue.addLast(it) }
+            }
+        }
+        return false
+    }
+
+    /** S33：收集目前畫面上所有 text / contentDescription（變數收集與守衛判定用） */    private fun collectVisibleScreenTexts(): List<String> {
         val out = ArrayList<String>(32)
         val root = runCatching { rootInActiveWindow }.getOrNull() ?: return out
         val stack = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()

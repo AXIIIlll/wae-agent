@@ -1,4 +1,4 @@
-﻿# S31 修正：App 啟動後亂跳回 + 安全閘門誤攔地圖搜尋框（2026-11-14）
+# S31 修正：App 啟動後亂跳回 + 安全閘門誤攔地圖搜尋框（2026-11-14）
 
 ## 症狀（使用者回報）
 
@@ -72,3 +72,26 @@ taskResult=SUCCESS seq=1
 1. 回根頁規則已移除：App 若恢復在深層分頁，多步指令的前段可能需要使用者先回到首頁。
 2. 安全關鍵字只比對「看得見的文字」；若真的有 App 把 `post/delete/buy` 放在技術 id 上，
    不會再被攔（但目標文字本身若含關鍵字仍會攔）。
+
+## 2026-11-23 修訂：有證據才返回（BaselineGuard）
+
+S31 廢掉的是「用姿態模型猜根頁」；這次新增的是「**看得到返回箭頭才按返回**」，兩者不同：
+
+- 觸發點：`LAUNCH_APP` 完成後（App 被帶到前景時）
+- 條件（全部成立才動作）：
+  1. 前景不是 WAE 自己
+  2. 畫面上方 `baseline.top_ratio`（預設 0.28）以內，有**可點**的
+     `返回／上一頁／Back／Navigate up`（資料來自 `ui_language_words.tsv` 的 BACK 列）
+     或 view id 的整段是 `back／up／navigateup／home`
+  3. 寬度小於 `baseline.max_width_ratio`（避免誤點內容區的大按鈕）
+- 上限：`baseline.max_back`（預設 3），每次間隔 `baseline.back_delay_ms`
+- 關閉：`baseline.enabled=0`（真機可用 `Tunables.override` 即時關）
+
+**怎麼量**：先手動把設定切到「搜尋結果」頁，再跑 `打開設定`，看 log 是否出現
+`WAE_BASELINE: launch:com.android.settings：在子頁面上，按了 N 次返回回到根頁`，
+且畫面回到設定首頁。
+
+**已知邊界**：
+- 只處理「有工具列返回箭頭」的子頁；某些 App 用漢堡選單或底部導覽，不適用
+- 瀏覽器的返回箭頭代表「上一頁」而不是「上層」，若該 App 有歷史紀錄可能會被按到
+- 若某 App 的根頁本身就有返回箭頭（少見），會被按一次；有上限所以不會連環退出

@@ -452,7 +452,7 @@ class MainActivity : Activity() {
                 setPadding(pad, pad, pad, pad)
             }
             val title = TextView(this).apply {
-                text = "🧪 開發期評測（debug only）"
+                text = " 開發期評測（debug only）"
                 textSize = 12f
                 setTextColor(Color.parseColor("#334155"))
             }
@@ -495,7 +495,7 @@ class MainActivity : Activity() {
             }
             controls.addView(promptsBtn)
             val scanBtn = Button(this).apply {
-                text = "🔍 相容性"
+                text = " 相容性"
                 isAllCaps = false
                 textSize = 12f
                 setOnClickListener { startCompatibilityScan() }
@@ -588,7 +588,7 @@ class MainActivity : Activity() {
 
         // 自我測試：不用 adb 就知道「它現在還能不能用」
         settingsDrawer.addView(Button(this).apply {
-            text = "🧪 自我測試（9 項）"
+            text = " 自我測試（9 項）"
             isAllCaps = false
             textSize = 13f
             setTextColor(Color.parseColor("#0F172A"))
@@ -604,7 +604,7 @@ class MainActivity : Activity() {
 
         // 反例檢視（H7）：讓使用者看得到它學到哪些禁令，而且能刪
         settingsDrawer.addView(Button(this).apply {
-            text = "🚫 反例（它學到的禁令）"
+            text = " 反例（它學到的禁令）"
             isAllCaps = false
             textSize = 13f
             setTextColor(Color.parseColor("#0F172A"))
@@ -717,7 +717,7 @@ class MainActivity : Activity() {
         settingsDrawer.visibility = View.VISIBLE
                 } else {
                     val showing = svc.toggleFloatingOverlay()
-                    statusLineView.text = if (showing) "🪟 懸浮窗已開啟（可拖曳標題列移動）" else "🪟 懸浮窗已關閉"
+                    statusLineView.text = if (showing) " 懸浮窗已開啟（可拖曳標題列移動）" else " 懸浮窗已關閉"
                 }
             }
         }
@@ -746,7 +746,7 @@ class MainActivity : Activity() {
             setOnClickListener {
                 val rm = runCatching { getSystemService(RoleManager::class.java) }.getOrNull()
                 if (rm == null || !rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT)) {
-                    statusLineView.text = "⚠ 此裝置不支援助理角色；可用「🪟 懸浮窗」或快捷設定磚"
+                    statusLineView.text = "⚠ 此裝置不支援助理角色；可用「 懸浮窗」或快捷設定磚"
                 } else if (rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
                     statusLineView.text = "✓ WAE 已是預設助理：長按電源鍵／Home 即可召喚"
                 } else {
@@ -795,7 +795,7 @@ class MainActivity : Activity() {
         )
 
         // 上次崩潰紀錄入口（WaeApp 會把未捕捉例外寫到 filesDir/crash-last.txt）
-        crashLogBtn = Button(this).apply {            text = "🐞 查看上次崩潰紀錄"
+        crashLogBtn = Button(this).apply {            text = " 查看上次崩潰紀錄"
             isAllCaps = false
             textSize = 13f
             setTextColor(Color.parseColor("#7C2D12"))
@@ -1022,7 +1022,7 @@ class MainActivity : Activity() {
                 val ok = svc?.toggleFloatingOverlay() ?: false
                 if (::statusLineView.isInitialized) {
                     statusLineView.text =
-                        if (ok) "🪟 懸浮窗已開啟（debug_overlay）"
+                        if (ok) " 懸浮窗已開啟（debug_overlay）"
                         else "⚠ 懸浮窗開啟失敗（無障礙服務未啟用？）"
                 }
             }, 1200L)
@@ -1174,7 +1174,7 @@ class MainActivity : Activity() {
     private fun showCrashLogDialog() {
         val f = crashLogFile()
         if (!f.exists()) {
-            statusLineView.text = "🐞 目前沒有崩潰紀錄"
+            statusLineView.text = " 目前沒有崩潰紀錄"
             refreshCrashLogButton()
             return
         }
@@ -1202,7 +1202,7 @@ class MainActivity : Activity() {
                     f.delete()
                 } catch (_: Throwable) {
                 }
-                statusLineView.text = "🐞 崩潰紀錄已清除"
+                statusLineView.text = " 崩潰紀錄已清除"
                 refreshCrashLogButton()
             }
             .show()
@@ -1216,7 +1216,6 @@ class MainActivity : Activity() {
     }
 
     /** Gen-5 接線用：避免「新管線棄權 → 舊路徑」無限遞迴。 */
-    private var gen5Tried = false
 
     /** 自我測試跑一次就好，避免連點。 */
     private var selfTestRunning = false
@@ -1234,7 +1233,7 @@ class MainActivity : Activity() {
         val entries = com.wae.core.memory.RefutationView.entries(memory.refutations())
 
         if (entries.isEmpty()) {
-            statusLineView.text = "🚫 目前沒有反例（它還沒學到任何禁令）"
+            statusLineView.text = " 目前沒有反例（它還沒學到任何禁令）"
             runCatching {
                 android.app.AlertDialog.Builder(this)
                     .setTitle("反例")
@@ -1252,7 +1251,7 @@ class MainActivity : Activity() {
                 .setItems(labels) { d, which ->
                     d.dismiss()
                     val removed = memory.removeRefutation(entries[which].key)
-                    statusLineView.text = if (removed) "🗑 已刪除一條反例，下次會重新嘗試那條路" else "⚠ 刪除失敗（可能已過期）"
+                    statusLineView.text = if (removed) " 已刪除一條反例，下次會重新嘗試那條路" else "⚠ 刪除失敗（可能已過期）"
                 }
                 .setNegativeButton("關閉") { d, _ -> d.dismiss() }
                 .show()
@@ -1496,8 +1495,8 @@ class MainActivity : Activity() {
         }
         voiceForSheet?.destroy()
         voiceForSheet = controller
-        statusLineView.text = "🎤 請說…"
-        android.widget.Toast.makeText(this, "🎤 請說…", android.widget.Toast.LENGTH_SHORT).show()
+        statusLineView.text = " 請說…"
+        android.widget.Toast.makeText(this, " 請說…", android.widget.Toast.LENGTH_SHORT).show()
         controller.start(
             onPartial = { text ->
                 box.setText(text)
@@ -1506,14 +1505,14 @@ class MainActivity : Activity() {
             onFinal = { text ->
                 box.setText(text)
                 box.setSelection(box.text.length)
-                statusLineView.text = "🎤 已填入：$text（按「好了」確認）"
-                android.widget.Toast.makeText(this, "🎤 已填入：$text", android.widget.Toast.LENGTH_SHORT).show()
+                statusLineView.text = " 已填入：$text（按「好了」確認）"
+                android.widget.Toast.makeText(this, " 已填入：$text", android.widget.Toast.LENGTH_SHORT).show()
                 voiceForSheet?.destroy()
                 voiceForSheet = null
             },
             onError = { message, _ ->
-                statusLineView.text = "🎤 $message"
-                android.widget.Toast.makeText(this, "🎤 $message", android.widget.Toast.LENGTH_LONG).show()
+                statusLineView.text = " $message"
+                android.widget.Toast.makeText(this, " $message", android.widget.Toast.LENGTH_LONG).show()
                 voiceForSheet?.destroy()
                 voiceForSheet = null
             }
@@ -1610,11 +1609,11 @@ class MainActivity : Activity() {
             return
         }
         selfTestRunning = true
-        statusLineView.text = "🧪 自我測試中…（會開 App、調音量亮度）"
+        statusLineView.text = " 自我測試中…（會開 App、調音量亮度）"
         Thread {
             val results = runCatching {
                 com.wae.agent.gen5.SelfTest.run(this) { command ->
-                    runOnUiThread { statusLineView.text = "🧪 測試中：$command" }
+                    runOnUiThread { statusLineView.text = " 測試中：$command" }
                 }
             }.getOrDefault(emptyList())
             val message = com.wae.agent.gen5.SelfTest.render(results)
@@ -1671,32 +1670,8 @@ class MainActivity : Activity() {
             return
         }
 
-        // Gen-5 優先（strangler 接線）：
-        // 新管線能處理就用它；只有「完全沒有動作」時才退回舊路徑，
-        // 避免兩套都動手。D1 刪掉舊路徑後，這段會變成單一路徑。
-        if (svc != null && !gen5Tried && com.wae.agent.gen5.Gen5Runtime.isEnabled(this)) {
-            gen5Tried = true
-            statusLineView.text = "⏳ Gen-5 處理中…「$raw」"
-            Thread {
-                val result = runCatching {
-                    com.wae.agent.gen5.Gen5Runtime.runDetailed(this, raw)
-                }.getOrNull()
-                runOnUiThread {
-                    val handled = result != null &&
-                        (result.outcome is com.wae.core.model.Outcome.Success || result.stepsUsed > 0)
-                    if (handled) {
-                        gen5Tried = false
-                        statusLineView.text = "✓ Gen-5：${result!!.summary}"
-                        com.wae.core.ui.CardFactory.from(result.outcome)?.let { showGen5Card(it) }
-                    } else {
-                        // 退回舊路徑（gen5Tried 仍為 true，避免遞迴）
-                        triggerCommandExecution()
-                        gen5Tried = false
-                    }
-                }
-            }.start()
-            return
-        }
+        // Gen-5 已經搬到 UserCommandEntry（與題庫共用同一條路徑）。
+        // 以前這段寫在這裡，題庫頁沒有，於是同一句指令兩邊結果不同。
 
         // G：使用者回饋。「不是這個／換一個」把剛剛選的 App 記為不喜歡，
         // 「記住這個／就是這個」記為喜歡；下次同類意圖直接用偏好修正分數。
@@ -1704,30 +1679,33 @@ class MainActivity : Activity() {
         if (feedback in setOf("不是這個", "不是这个", "換一個", "换一个", "不要這個", "记错这个")) {
             val applied = com.wae.agent.core.app.AppChoiceMemo.applyToLastPick(this, liked = false)
             statusLineView.text = if (applied == null) "⚠ 還沒有選過 App，無法記錄"
-            else "👎 記住了：${applied.second} 不是 ${applied.first} 的選擇"
+            else " 記住了：${applied.second} 不是 ${applied.first} 的選擇"
             return
         }
         if (feedback in setOf("記住這個", "记住这个", "就是這個", "就是这个", "選對了", "选对了")) {
             val applied = com.wae.agent.core.app.AppChoiceMemo.applyToLastPick(this, liked = true)
             statusLineView.text = if (applied == null) "⚠ 還沒有選過 App，無法記錄"
-            else "👍 記住了：${applied.second} 用於 ${applied.first}"
+            else " 記住了：${applied.second} 用於 ${applied.first}"
             return
         }
 
-        // 通用規則：拆不出完整目標但有意圖模板 → 交給開放式執行器（模板／逐元素決策，不用 LLM）
-        if (svc != null) {
-            val route = runCatching {
-                com.wae.agent.core.ExecutionRouter.route(this, raw)
-            }.getOrDefault(com.wae.agent.core.ExecutionRouter.Route.FAST)
-            if (route == com.wae.agent.core.ExecutionRouter.Route.AGENT) {
-                statusLineView.text = "交給開放式執行器處理「$raw」…"
-                svc.runAgentCommand(raw)
-                return
-            }
-            if (route == com.wae.agent.core.ExecutionRouter.Route.ASK) {
-                statusLineView.text = "我不確定這是不是指令，請換個說法"
-                return
-            }
+        // 使用者指令的唯一入口（與驗證題庫共用）：路由 → 啟動目標 App → 快速管線／開放式執行器。
+        // 以前這段流程在 MainActivity 與題庫頁各寫一份，導致兩邊行為不一致
+        // （實測：「打開時鐘」主畫面成功、題庫失敗）。
+        if (svc != null && com.wae.agent.core.UserCommandEntry.run(this, raw, { msg ->
+                runOnUiThread {
+                    statusLineView.text = msg
+                    renderAmbiguousClarificationButtons()
+                }
+            }, { result ->
+                // Gen-5 結果卡沿用原本的呈現
+                com.wae.core.util.Degrade.orNull("ui:gen5Card") {
+                    com.wae.core.ui.CardFactory.from(result.outcome)?.let { showGen5Card(it) }
+                }
+            })
+        ) {
+            refreshServiceBanner()
+            return
         }
 
         // 若無障礙服務尚未開啟，但指令目標是打開某個外部 App，仍可直接透過 PackageManager 啟動該 App
@@ -1737,7 +1715,7 @@ class MainActivity : Activity() {
             if (firstGoal.targetPackageHint.isNotEmpty() &&
                 WaeOpenSourceDatabaseRegistry.launchAppByPackageName(this, firstGoal.targetPackageHint)
             ) {
-                statusLineView.text = "🚀 已啟動 ${firstGoal.targetPackageHint}（若需自動操作內部畫面請開啟無障礙服務）"
+                statusLineView.text = " 已啟動 ${firstGoal.targetPackageHint}（若需自動操作內部畫面請開啟無障礙服務）"
                 return
             }
             val dl = WaeDeepLinkCapabilityManager.findMatchingDeepLink(firstGoal)

@@ -60,3 +60,9 @@ alias.generate_per_run	12	每輪背景別名生成最多處理幾個 App
 voice.wake_word_enabled	1	喚醒詞預設是否開啟（1/0）
 voice.confirm_first_n	20	前幾次高風險操作要確認
 perception.launch_settle_timeout_ms	12000	開 App 的等待上限（ms）；冷啟動比換頁慢很多，只等到畫面變了為止
+baseline.enabled	1	打開 App 後若看到返回箭頭，自動退回根頁（有證據才動作）
+baseline.max_back	3	最多按幾次返回（避免把 App 退出）
+baseline.back_delay_ms	450	按返回後等畫面穩定（毫秒）
+baseline.top_ratio	0.28	只認畫面上方這個比例內的返回入口（避免誤點內容區）
+baseline.max_nodes	160	掃描節點上限（避免大頁面拖慢）
+baseline.max_width_ratio	0.33	返回入口的寬度上限（佔螢幕寬比例）

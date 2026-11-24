@@ -170,6 +170,36 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
         if (selectedApp != null) {
             Log.i("WAE_AGENT", "selected app=" + selectedApp)
         }
+
+        // 「打開 X」這種**純啟動**指令：pipeline 有這條路，Agent 路徑原本沒有，
+        // 所以會掉進逐元素決策 → 畫面上找不到可點的目標 → 直接失敗。
+        // 實測（2026-11-23）：題庫第 2 題「打開時鐘」就是這樣失敗的，
+        // 但 App 解析其實是對的（com.sec.android.app.clockpackage）。
+        //
+        // 這裡用 pipeline 自己的拆解結果當判斷依據：整句只拆出一個 LAUNCH_APP 才短路，
+        // 所以「打開 YouTube 搜尋周杰倫」不會被誤判成純啟動。
+        val launchOnly = com.wae.core.util.Degrade.orNull("agent:decompose") {
+            com.wae.agent.core.WaeV26PipelineOrchestrator.decomposeCommandIntoLocalGoals(goal, ctx)
+        }
+        if (launchOnly != null && launchOnly.size == 1 &&
+            launchOnly[0].actionKind == com.wae.agent.core.ActionKind.LAUNCH_APP &&
+            templateKind == null
+        ) {
+            val g = launchOnly[0]
+            val pkg = g.targetPackageHint.ifEmpty {
+                com.wae.agent.core.WaeOpenSourceDatabaseRegistry
+                    .resolvePureLaunchTarget(ctx, goal)?.packageName.orEmpty()
+            }
+            val launched = if (pkg.isNotEmpty()) launchApp(pkg, g.goalText) else launchAppByName(g.goalText)
+            Log.i("WAE_AGENT", "pure launch: pkg=$pkg launched=$launched goal='${g.goalText}'")
+            return AgentRunOutcome(
+                if (launched) com.wae.agent.agent.AgentResult.SUCCESS
+                else com.wae.agent.agent.AgentResult.FAIL,
+                if (launched) "已打開 ${g.goalText}" else "無法啟動 ${g.goalText}",
+                llmCalls = 0,
+                stepsExecuted = 1
+            )
+        }
         // 開放式意圖（看劇／聽歌／導航／外送／購物）走決定性模板：
         // 模板可預測、步驟少，比「生成式計畫」在這些句子上可靠得多。
         // 先用 FuzzyIntent 抽槽位；缺必要槽位就反問，不要硬猜。

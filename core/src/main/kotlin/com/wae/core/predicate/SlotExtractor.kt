@@ -79,14 +79,20 @@ object SlotExtractor {
         while (changed) {
             changed = false
             for (w in prefixWords) {
-                if (w.isNotEmpty() && content.startsWith(w) && content.length > w.length) {
-                    content = content.removePrefix(w).trim()
+                // 大小寫不敏感：「在chrome搜尋貓咪」的 App 名是小寫，
+                // 但資料裡的標籤是「Chrome」；用大小寫敏感比對會剪不到，
+                // 整句就被當成查詢字串送出去。
+                if (w.isNotEmpty() && content.length > w.length && content.startsWith(w, ignoreCase = true)) {
+                    content = content.substring(w.length).trim()
                     changed = true
                 }
             }
         }
-        // App 名稱可以在任何位置出現，安全地全域移除
-        for (name in knownNames) content = content.replace(name, " ")
+        // App 名稱可以在任何位置出現，安全地全域移除（同樣不分大小寫）
+        for (name in knownNames) {
+            if (name.isEmpty()) continue
+            content = content.replace(Regex(Regex.escape(name), RegexOption.IGNORE_CASE), " ")
+        }
         for (m in PERSON_MARKERS) content = content.replace(m, " ")
         content = content.replace(Regex("\\s+"), " ")
             .trim()
@@ -132,6 +138,17 @@ object SlotExtractor {
                     trimmed = true
                 }
             }
+        }
+
+        // ⑥.2 去掉開頭的「的／之」：「打開 Chrome 的歷史紀錄」→ content 會是「的歷史紀錄」
+        while (content.startsWith("的") || content.startsWith("之")) {
+            content = content.substring(1).trim()
+        }
+
+        // ⑥.5 畫面用詞同義對照：「看世界時間」→ 時鐘的頁籤其實叫「世界時鐘」。
+        //      只做整串相等比對，避免把「儲存空間」這種前綴關係誤代換。
+        LanguageWords.labelSynonyms()[content]?.let { canonical ->
+            content = canonical
         }
 
         // ⑦ 去掉尾端的「容器詞」：使用者說「查看鬧鐘清單」，但畫面上的頁籤只寫「鬧鐘」。

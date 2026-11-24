@@ -36,6 +36,32 @@ object SettingsActuator {
         }.getOrDefault(false)
     }
 
+    /**
+     * 調整媒體音量：走系統 API，並**讀回確認**。
+     *
+     * 為什麼不找畫面上的滑桿：實測三星的「音效與震動」頁沒有可控的 SeekBar，
+     * ADJUST_VALUE 掃不到（`scan adjustable found=0`），最後亂點還退回桌面抽屜。
+     *
+     * @param direction up / down / max / min
+     */
+    fun adjustVolume(context: Context, direction: String): Boolean {
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+            ?: return false
+        val stream = android.media.AudioManager.STREAM_MUSIC
+        val dir = when (direction.lowercase()) {
+            "up", "raise", "max" -> android.media.AudioManager.ADJUST_RAISE
+            "down", "lower", "min" -> android.media.AudioManager.ADJUST_LOWER
+            else -> return false
+        }
+        return com.wae.core.util.Degrade.orElse("volume:adjust", false) {
+            val before = am.getStreamVolume(stream)
+            am.adjustStreamVolume(stream, dir, android.media.AudioManager.FLAG_SHOW_UI)
+            val after = am.getStreamVolume(stream)
+            android.util.Log.i("WAE_VOLUME", "volume $direction before=$before after=$after")
+            after != before
+        }
+    }
+
     /** 開亮度設定頁（沒有 WRITE_SETTINGS 時的退路）。 */
     fun openDisplaySettings(context: Context): Boolean =
         start(context, Intent(Settings.ACTION_DISPLAY_SETTINGS))

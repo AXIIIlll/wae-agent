@@ -180,7 +180,12 @@ class BenchmarkTasksActivity : Activity() {
             return
         }
         toast("執行 " + t.id + "：" + t.command)
-        com.wae.core.util.Degrade.orNull("benchmark:run") { svc.runAgentCommand(t.command) }
+        // 走跟主畫面完全相同的入口（路由 → 啟動 → 快速管線／開放式執行器）
+        // 與主畫面完全相同的入口；服務不在就明確說，不要偷偷退回別條路徑
+        val handled = com.wae.agent.core.UserCommandEntry.run(this, t.command, { msg ->
+            runOnUiThread { toast(msg) }
+        })
+        if (!handled) toast("無障礙服務未就緒，請重新開啟")
     }
 
     private fun passSelected() {

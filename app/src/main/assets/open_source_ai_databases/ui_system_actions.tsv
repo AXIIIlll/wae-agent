@@ -1,0 +1,20 @@
+# 系統動作表（能用系統 API 就不要用畫面）
+# 格式: action <TAB> 別名（| 分隔） <TAB> handler <TAB> 說明
+# 為什麼要這張表：程式碼不得內建詞表（AGENTS §4），新增說法只要加一列。
+# 只用公開 SDK；每一列都標明「能不能驗證」，不能驗證的不要假裝成功。
+#
+# handler 語意：
+#   torch_on / torch_off        手電筒（CameraManager.setTorchMode，可讀回）
+#   media_play_pause            播放／暫停（dispatchMediaKeyEvent，用 isMusicActive 驗證）
+#   media_next / media_prev     下一首／上一首（同上）
+#   alarm_set                   設鬧鐘（AlarmClock.ACTION_SET_ALARM，帶時間）
+#   timer_set                   設計時器（AlarmClock.ACTION_SET_TIMER，帶長度）
+#   dial                        撥號（Intent.ACTION_DIAL，只帶電話號碼；不會直接撥出）
+torch_on	開手電筒|開啟手電筒|打開手電筒|手電筒打開|手電筒開	torch_on	可讀回驗證
+torch_off	關手電筒|關閉手電筒|關掉手電筒|手電筒關|手電筒關閉	torch_off	可讀回驗證
+media_play_pause	播放|播放音樂|暫停|暫停播放|繼續播放|播放或暫停	media_play_pause	用 isMusicActive 驗證
+media_next	下一首|跳下一首|換下一首	media_next	送出媒體鍵
+media_prev	上一首|跳上一首|換上一首|回上一首	media_prev	送出媒體鍵
+alarm_set	設鬧鐘|設定鬧鐘|訂鬧鐘	alarm_set	開系統鬧鐘編輯（需時間）
+timer_set	設計時器|設定計時器|倒數計時	timer_set	開系統計時器（需長度）
+dial	撥號|打電話|撥給	dial	只開撥號盤並帶號碼，不會直接撥出

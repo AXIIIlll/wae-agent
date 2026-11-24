@@ -137,8 +137,10 @@ class DecisionRankerTest {
     @Test
     fun `literal containment is direction sensitive`() {
         loadShippedWeights()
-        // 標籤比目標長 → 命中（「藍牙與其他裝置」之於「藍牙」）
-        assertEquals(1f, DecisionRanker.textScore("藍牙", "藍牙與其他裝置", null), 0.0001f)
+        // 完全相同 → 滿分；只是包含 → 打折（2026-11-23 起的契約：避免「所有鬧鐘皆已關閉」與「鬧鐘」同分）
+        assertEquals(1f, DecisionRanker.textScore("藍牙", "藍牙", null), 0.0001f)
+        val containsScore = floatOf("match.contains_score", 0.88f)
+        assertEquals(containsScore, DecisionRanker.textScore("藍牙", "藍牙與其他裝置", null), 0.0001f)
         // 目標比標籤長 → 對不上（「藍牙耳機」對上標籤「藍牙」只得 0）
         // 這是現況弱點：查詢常帶修飾詞，字面階一對不上就掉到語意階。
         assertEquals(0f, DecisionRanker.textScore("藍牙耳機", "藍牙", null), 0.0001f)

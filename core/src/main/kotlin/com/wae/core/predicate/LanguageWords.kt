@@ -47,6 +47,26 @@ object LanguageWords {
     @Volatile
     private var containerWords: List<String> = emptyList()
 
+    /** 網址列標記（搜尋或輸入網址…）：用來判斷「這是瀏覽器」，瀏覽器的返回是上一頁。 */
+    @Volatile
+    private var urlBarLabels: List<String> = emptyList()
+
+    /** 溢出選單標籤（更多選項／更多／選單…）：找不到目標時先打開它再找。 */
+    @Volatile
+    private var menuLabels: List<String> = emptyList()
+
+    /** 瀏覽型動詞（看／查看／瀏覽…）：代表「帶我去那一頁」，不是新增資料。 */
+    @Volatile
+    private var viewVerbs: List<String> = emptyList()
+
+    /** 畫面用詞同義對照（使用者說的詞 → 畫面上的字），來自 LABEL_SYNONYM 資料列。 */
+    @Volatile
+    private var labelSynonyms: Map<String, String> = emptyMap()
+
+    /** 返回詞（返回／上一頁／Back…）：用來判斷是不是卡在子頁面。 */
+    @Volatile
+    private var backLabels: List<String> = emptyList()
+
     /** 「第一個／第一筆／第一首…」：出現在搜尋詞之後代表要打開結果，而不是只看結果。 */
     @Volatile
     private var firstMarkers: List<String> = emptyList()
@@ -64,7 +84,12 @@ object LanguageWords {
         suffixes: List<String> = emptyList(),
         conjunctions: List<String> = emptyList(),
         containerWords: List<String> = emptyList(),
-        firstMarkers: List<String> = emptyList()
+        firstMarkers: List<String> = emptyList(),
+        backLabels: List<String> = emptyList(),
+        labelSynonyms: Map<String, String> = emptyMap(),
+        viewVerbs: List<String> = emptyList(),
+        menuLabels: List<String> = emptyList(),
+        urlBarLabels: List<String> = emptyList()
     ) {
         this.separators = separators.sortedByDescending { it.length }
         this.leads = leads.sortedByDescending { it.length }
@@ -78,6 +103,11 @@ object LanguageWords {
         this.conjunctions = conjunctions.sortedByDescending { it.length }
         this.containerWords = containerWords.sortedByDescending { it.length }
         this.firstMarkers = firstMarkers
+        this.backLabels = backLabels
+        this.labelSynonyms = labelSynonyms
+        this.viewVerbs = viewVerbs.sortedByDescending { it.length }
+        this.menuLabels = menuLabels.sortedByDescending { it.length }
+        this.urlBarLabels = urlBarLabels
     }
 
     /** 介詞（在／到／進…）：不是內容，只是位置標記。 */
@@ -94,6 +124,21 @@ object LanguageWords {
 
     /** 序數標記（第一個／第一筆…）。 */
     fun firstMarkers(): List<String> = firstMarkers
+
+    /** 返回詞（返回／上一頁／Back…）。 */
+    fun backLabels(): List<String> = backLabels
+
+    /** 畫面用詞同義對照。 */
+    fun labelSynonyms(): Map<String, String> = labelSynonyms
+
+    /** 瀏覽型動詞（看／查看…）。 */
+    fun viewVerbs(): List<String> = viewVerbs
+
+    /** 溢出選單標籤。 */
+    fun menuLabels(): List<String> = menuLabels
+
+    /** 網址列標記。 */
+    fun urlBarLabels(): List<String> = urlBarLabels
 
     fun separators(): List<String> = separators
 
@@ -128,12 +173,24 @@ object LanguageWords {
     fun typeOfFrame(text: String): String? {
         val t = text.trim()
         if (t.isEmpty()) return null
+        val hasPrefix = prefixes.any { it.isNotEmpty() && t.contains(it) }
+
+        // 「打開 Chrome 的歷史紀錄」：開 App 之後直接進某個子頁（畫面上看不到那個字，
+        // 通常在右上選單裡）。這種句子以前會被切成「打開的歷史紀錄」碎片。
+        if (opens.any { it.isNotEmpty() && t.contains(it) } && t.contains("的")) {
+            return "VIEW"
+        }
+
+        // 「在時鐘看世界時間」：沒有搜尋詞，但語意是「帶我去那一頁」→ VIEW（不是 CREATE）。
+        // 必須放在「找搜尋詞」之前，否則這種句子會直接 return null 交給分類器，
+        // 實測就被判成 CREATE（0.69），計畫裡沒有「去找那一頁」的步驟。
+        if (hasPrefix && viewVerbs.any { it.isNotEmpty() && t.contains(it) }) return "VIEW"
+
         val searchAt = searchWords
             .filter { it.isNotEmpty() }
             .map { t.indexOf(it) }
             .filter { it >= 0 }
             .minOrNull() ?: return null
-        val hasPrefix = prefixes.any { it.isNotEmpty() && t.contains(it) }
         if (!hasPrefix) return null
 
         // 「搜尋」之後是否還要「打開／播放第一個」？
@@ -167,5 +224,10 @@ object LanguageWords {
         conjunctions = emptyList()
         containerWords = emptyList()
         firstMarkers = emptyList()
+        backLabels = emptyList()
+        labelSynonyms = emptyMap()
+        viewVerbs = emptyList()
+        menuLabels = emptyList()
+        urlBarLabels = emptyList()
     }
 }

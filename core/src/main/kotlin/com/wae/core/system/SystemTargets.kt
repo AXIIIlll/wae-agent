@@ -12,7 +12,7 @@ package com.wae.core.system
  */
 object SystemTargets {
 
-    enum class Target { WIFI, BLUETOOTH, AIRPLANE, BRIGHTNESS }
+    enum class Target { WIFI, BLUETOOTH, AIRPLANE, BRIGHTNESS, VOLUME }
 
     private val ALIASES: Map<String, Target> = mapOf(
         "wifi" to Target.WIFI,
@@ -26,7 +26,13 @@ object SystemTargets {
         "飛航" to Target.AIRPLANE,
         "airplane" to Target.AIRPLANE,
         "亮度" to Target.BRIGHTNESS,
-        "螢幕亮度" to Target.BRIGHTNESS
+        "螢幕亮度" to Target.BRIGHTNESS,
+        "音量" to Target.VOLUME,
+        "音量大小" to Target.VOLUME,
+        "媒體音量" to Target.VOLUME,
+        "聲音" to Target.VOLUME,
+        "鈴聲" to Target.VOLUME,
+        "volume" to Target.VOLUME
     )
 
     fun normalize(text: String): Target? {
@@ -41,6 +47,7 @@ object SystemTargets {
         Target.BLUETOOTH -> "bluetooth"
         Target.AIRPLANE -> "airplane"
         Target.BRIGHTNESS -> "brightness"
+        Target.VOLUME -> "volume"
     }
 
     /** 需要「開面板讓使用者自己切」的目標。 */

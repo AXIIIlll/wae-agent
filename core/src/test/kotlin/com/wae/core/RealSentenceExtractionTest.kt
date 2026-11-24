@@ -28,6 +28,7 @@ class RealSentenceExtractionTest {
         val verbs = ArrayList<String>()
         val opens = ArrayList<String>()
         val containers = ArrayList<String>()
+        val synonyms = HashMap<String, String>()
         for (raw in words.readLines(Charsets.UTF_8)) {
             val line = raw.trim()
             if (line.isEmpty() || line.startsWith("#")) continue
@@ -42,6 +43,10 @@ class RealSentenceExtractionTest {
                 "TASKVERB" -> verbs.add(w)
                 "OPEN" -> opens.add(w)
                 "CONTAINER" -> containers.add(w)
+                "LABEL_SYNONYM" -> {
+                    val canonical = if (p.size > 2) p[2].trim() else ""
+                    if (canonical.isNotEmpty()) synonyms[w] = canonical
+                }
             }
         }
         val prefixes = ArrayList<String>()
@@ -64,7 +69,8 @@ class RealSentenceExtractionTest {
             separators = seps, leads = leads, searchWords = search, labels = emptyMap(),
             taskVerbs = verbs, openWords = opens,
             prefixes = prefixes, suffixes = suffixes, conjunctions = conjunctions,
-            containerWords = containers
+            containerWords = containers,
+            labelSynonyms = synonyms
         )
         return true
     }
@@ -79,7 +85,10 @@ class RealSentenceExtractionTest {
             "把音量調低" to emptyList(),
             "打開 Wi-Fi" to emptyList(),
             "在設定裡搜尋藍牙" to listOf("設定"),
-            "在 Chrome 搜尋今天天氣並打開第一個結果" to listOf("Chrome")
+            "在 Chrome 搜尋今天天氣並打開第一個結果" to listOf("Chrome"),
+            // 實測回報：小寫的 App 名會讓整句變成查詢字串
+            "在chrome搜尋貓咪" to listOf("Chrome"),
+            "在 CHROME 搜尋貓咪" to listOf("Chrome")
         )
         for ((sentence, known) in cases) {
             val s = SlotExtractor.extract(sentence, knownNames = known)

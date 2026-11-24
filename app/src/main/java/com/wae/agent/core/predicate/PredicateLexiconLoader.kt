@@ -162,6 +162,11 @@ object PredicateLexiconLoader {
             val opens = ArrayList<String>()
             val containers = ArrayList<String>()
             val firsts = ArrayList<String>()
+            val backs = ArrayList<String>()
+            val synonyms = HashMap<String, String>()
+            val views = ArrayList<String>()
+            val menus = ArrayList<String>()
+            val urlBars = ArrayList<String>()
             readLines(context, "$DB/ui_language_words.tsv").forEach { line ->
                 val p = line.split('\t')
                 if (p.size < 2) return@forEach
@@ -176,6 +181,14 @@ object PredicateLexiconLoader {
                     "TASKVERB" -> verbs.add(word)
                     "CONTAINER" -> containers.add(word)
                     "ORDINAL_FIRST" -> firsts.add(word)
+                    "BACK" -> backs.add(word)
+                    "VIEW_VERB" -> views.add(word)
+                    "MENU" -> menus.add(word)
+                    "URL_BAR" -> urlBars.add(word)
+                    "LABEL_SYNONYM" -> {
+                        val canonical = if (p.size > 2) p[2].trim() else ""
+                        if (canonical.isNotEmpty()) synonyms[word] = canonical
+                    }
                     "OPEN" -> opens.add(word)
                 }
             }
@@ -201,7 +214,12 @@ object PredicateLexiconLoader {
                 suffixes = suffixes,
                 conjunctions = conjunctions,
                 containerWords = containers,
-                firstMarkers = firsts
+                firstMarkers = firsts,
+                backLabels = backs,
+                labelSynonyms = synonyms,
+                viewVerbs = views,
+                menuLabels = menus,
+                urlBarLabels = urlBars
             )
 
             val dismiss = ArrayList<String>()

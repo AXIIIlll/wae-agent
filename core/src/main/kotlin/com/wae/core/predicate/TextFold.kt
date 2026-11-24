@@ -17,6 +17,7 @@ object TextFold {
         for (ch in raw) {
             val c = when {
                 ch in '０'..'９' -> '0' + (ch - '０')
+                ch in 'A'..'Z' -> 'a' + (ch - 'A')          // 半形大寫（原本被丟掉：Back → ack）
                 ch in 'Ａ'..'Ｚ' -> 'a' + (ch - 'Ａ')
                 ch in 'ａ'..'ｚ' -> 'a' + (ch - 'ａ')
                 else -> ch

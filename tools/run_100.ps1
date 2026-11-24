@@ -50,6 +50,8 @@ function Classify([string]$log) {
   # 存「有用的那幾行」：任務層/決策層/接地層的最後 3 行，才看得出失敗原因
   $useful = $lines | Where-Object { $_ -match 'WAE_TASK:|WAE_GEN5:|WAE_GROUNDING:|WAE_EXEC:' }
   $detail = if ($useful) { (($useful | Select-Object -Last 3) -join ' || ') } else { $lines[-1].Trim() }
+  # 系統值（音量／亮度）走 API 時不會有 taskResult，但有一行明確的 handled 記錄
+  if ($text -match "system value handled|WAE_SYSSYS:.*ok=true") { return @{ v = "SUCCESS"; d = "系統 API 完成（讀回確認）" } }
   # 優先序：taskResult（基準訊號）→ outcome → result。
   # 一定要取「最後一次」：先前用 Match（第一次）會把中途的 result=ABSTAIN
   # 當成最終結果，實際最後是 taskResult=FAIL。
@@ -132,6 +134,22 @@ function Invoke-OneRun {
   $b = Find-Bounds $xml "執行"
   if ($null -eq $b) { return @{ v = "NO_BUTTON"; d = "找不到執行按鈕" } }
   Invoke-Adb @('shell', 'input', 'tap', "$([int]$b.x)", "$([int]$b.y)") | Out-Null
+
+  # 鍵盤有時候會在 dump 之後才彈出，座標就偏掉（實測：點到鍵盤的 g，變成「…瀏覽器g」，
+  # 指令根本沒送出，整題沒有任何 WAE 日誌）。
+  # 對策：按下去後 2 秒內沒有任何任務日誌 → 收鍵盤 → 重新 dump → 再按一次。
+  for ($try = 1; $try -le 2; $try++) {
+    Start-Sleep -Seconds 2
+    $probe = (Invoke-Adb @('logcat', '-d')) -join "`n"
+    if ($probe -match 'WAE_TASK:|WAE_GEN5:|WAE_EXEC:') { break }
+    Invoke-Adb @('shell', 'input', 'keyevent', 'KEYCODE_ESCAPE') | Out-Null
+    Start-Sleep -Milliseconds 600
+    $xml2 = Get-InputScreen
+    if ($null -eq $xml2) { break }
+    $b2 = Find-Bounds $xml2 "執行"
+    if ($null -eq $b2) { break }
+    Invoke-Adb @('shell', 'input', 'tap', "$([int]$b2.x)", "$([int]$b2.y)") | Out-Null
+  }
 
   Start-Sleep -Seconds $WaitSeconds
   $log = (Invoke-Adb @('logcat', '-d')) -join "`n"

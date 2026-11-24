@@ -79,6 +79,11 @@ data class Control(
     val textHash: String = "",
     val bounds: RectI,
     val enabled: Boolean = true,
+    /**
+     * 無障礙樹判定「可以點」：本身可點，或**祖先可點**（清單列的常見寫法：TextView 有文字、Row 才是可點的）。
+     * 用途：找點擊目標時只從可點的候選裡挑，避免點到純說明文字（實測第 19 題）。
+     */
+    val clickable: Boolean = false,
     /** 這個元素本身可捲動（`AccessibilityNodeInfo.isScrollable`）。找東西找不到時要靠它。 */
     val scrollable: Boolean = false,
     /** 原始 class 名稱（例：`android.widget.Switch`）。只當型別推導的特徵，不做語意。 */

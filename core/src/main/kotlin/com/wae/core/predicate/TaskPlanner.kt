@@ -35,6 +35,18 @@ object TaskPlanner {
                 TaskNode.Seq(steps)
             }
 
+            // 瀏覽型指令（「在時鐘看世界時間」「在設定查看電池」）：啟動 → 找到那一頁 → 點進去。
+            // 這種句子沒有搜尋詞，以前會被分類器判成 CREATE，計畫裡沒有導覽步驟。
+            "VIEW" -> {
+                if (content.isBlank()) return null
+                val steps = ArrayList<TaskNode>()
+                if (!app.isNullOrBlank()) steps.add(TaskNode.Leaf(TaskNode.Op.LAUNCH, app))
+                // 這裡**不能**用 FIND：FIND 的語意是「找搜尋框並輸入」，
+                // 而 VIEW 要的是「點畫面上那一頁的入口」（例如時鐘底部的「世界時鐘」頁籤）。
+                steps.add(TaskNode.Leaf(TaskNode.Op.PICK, content))
+                TaskNode.Seq(steps)
+            }
+
             // 搜尋後打開（「並打開第一個」「並播放第一首」）：才需要 PICK。
             "FIND_OPEN" -> {
                 if (content.isBlank()) return null

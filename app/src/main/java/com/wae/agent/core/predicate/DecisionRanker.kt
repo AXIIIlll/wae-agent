@@ -29,8 +29,16 @@ object DecisionRanker {
     fun textScore(goalLabel: String, candidateLabel: String, context: Context? = null): Float {
         if (goalLabel.isBlank() || candidateLabel.isBlank()) return 0f
 
-        // 1. 字面（最便宜、最精確）
-        if (com.wae.core.predicate.TextFold.containsFold(candidateLabel, goalLabel)) return 1f
+        // 1. 字面：**完全相同**才是滿分；「包含」要打折。
+        //    實測（2026-11-23，第 19 題）：目標「鬧鐘」，畫面上有三個節點都含這兩個字
+        //    （「所有鬧鐘皆已關閉」「新增鬧鐘」「鬧鐘」頁籤），舊版三個都給 1.00，
+        //    取第一個就點到說明文字，什麼都沒發生卻回報完成。
+        val goalFolded = com.wae.core.predicate.TextFold.fold(goalLabel)
+        val candFolded = com.wae.core.predicate.TextFold.fold(candidateLabel)
+        if (goalFolded.isNotEmpty() && goalFolded == candFolded) return 1f
+        if (com.wae.core.predicate.TextFold.containsFold(candidateLabel, goalLabel)) {
+            return com.wae.agent.core.runtime.Tunables.getFloat(context, "match.contains_score", 0.88f)
+        }
 
         // 2. Cross-Encoder（full 才有的精排層）：同時看目標與候選，回答「能不能滿足」
         if (context != null && CrossEncoder.isReady()) {

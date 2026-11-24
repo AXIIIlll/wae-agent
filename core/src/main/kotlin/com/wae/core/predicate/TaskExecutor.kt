@@ -26,6 +26,22 @@ object TaskExecutor {
 
         /** 這個葉子是否已經成立（幂等：已經是開的就不必再點）。 */
         fun alreadySatisfied(leaf: TaskNode.Leaf): Boolean = false
+
+        /**
+         * 打開溢出選單（右上三點）。找不到目標時的最後一招：
+         * 「打開 Chrome 的歷史紀錄」這種項目藏在選單裡，畫面上看不到字。
+         * 預設 false＝這個實作不支援（不影響既有測試）。
+         */
+        fun openOverflowMenu(): Boolean = false
+
+        /**
+         * 用 OCR 找文字並點下去（無障礙樹看不到的字，例如 Chrome 三點選單裡的項目）。
+         * 預設 false＝不支援。
+         */
+        fun pickByOcr(target: String): Boolean = false
+
+        /** 選單打開後要等多久才再擷取（各 App 動畫長短不同，交由實作提供）。 */
+        fun menuSettleMs(): Long = 900L
     }
 
     enum class Status { DONE, ASK, FAILED }
@@ -98,7 +114,28 @@ object TaskExecutor {
                         break
                     }
                 }
-                if (attempt == 1) Thread.sleep(600)
+                if (attempt == 1) {
+                    Thread.sleep(600)
+                    // 第一輪找不到 → 可能藏在右上選單裡：開選單後再找一次
+                    if (!everFound && gateway.openOverflowMenu()) {
+                        // 選單是彈出層：先等它畫完，再靠 a11y 找；找不到就改用 OCR 點。
+                        Thread.sleep(gateway.menuSettleMs())
+                        val (idx2, score2) = gateway.find(leaf.target)
+                        lastScore = maxOf(lastScore, score2)
+                        if (score2 >= groundFloor && idx2 >= 0) {
+                            everFound = true
+                            if (gateway.act(leaf.op, leaf.target, leaf.arg)) {
+                                acted = true
+                                break
+                            }
+                        } else if (gateway.pickByOcr(leaf.target)) {
+                            // 選單項目 a11y 看不到（Chrome 是自繪彈出層），用 OCR 定位後點擊
+                            everFound = true
+                            acted = true
+                            break
+                        }
+                    }
+                }
             }
 
             outcomes.add(

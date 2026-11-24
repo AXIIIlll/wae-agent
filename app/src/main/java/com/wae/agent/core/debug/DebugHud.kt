@@ -43,6 +43,10 @@ object DebugHud {
     private var wm: WindowManager? = null
 
     fun attach(svc: AccessibilityService) {
+        // 只在 debuggable 建置生效：release 版不掛這個廣播接收器，
+        // 否則任何 App 都能送廣播把文字畫到所有 App 之上。
+        val debuggable = (svc.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (!debuggable) return
         service = svc
         if (receiver != null) return
         val r = object : BroadcastReceiver() {

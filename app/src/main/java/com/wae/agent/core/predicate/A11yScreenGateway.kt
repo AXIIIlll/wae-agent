@@ -125,12 +125,124 @@ class A11yScreenGateway(
 
     override fun find(target: String): Pair<Int, Float> {
         val f = capture()
-        val scored = f.controls.mapIndexed { i, c ->
+        // 只有「無障礙樹判定可點」的元素才進點擊候選（含祖先可點的清單列）。
+        // 純說明文字（例如「所有鬧鐘皆已關閉」）即使字面完全符合也不該被點。
+        // 若整頁都判成不可點（罕見：Canvas／遊戲），才退回全部，避免完全無法操作。
+        val clickablePool = f.controls.filter { it.clickable }
+        val pool = if (clickablePool.isNotEmpty()) clickablePool else f.controls
+        val scored = pool.mapIndexed { i, c ->
             Triple(i, c, DecisionRanker.textScore(target, c.label, context))
         }
         lastMatches = scored.map { it.second to it.third }
-        val best = scored.maxByOrNull { it.third } ?: return -1 to 0f
+
+        // 同分時的決勝規則（2026-11-23 第 19 題踩到）：
+        // 目標「鬧鐘」時，畫面有三個節點都含這兩個字——「所有鬧鐘皆已關閉」「新增鬧鐘」「鬧鐘」頁籤，
+        // 舊版三個都是 1.00 且取第一個，於是點到不可點的說明文字，什麼都沒發生卻回報完成。
+        // 現在依序比較：分數 → 可點 → 標籤與目標完全相同 → 標籤較短。
+        val goalFold = com.wae.core.predicate.TextFold.fold(target)
+        val best = scored.maxWithOrNull { a, b ->
+            val byScore = a.third.compareTo(b.third)
+            if (byScore != 0) return@maxWithOrNull byScore
+            val aExact = if (com.wae.core.predicate.TextFold.fold(a.second.label) == goalFold) 1 else 0
+            val bExact = if (com.wae.core.predicate.TextFold.fold(b.second.label) == goalFold) 1 else 0
+            if (aExact != bExact) return@maxWithOrNull (aExact - bExact)
+            // 同樣條件下取較短的標籤（「鬧鐘」比「所有鬧鐘皆已關閉」更可能就是目標）
+            b.second.label.length.compareTo(a.second.label.length)
+        } ?: return -1 to 0f
+
+        // 診斷用：把前三名寫出來，才看得出「點錯節點」是選錯還是分數並列
+        run {
+            val top = scored.sortedByDescending { it.third }.take(3).joinToString(" | ") { s ->
+                val c = s.second
+                "#" + s.first + ":" + c.kind.name + ":" + c.label.take(16) + ":%.2f".format(s.third)
+            }
+            android.util.Log.i("WAE_PICK", "find '$target' top3=$top")
+        }
         return best.first to best.third
+    }
+
+    /**
+     * 打開溢出選單（右上三點）。
+     *
+     * 為什麼需要：有些項目（Chrome 的「歷史紀錄」）畫面上看不到字，藏在選單裡。
+     * 標籤來自資料（`ui_language_words.tsv` 的 MENU 列），不是寫死的詞。
+     */
+    override fun menuSettleMs(): Long =
+        com.wae.agent.core.runtime.Tunables.getLong(context, "menu.post_open_wait_ms", 900L)
+
+    /**
+     * 用 OCR 找文字並點下去。
+     *
+     * 為什麼需要：Chrome 的三點選單是自繪彈出層，無障礙樹只看得到工具列；
+     * 選單裡的「歷史紀錄」只有 OCR 看得到（截圖上明明有字）。
+     */
+    override fun pickByOcr(target: String): Boolean {
+        val bmp = com.wae.core.util.Degrade.orNull("ocr:tap.shot") { service.captureScreenForPerception() }
+            ?: return false
+        val lines = com.wae.core.util.Degrade.orEmpty("ocr:tap.detect") {
+            com.wae.agent.vision.PpOcrEngine.detectAndRecognize(bmp, 60)
+        }
+        if (lines.isEmpty()) {
+            android.util.Log.i("WAE_OCR", "pickByOcr '$target' → OCR 沒有結果")
+            return false
+        }
+        val hit = lines.firstOrNull { l ->
+            val fold = com.wae.core.predicate.TextFold.fold(l.text)
+            val want = com.wae.core.predicate.TextFold.fold(target)
+            want.isNotEmpty() && fold.contains(want)
+        }
+        if (hit == null) {
+            android.util.Log.i("WAE_OCR", "pickByOcr '$target' → 前幾行=" +
+                lines.take(5).joinToString("/") { it.text.take(8) })
+            return false
+        }
+        // OCR 座標是 bitmap 座標；換算回螢幕座標再點
+        val dm = context.resources.displayMetrics
+        val sx = if (bmp.width > 0) dm.widthPixels.toFloat() / bmp.width else 1f
+        val sy = if (bmp.height > 0) dm.heightPixels.toFloat() / bmp.height else 1f
+        val cx = ((hit.rect.left + hit.rect.right) / 2f * sx).toInt()
+        val cy = ((hit.rect.top + hit.rect.bottom) / 2f * sy).toInt()
+        android.util.Log.i("WAE_OCR", "pickByOcr '$target' → '" + hit.text + "' @($cx,$cy)")
+        return com.wae.core.util.Degrade.orElse("ocr:tap.click", false) {
+            val path = android.graphics.Path()
+            path.moveTo(cx.toFloat(), cy.toFloat())
+            val gesture = android.accessibilityservice.GestureDescription.Builder()
+                .addStroke(android.accessibilityservice.GestureDescription.StrokeDescription(path, 0L, 60L))
+                .build()
+            service.dispatchGesture(gesture, null, null)
+            true
+        }
+    }
+
+    override fun openOverflowMenu(): Boolean {
+        val labels = com.wae.core.predicate.LanguageWords.menuLabels()
+        if (labels.isEmpty()) return false
+        // Chrome 的工具列常常比頁面晚出現（實測第一次抓只有頁面內容、沒有選單按鈕），
+        // 所以要重試幾次，而不是抓到一次就放棄。
+        val attempts = com.wae.agent.core.runtime.Tunables.getInt(context, "menu.find_attempts", 3)
+        val delayMs = com.wae.agent.core.runtime.Tunables.getLong(context, "menu.find_delay_ms", 400L)
+        var hit: Control? = null
+        for (i in 0 until attempts) {
+            val f = capture()
+            hit = f.controls.firstOrNull { c ->
+                val fold = com.wae.core.predicate.TextFold.fold(c.label)
+                // 用「包含」而不是「完全相同」：三點選單的無障礙標籤五花八門
+                // （Chrome 是「自訂及管理 Google Chrome」、Samsung 是「更多選項」…），
+                // 只要標籤裡含有選單詞就當成選單入口。這條規則套用在**所有** MENU 資料列。
+                fold.isNotEmpty() && labels.any { l ->
+                    val target = com.wae.core.predicate.TextFold.fold(l)
+                    target.isNotEmpty() && fold.contains(target)
+                }
+            }
+            if (hit != null) break
+            if (i < attempts - 1) Thread.sleep(delayMs)
+        }
+        val found = hit ?: run {
+            android.util.Log.i("WAE_MENU", "no overflow menu after $attempts tries")
+            return false
+        }
+        android.util.Log.i("WAE_MENU", "open overflow menu: '" + found.label + "'")
+        return act(TaskNode.Op.PICK, found.label, "")
     }
 
     override fun alreadySatisfied(leaf: TaskNode.Leaf): Boolean {

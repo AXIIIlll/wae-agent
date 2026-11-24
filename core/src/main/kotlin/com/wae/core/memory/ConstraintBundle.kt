@@ -16,7 +16,7 @@ import java.security.MessageDigest
  * ```
  *
  * 安全邊界：checksum 只防**手滑與傳輸損壞**，不是簽章——真正防篡改要靠簽章，
- * 那需要金鑰管理，尚未做（能力清單會標 🟡）。
+ * 那需要金鑰管理，尚未做（能力清單會標 ）。
  */
 object ConstraintBundle {
 
