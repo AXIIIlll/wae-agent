@@ -27,7 +27,7 @@ object Gen5Probe {
         val cmdFile = File(dir, CMD_FILE)
         if (!cmdFile.exists()) return
 
-        val command = runCatching { cmdFile.readText(Charsets.UTF_8).trim() }.getOrDefault("")
+        val command = com.wae.core.util.Degrade.orElse("probe:readCommand", "") { cmdFile.readText(Charsets.UTF_8).trim() }
         cmdFile.delete()
         if (command.isEmpty()) return
 
@@ -35,7 +35,7 @@ object Gen5Probe {
             val startedAt = android.os.SystemClock.elapsedRealtime()
             // 剪貼簿在 Android 10+ 只給「有焦點」的 App；剛啟動時焦點還沒到位，
             // 太早讀寫會被系統靜默丟棄（實測：寫入回 ok、讀回卻是空的）。
-            runCatching { Thread.sleep(600) }
+            com.wae.core.util.Degrade.orNull("probe:clipboardFocusWait") { Thread.sleep(600) }
             val result = runCatching {
                 when (command) {
                     ADMIN_CLEAR -> clearMemory(context)
@@ -78,7 +78,7 @@ object Gen5Probe {
                 Log.e(TAG, "probe failed", t)
                 "ERROR:" + t.message
             }
-            runCatching { File(dir, RESULT_FILE).writeText("$command\t$result\n", Charsets.UTF_8) }
+            com.wae.core.util.Degrade.orNull("probe:writeResult") { File(dir, RESULT_FILE).writeText("$command\t$result\n", Charsets.UTF_8) }
             val tookMs = android.os.SystemClock.elapsedRealtime() - startedAt
             Log.i(TAG, "probe result=$result took_ms=$tookMs")
         }.start()
@@ -175,8 +175,7 @@ object Gen5Probe {
     private fun digestReport(context: Context): String {
         val service = com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
             ?: return "DIGEST no_service"
-        return runCatching { StepActor.digest(service, context) }
-            .getOrElse { t -> "ERROR:" + t.message }
+        return com.wae.core.util.Degrade.orElse("probe:digest", "ERROR:digest") { StepActor.digest(service, context) }
     }
 
     private fun lexiconCommand(context: Context, text: String): String {
