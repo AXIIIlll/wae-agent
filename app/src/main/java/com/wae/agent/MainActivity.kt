@@ -225,7 +225,7 @@ class MainActivity : Activity() {
             minHeight = 0
             minimumHeight = 0
             setPadding(dp(10), dp(6), dp(10), dp(6))
-            setOnClickListener { runCatching { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } }
+            setOnClickListener { com.wae.core.util.Degrade.orNull("main:openAccessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } }
         })
         onboardRow.addView(Button(this).apply {
             text = "設為助理"
@@ -744,7 +744,7 @@ class MainActivity : Activity() {
             }
             setPadding(dp(14), dp(10), dp(14), dp(10))
             setOnClickListener {
-                val rm = runCatching { getSystemService(RoleManager::class.java) }.getOrNull()
+                val rm = com.wae.core.util.Degrade.orNull("main:roleManager") { getSystemService(RoleManager::class.java) }
                 if (rm == null || !rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT)) {
                     statusLineView.text = "⚠ 此裝置不支援助理角色；可用「 懸浮窗」或快捷設定磚"
                 } else if (rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
@@ -984,7 +984,7 @@ class MainActivity : Activity() {
                 ) {
                     goalInputBox.setText("")
                 }
-                runCatching { refreshMascotState() }
+                com.wae.core.util.Degrade.orNull("main:refreshMascot") { refreshMascotState() }
                 renderAmbiguousClarificationButtons()
                 refreshEngineStats()
                 refreshServiceBanner()
@@ -1051,7 +1051,7 @@ class MainActivity : Activity() {
         applyDebugCommandIfPresent()
         // Gen-5 開發輔助：singleTask 下第二次 am start 不會走 onCreate；
         // 在 onResume 也讀一次，adb 端到端才可靠（檔案不存在就什麼都不做）。
-        runCatching { com.wae.agent.gen5.Gen5Probe.check(this) }
+        com.wae.core.util.Degrade.orNull("main:gen5Probe") { com.wae.agent.gen5.Gen5Probe.check(this) }
         refreshSystemChecks()
         if (::recentCommandsView.isInitialized) refreshRecentCommands()
         if (::taskOsBtn.isInitialized) refreshRuntimeFlagButtons()
@@ -1278,8 +1278,8 @@ class MainActivity : Activity() {
         for (i in 0 until centerCard.childCount) {
             centerCard.getChildAt(i).visibility = View.GONE
         }
-        runCatching { centerCard.removeView(goalInputBox) }
-        runCatching { centerCard.removeView(executeBtnView) }
+        com.wae.core.util.Degrade.orNull("main:removeInput") { centerCard.removeView(goalInputBox) }
+        com.wae.core.util.Degrade.orNull("main:removeExecute") { centerCard.removeView(executeBtnView) }
 
         homeTopRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1294,7 +1294,7 @@ class MainActivity : Activity() {
             setPadding(dp(16), dp(8), dp(16), dp(8))
             background = GlassDrawable(radius = dp(16).toFloat())
             setOnClickListener {
-                runCatching { startActivity(Intent(this@MainActivity, com.wae.agent.settings.SettingsActivity::class.java)) }
+                com.wae.core.util.Degrade.orNull("main:openSettings") { startActivity(Intent(this@MainActivity, com.wae.agent.settings.SettingsActivity::class.java)) }
             }
         }
         homeTopRow.addView(
@@ -1646,7 +1646,7 @@ class MainActivity : Activity() {
                 .setPositiveButton(labels[1]) { d, _ -> d.dismiss() }
             else -> builder.setPositiveButton(labels.last()) { d, _ -> d.dismiss() }
         }
-        runCatching { builder.show() }
+        com.wae.core.util.Degrade.orNull("main:dialogShow") { builder.show() }
     }
 
     private fun triggerCommandExecution() {        val raw = goalInputBox.text?.toString()?.trim().orEmpty()
@@ -2082,7 +2082,7 @@ class MainActivity : Activity() {
         applyToggleStyle(omegaBtn, "WAE-Ω（可驗證執行）", om)
         applyToggleStyle(grounding2Btn, "Grounding 2.0", g2)
         if (::wakeWordBtn.isInitialized) {
-            val wake = runCatching { com.wae.agent.voice.WakeWordService.isEnabled(this) }.getOrDefault(false)
+            val wake = com.wae.core.util.Degrade.orElse("main:wakeEnabled", false) { com.wae.agent.voice.WakeWordService.isEnabled(this) }
             wakeWordBtn.tag = wake
             applyToggleStyle(wakeWordBtn, "Hey WAE 喚醒詞（測試）", wake)
         }
@@ -2109,7 +2109,7 @@ class MainActivity : Activity() {
 
     private fun refreshRecentCommands() {
         if (!::recentCommandsView.isInitialized) return
-        val list = runCatching { com.wae.agent.voice.SessionHistory.recent(this, 5) }.getOrDefault(emptyList())
+        val list = com.wae.core.util.Degrade.orEmpty("main:sessionHistory") { com.wae.agent.voice.SessionHistory.recent(this, 5) }
         recentCommandsView.text = if (list.isEmpty()) {
             "最近指令：—"
         } else {
@@ -2135,7 +2135,7 @@ class MainActivity : Activity() {
         languageBtn.visibility = android.view.View.VISIBLE
         val code = getSharedPreferences("wae_voice", MODE_PRIVATE)
             .getString("voice_lang", "zh-TW") ?: "zh-TW"
-        val name = runCatching { langs.firstOrNull { it.first == code }?.second }.getOrNull() ?: code
+        val name = com.wae.core.util.Degrade.orNull("main:langName") { langs.firstOrNull { it.first == code }?.second } ?: code
         languageBtn.text = "語音語言：$name"
     }
 
@@ -2178,7 +2178,7 @@ class MainActivity : Activity() {
     }
 
     private fun exportDiagnostics() {
-        val f = runCatching { com.wae.agent.core.DiagnosticsExporter.export(this) }.getOrNull()
+        val f = com.wae.core.util.Degrade.orNull("main:exportDiagnostics") { com.wae.agent.core.DiagnosticsExporter.export(this) }
         statusLineView.text = if (f != null) {
             "診斷包：Android/data/com.wae.agent/files/${f.parentFile?.name}/${f.name}"
         } else {
@@ -2237,9 +2237,9 @@ class MainActivity : Activity() {
 
     private fun fixCheck(key: String) {
         when (key) {
-            "a11y" -> runCatching { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            "a11y" -> com.wae.core.util.Degrade.orNull("main:fixA11y") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
             "assistant" -> {
-                val rm = runCatching { getSystemService(RoleManager::class.java) }.getOrNull()
+                val rm = com.wae.core.util.Degrade.orNull("main:roleManager") { getSystemService(RoleManager::class.java) }
                 if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT) &&
                     !rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)
                 ) {
