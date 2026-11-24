@@ -77,3 +77,8 @@ Agent Handoff、Agent Benchmark、EndToEnd Flow、COMPAT_MATRIX、NORTH_STAR）�
 | 極限架構殘留（TimeTravel、AotCompiler、SpeculativeExecutor、TaskGenerator、WlMetaGraph、NegativeSpaceIndex、ParamCalibrator、AutomatonDigest） | 2026-11-16 | 直接刪除（無歸檔） |
 | Qwen3-0.6B GGUF（full flavor 仍保留） | — | lite 不含；full 內建 |
 | Gen-4 四條執行路徑（重建後） | 待執行 | 由 `WAE_Gen5_Architecture.md` §11 S9 刪除 |
+
+## 技術債指標
+
+整理期間每次改動都跑 	ools\debt_report.ps1（runCatching／TODO／emoji／最大檔行數，只能下降）。
+計畫：docs/superpowers/plans/2026-11-24-codebase-cleanup.md。
