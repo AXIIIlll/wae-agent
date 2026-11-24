@@ -21,7 +21,7 @@
 | 5 拆 Service | 進行中 | 3977 → **3884**（已抽 BaselineRecovery）|
 | 6 拆 MainActivity | 未開始 | 目前 2078 行 |
 | 7 10 題回歸腳本 | 完成（待真機驗證） | `tools/run_smoke_10.ps1` |
-| 8 死碼／TODO | 未開始 | 46 筆 |
+| 8 死碼／TODO | 完成（TODO） | 實測 **0 筆**：原 46 筆是 `-match 'TODO'` 誤命中 `.toDouble()`，腳本已修 |
 | 9 語音入口統一 | 未開始 | 仍是第三份實作 |
 ## Global Constraints
 

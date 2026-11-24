@@ -44,10 +44,10 @@ object KnowledgeHost {
         synchronized(this) {
             corrections?.let { return it }
             val file = java.io.File(java.io.File(context.filesDir, "mem"), CORRECTIONS_FILE)
-            val loaded = runCatching {
+            val loaded = com.wae.core.util.Degrade.orElse("knowledgeHost:corrections", CorrectionStore()) {
                 if (file.exists()) CorrectionStore.parse(file.readLines(Charsets.UTF_8).asSequence())
                 else CorrectionStore()
-            }.getOrDefault(CorrectionStore())
+            }
             corrections = loaded
             return loaded
         }
@@ -56,7 +56,7 @@ object KnowledgeHost {
     fun recordCorrection(context: Context, utterance: String, action: String) {
         val store = corrections(context)
         store.add(utterance, action)
-        runCatching {
+        com.wae.core.util.Degrade.orNull("knowledgeHost:saveCorrections") {
             val file = java.io.File(java.io.File(context.filesDir, "mem"), CORRECTIONS_FILE)
             file.parentFile?.mkdirs()
             file.writeText(store.toLines().joinToString("\n") + "\n", Charsets.UTF_8)
@@ -67,9 +67,9 @@ object KnowledgeHost {
 
     /** 每次呼叫模型前的一句話檢索（含修正庫；修正權重 ×10）。 */
     fun contextFor(context: Context, utterance: String, topK: Int = 3): String =
-        runCatching {
+        com.wae.core.util.Degrade.orElse("knowledgeHost:context", "") {
             KnowledgeBase.render(base(context).retrieve(utterance, topK))
-        }.getOrDefault("")
+        }
 
     // ── 文件生成 ───────────────────────────────────────────
     private fun purposeDocs(context: Context): List<KnowledgeDoc> {
@@ -115,9 +115,9 @@ object KnowledgeHost {
         // 名詞在前的口語（「Chrome 開起來」「看地圖」）：句型只有動詞在前，這裡用
         // 已安裝 App 名稱具體化成三種說法（打開X／看X／X開起來），全都指 A1.1。
         // 以裝置上的 App 清單生成，不是為某一句話硬編。
-        val apps = runCatching {
+        val apps = com.wae.core.util.Degrade.orEmpty("knowledgeHost:apps") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
-        }.getOrDefault(emptyList())
+        }
         for (app in apps) {
             val label = app.label.trim()
             if (label.isEmpty()) continue
@@ -147,7 +147,7 @@ object KnowledgeHost {
                 )
             }.toList()
 
-    private fun appDocs(context: Context): List<KnowledgeDoc> = runCatching {
+    private fun appDocs(context: Context): List<KnowledgeDoc> = com.wae.core.util.Degrade.orEmpty("knowledgeHost:appDocs") {
         com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false).map { app ->
             KnowledgeDoc(
                 id = "A-" + app.pkg,
@@ -155,5 +155,5 @@ object KnowledgeHost {
                 text = "App「${app.label}」分類 ${app.category} 套件 ${app.pkg}"
             )
         }
-    }.getOrDefault(emptyList())
+    }
 }

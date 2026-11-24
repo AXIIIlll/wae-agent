@@ -24,8 +24,8 @@ $files = Get-ChildItem $srcDirs -Recurse -Filter *.kt | ForEach-Object { $_.Full
 
 # 基準值＝2026-11-24 整理開始時的量測結果。每完成一批就把基準往下調。
 $baseline = @{
-    runCatching = 586
-    todo        = 46
+    runCatching = 581
+    todo        = 0
     emoji       = 32
     maxFile     = 3884
 }
@@ -66,7 +66,8 @@ function Measure-Todo {
     foreach ($f in $files) {
         $lines = Read-AllLines $f
         for ($i = 0; $i -lt $lines.Count; $i++) {
-            if ($lines[$i] -match 'TODO|FIXME') {
+            # 用字界比對：-match 'TODO' 會把 .toDouble() 也算進去（實測 46 筆裡 40 筆是誤判）
+            if ($lines[$i] -cmatch '\bTODO\b|\bFIXME\b') {
                 $hits += [pscustomobject]@{ File = $f; Line = $i + 1; Text = $lines[$i].Trim() }
             }
         }
