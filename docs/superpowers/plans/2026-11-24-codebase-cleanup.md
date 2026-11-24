@@ -10,6 +10,19 @@
 
 **Spec:** `AGENTS.md`（專案硬性規則）＋ `docs/README.md`（現行文件索引）＋ 使用者要求：「為了後續的發展我們必須先把整個代碼整理整理」。
 
+## 執行進度（每完成一批就更新這張表）
+
+| Task | 狀態 | 證據 |
+|---|---|---|
+| 1 債務指標 | 完成 | `tools/debt_report.ps1` 四項 ok；commit `e6aa792` |
+| 2 清 emoji | 完成 | 32 → 0；`tools/strip_emoji.py`；commit `f8d02ad` |
+| 3 系統目標進 TSV | 完成 | `ui_system_targets.tsv` ＋ 5 個新測試；commit（Task 3） |
+| 4 runCatching | 進行中 | 593 → 590（第 1 批 5 處）；ratchet 558 → 553 |
+| 5 拆 Service | 未開始 | 目前 3977 行 |
+| 6 拆 MainActivity | 未開始 | 目前 2078 行 |
+| 7 10 題回歸腳本 | 完成（待真機驗證） | `tools/run_smoke_10.ps1` |
+| 8 死碼／TODO | 未開始 | 46 筆 |
+| 9 語音入口統一 | 未開始 | 仍是第三份實作 |
 ## Global Constraints
 
 - 一律 `$env:JAVA_HOME='C:\Users\User\.jdks\jdk-21.0.13.1+2'`、`$env:GRADLE_USER_HOME='E:\WAE\gradle-home'`。
