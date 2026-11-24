@@ -244,7 +244,7 @@ class MainActivity : Activity() {
             minimumHeight = 0
             setPadding(dp(10), dp(6), dp(10), dp(6))
             setOnClickListener {
-                runCatching {
+                com.wae.core.util.Degrade.orNull("main:onboardVoice") {
                     startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
                 }
             }
@@ -750,13 +750,11 @@ class MainActivity : Activity() {
                 } else if (rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
                     statusLineView.text = "✓ WAE 已是預設助理：長按電源鍵／Home 即可召喚"
                 } else {
-                    runCatching {
+                    com.wae.core.util.Degrade.orNull("main:requestAssistantRole") {
                         startActivityForResult(
                             rm.createRequestRoleIntent(RoleManager.ROLE_ASSISTANT),
                             REQ_ASSISTANT_ROLE
                         )
-                    }.onFailure {
-                        statusLineView.text = "⚠ 無法開啟助理設定：${it.message}"
                     }
                 }
             }
@@ -781,9 +779,9 @@ class MainActivity : Activity() {
             }
             setPadding(dp(14), dp(10), dp(14), dp(10))
             setOnClickListener {
-                runCatching {
+                com.wae.core.util.Degrade.orNull("main:openAssistVoice") {
                     startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
-                }.onFailure { statusLineView.text = "⚠ 無法開啟語音助理：${it.message}" }
+                }
             }
         }
         settingsDrawer.addView(
@@ -1034,7 +1032,7 @@ class MainActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQ_ASSISTANT_ROLE) {
             refreshSystemChecks()
-            runCatching {
+            com.wae.core.util.Degrade.orNull("main:assistantResult") {
                 statusLineView.text = if (resultCode == Activity.RESULT_OK) {
                     "✓ 已設為預設助理：長按電源鍵／Home 即可召喚 WAE"
                 } else {
@@ -1234,7 +1232,7 @@ class MainActivity : Activity() {
 
         if (entries.isEmpty()) {
             statusLineView.text = " 目前沒有反例（它還沒學到任何禁令）"
-            runCatching {
+            com.wae.core.util.Degrade.orNull("main:refutationEmpty") {
                 android.app.AlertDialog.Builder(this)
                     .setTitle("反例")
                     .setMessage("目前沒有反例。\n\n當某條路在這台機器上失敗兩次以上，它會被記錄成禁令，之後不會再優先走同一條。")
@@ -1245,7 +1243,7 @@ class MainActivity : Activity() {
         }
 
         val labels = entries.map { it.text }.toTypedArray()
-        runCatching {
+        com.wae.core.util.Degrade.orNull("main:refutationList") {
             android.app.AlertDialog.Builder(this)
                 .setTitle("反例（點一下刪除）")
                 .setItems(labels) { d, which ->
