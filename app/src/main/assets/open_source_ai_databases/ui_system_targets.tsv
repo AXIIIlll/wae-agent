@@ -1,0 +1,13 @@
+# 系統目標別名表（D10）
+# 格式: target <TAB> 別名（| 分隔）
+# 為什麼放資料：程式不得內建詞表（AGENTS §4）。新增說法只要加一列。
+#
+# target 只能是這五個（對應 core 的 SystemTargets.Target）：
+#   WIFI / BLUETOOTH / AIRPLANE / BRIGHTNESS / VOLUME
+# 誠實邊界：Android 10+ 第三方不能直接切 Wi-Fi／藍牙／飛航，只能開面板；
+# 亮度需要 WRITE_SETTINGS；音量可直接用 AudioManager 調整並讀回。
+WIFI	wifi|wi-fi|無線網路|無線
+BLUETOOTH	藍牙|藍芽|bluetooth
+AIRPLANE	飛航模式|飛航|airplane
+BRIGHTNESS	亮度|螢幕亮度|brightness
+VOLUME	音量|音量大小|媒體音量|聲音|鈴聲|volume

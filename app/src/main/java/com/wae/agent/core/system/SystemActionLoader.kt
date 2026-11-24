@@ -25,5 +25,17 @@ object SystemActionLoader {
             loaded = true
             android.util.Log.i("WAE_SYSACT", "loaded ${lines.size} lines")
         }
+
+        // 系統目標別名（Wi-Fi／藍牙／飛航／亮度／音量）也在資料裡，一起載入。
+        // 沒載到就回空表：normalize 會回 null，流程回到原本的路徑，不會用過期清單硬認。
+        val targetLines = com.wae.core.util.Degrade.orEmpty("sysact:loadTargets") {
+            context.assets.open("open_source_ai_databases/ui_system_targets.tsv")
+                .bufferedReader(Charsets.UTF_8)
+                .readLines()
+        }
+        if (targetLines.isNotEmpty()) {
+            com.wae.core.system.SystemTargets.installFrom(targetLines)
+            android.util.Log.i("WAE_SYSACT", "loaded system targets ${targetLines.size} lines")
+        }
     }
 }
