@@ -125,20 +125,23 @@ class A11yScreenGateway(
 
     override fun find(target: String): Pair<Int, Float> {
         val f = capture()
-        // 只有「無障礙樹判定可點」的元素才進點擊候選（含祖先可點的清單列）。
-        // 純說明文字（例如「所有鬧鐘皆已關閉」）即使字面完全符合也不該被點。
-        // 若整頁都判成不可點（罕見：Canvas／遊戲），才退回全部，避免完全無法操作。
-        val clickablePool = f.controls.filter { it.clickable }
-        val pool = if (clickablePool.isNotEmpty()) clickablePool else f.controls
-        val scored = pool.mapIndexed { i, c ->
-            Triple(i, c, DecisionRanker.textScore(target, c.label, context))
+        // 決策層只看「選項」：先把畫面簡化成可互動元素，再在這個小集合上打分。
+        // 這樣純說明文字根本不會進候選，也不必再靠分數補救。
+        val pairs = optionsOf(f)
+        if (pairs.isEmpty()) {
+            lastMatches = emptyList()
+            return -1 to 0f
         }
-        lastMatches = scored.map { it.second to it.third }
+        val scored = pairs.mapIndexed { i, pair ->
+            val option = pair.second
+            val labelScore = DecisionRanker.textScore(target, option.label, context)
+            val groupScore = if (option.group.isNotEmpty()) {
+                DecisionRanker.textScore(target, option.group, context)
+            } else 0f
+            Triple(i, option, maxOf(labelScore, groupScore * 0.8f))
+        }
+        lastMatches = pairs.map { it.first to DecisionRanker.textScore(target, it.second.label, context) }
 
-        // 同分時的決勝規則（2026-11-23 第 19 題踩到）：
-        // 目標「鬧鐘」時，畫面有三個節點都含這兩個字——「所有鬧鐘皆已關閉」「新增鬧鐘」「鬧鐘」頁籤，
-        // 舊版三個都是 1.00 且取第一個，於是點到不可點的說明文字，什麼都沒發生卻回報完成。
-        // 現在依序比較：分數 → 可點 → 標籤與目標完全相同 → 標籤較短。
         val goalFold = com.wae.core.predicate.TextFold.fold(target)
         val best = scored.maxWithOrNull { a, b ->
             val byScore = a.third.compareTo(b.third)
@@ -146,36 +149,18 @@ class A11yScreenGateway(
             val aExact = if (com.wae.core.predicate.TextFold.fold(a.second.label) == goalFold) 1 else 0
             val bExact = if (com.wae.core.predicate.TextFold.fold(b.second.label) == goalFold) 1 else 0
             if (aExact != bExact) return@maxWithOrNull (aExact - bExact)
-            // 同樣條件下取較短的標籤（「鬧鐘」比「所有鬧鐘皆已關閉」更可能就是目標）
             b.second.label.length.compareTo(a.second.label.length)
         } ?: return -1 to 0f
 
-        // 診斷用：把前三名寫出來，才看得出「點錯節點」是選錯還是分數並列
         run {
             val top = scored.sortedByDescending { it.third }.take(3).joinToString(" | ") { s ->
-                val c = s.second
-                "#" + s.first + ":" + c.kind.name + ":" + c.label.take(16) + ":%.2f".format(s.third)
+                "#" + s.first + ":" + s.second.role + ":" + s.second.label.take(16) + ":%.2f".format(s.third)
             }
-            android.util.Log.i("WAE_PICK", "find '$target' top3=$top")
+            android.util.Log.i("WAE_PICK", "find(option) top3=" + top + " of " + pairs.size)
         }
         return best.first to best.third
     }
 
-    /**
-     * 打開溢出選單（右上三點）。
-     *
-     * 為什麼需要：有些項目（Chrome 的「歷史紀錄」）畫面上看不到字，藏在選單裡。
-     * 標籤來自資料（`ui_language_words.tsv` 的 MENU 列），不是寫死的詞。
-     */
-    override fun menuSettleMs(): Long =
-        com.wae.agent.core.runtime.Tunables.getLong(context, "menu.post_open_wait_ms", 900L)
-
-    /**
-     * 用 OCR 找文字並點下去。
-     *
-     * 為什麼需要：Chrome 的三點選單是自繪彈出層，無障礙樹只看得到工具列；
-     * 選單裡的「歷史紀錄」只有 OCR 看得到（截圖上明明有字）。
-     */
     override fun pickByOcr(target: String): Boolean {
         val bmp = com.wae.core.util.Degrade.orNull("ocr:tap.shot") { service.captureScreenForPerception() }
             ?: return false
@@ -526,13 +511,40 @@ class A11yScreenGateway(
         }
     }
 
+    /**
+     * 決策層現在只看「選項」。
+     *
+     * 為什麼：原始樹裡大多數節點不能點（標題、說明、分隔線），直接對整棵樹打分
+     * 會讓「字面剛好相符的說明文字」贏過真正的按鈕（實測第 19 題就是這樣）。
+     * 簡化器先把畫面收成「可互動的元素」，決策在這個小集合上做。
+     */
     private fun bestControl(f: Frame, target: String): Control? {
         if (f.controls.isEmpty()) return null
-        return f.controls
-            .map { it to DecisionRanker.textScore(target, it.label, context) }
-            .filter { it.second >= 0.45f }
-            .maxByOrNull { it.second }
-            ?.first
+        val pairs = optionsOf(f)
+        if (pairs.isEmpty()) return null
+        val scored = pairs.map { pair ->
+            val option = pair.second
+            val labelScore = DecisionRanker.textScore(target, option.label, context)
+            // 群組也納入比對：「連接 › Wi-Fi」比別區的同名項更可能是目標
+            val groupScore = if (option.group.isNotEmpty()) {
+                DecisionRanker.textScore(target, option.group, context)
+            } else 0f
+            pair.first to maxOf(labelScore, groupScore * 0.8f)
+        }
+        val best = scored.filter { it.second >= 0.45f }.maxByOrNull { it.second } ?: return null
+        android.util.Log.i(
+            "WAE_OPTION",
+            "bestControl '$target' → '${best.first.label}' score=%.2f of ${pairs.size} options".format(best.second)
+        )
+        return best.first
+    }
+
+    /** 這一幀的「可選項」清單（與 OptionResolver 共用同一套抽取規則）。 */
+    private fun optionsOf(f: Frame): List<Pair<Control, com.wae.core.screen.ScreenOption>> {
+        val height = com.wae.core.util.Degrade.orElse("gateway:screenHeight", 0) {
+            context.resources.displayMetrics.heightPixels
+        }
+        return com.wae.core.screen.OptionExtractor.scan(f.pkg, f.fp, f.controls, height).pairs
     }
 
     private fun performOn(node: AccessibilityNodeInfo?, op: TaskNode.Op, arg: String): Boolean {
