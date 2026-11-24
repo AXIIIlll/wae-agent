@@ -228,7 +228,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        runCatching { startAgentDebugWatcher() }
+        com.wae.core.util.Degrade.orNull("service:debugWatcher") { startAgentDebugWatcher() }
         // 測試用的最上層大字（TYPE_ACCESSIBILITY_OVERLAY）：人工驗證時看得到「現在第幾題」
         com.wae.core.util.Degrade.orNull("hud:attach") { com.wae.agent.core.debug.DebugHud.attach(this) }
         activeInstance = this
@@ -509,7 +509,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 val texts = ArrayList<CharSequence>(4)
                 event.contentDescription?.let { texts.add(it) }
                 texts.addAll(event.text)
-                runCatching { com.wae.agent.gen5.NotificationInbox.onEvent(pkg, texts) }
+                com.wae.core.util.Degrade.orNull("service:notificationInbox") { com.wae.agent.gen5.NotificationInbox.onEvent(pkg, texts) }
             }
             AccessibilityEvent.TYPE_VIEW_CLICKED -> {
                 val src = event.source
@@ -556,7 +556,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         serviceDestroyed = true
         super.onDestroy()
         com.wae.core.util.Degrade.orNull("hud:detach") { com.wae.agent.core.debug.DebugHud.detach() }
-        runCatching { floatingOverlay?.destroy() }
+        com.wae.core.util.Degrade.orNull("service:destroyOverlay") { floatingOverlay?.destroy() }
         floatingOverlay = null
         if (activeInstance === this) {
             activeInstance = null
@@ -612,7 +612,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             }
         }
         executeUserCommandPipelineAsync(raw) { msg ->
-            runCatching { latestStatusMessage = msg }
+            com.wae.core.util.Degrade.orNull("service:latestStatus") { latestStatusMessage = msg }
         }
     }
 
@@ -1042,7 +1042,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                     }
                     // ── M6：探索排程（S5）──
                     // 預設關閉；即使開啟，也必須通過「三層護欄」才會動作。
-                    runCatching { scheduleExploration(ctx, latest) }
+                    com.wae.core.util.Degrade.orNull("service:scheduleExploration") { scheduleExploration(ctx, latest) }
                 }
                 cancelRequested = false
                 taskDeadlineMs = Long.MAX_VALUE
@@ -1114,7 +1114,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         val root = getActiveNonWaeRoot()
         val pkg = root?.packageName?.toString().orEmpty()
         val winId = root?.windowId ?: -1
-        val ambient = runCatching { computeAmbientSpine().first }.getOrDefault(0L)
+        val ambient = com.wae.core.util.Degrade.orElse("service:ambient", 0L) { computeAmbientSpine().first }
         val goalKey = goal.actionKind.name + "|" + goal.inputPayload.take(24)
 
         val cached = frameCacheResult
@@ -1191,7 +1191,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     private fun verifyGoalOutcome(goal: LocalGoal, dispatchVerified: Boolean): Boolean {
         // 觀察（服務負責）
         val pkgAfter = rootInActiveWindow?.packageName?.toString().orEmpty()
-        val ambientAfter = runCatching { computeAmbientSpine().first }.getOrDefault(0L)
+        val ambientAfter = com.wae.core.util.Degrade.orElse("service:ambientAfter", 0L) { computeAmbientSpine().first }
         val spineChanged = ambientAfter != 0L && goalStartAmbient != 0L && ambientAfter != goalStartAmbient
         val inputs = com.wae.agent.core.goal.GoalOutcome.Inputs(
             goal = goal,
@@ -1282,7 +1282,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         typeLadderAttempts = 0
         toggleDrillAttempts = 0
         goalSelectors.clear()
-        goalStartAmbient = runCatching { computeAmbientSpine().first }.getOrDefault(0L)
+        goalStartAmbient = com.wae.core.util.Degrade.orElse("service:goalStartAmbient", 0L) { computeAmbientSpine().first }
         goalStartPkg = rootInActiveWindow?.packageName?.toString().orEmpty()
         goalStartValues = lastCandidates.filter { it.hasRange }
             .associate { selectorKeyOf(it) to it.rangeCurrent }
@@ -2833,7 +2833,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
 
         // ── S25：是否走增量（髒區剪枝）────────────────────────────────
         val nowPerceive = android.os.SystemClock.uptimeMillis()
-        val ambientNow = runCatching { computeAmbientSpine().first }.getOrDefault(0L)
+        val ambientNow = com.wae.core.util.Degrade.orElse("service:ambientNow", 0L) { computeAmbientSpine().first }
         val dirtySnapshot = synchronized(dirtyRects) { dirtyRects.map { Rect(it) } }
         val dirtyBoxes = dirtySnapshot.map {
             com.wae.agent.core.perception.IncrementalPerception.Box(it.left, it.top, it.right, it.bottom)
@@ -3384,7 +3384,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     /** S33：收集目前畫面上所有 text / contentDescription（變數收集與守衛判定用） */
     private fun collectVisibleScreenTexts(): List<String> {
         val out = ArrayList<String>(32)
-        val root = runCatching { rootInActiveWindow }.getOrNull() ?: return out
+        val root = com.wae.core.util.Degrade.orNull("service:collectTextsRoot") { rootInActiveWindow } ?: return out
         val stack = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
         stack.addLast(root)
         var visited = 0
@@ -3401,7 +3401,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             // API 30–32 的 AccessibilityNodeInfo 需要釋放，否則長任務反覆收集會累積原生物件。
             // rootInActiveWindow 由系統持有，不 recycle；其餘節點讀完就釋放。
             if (n !== root) {
-                runCatching { n.recycle() }
+                com.wae.core.util.Degrade.orNull("service:recycleNode") { n.recycle() }
             }
         }
         return out.distinct().take(80)
@@ -3761,7 +3761,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
 
     private fun notifyUiStatus(msg: String, stepCallback: ((String) -> Unit)? = null) {
         latestStatusMessage = msg
-        if (voiceTaskActive) runCatching { voiceProgress?.update(msg) }
+        if (voiceTaskActive) com.wae.core.util.Degrade.orNull("service:voiceProgress") { voiceProgress?.update(msg) }
         stepCallback?.invoke(msg)
         uiUpdateCallback?.invoke()
     }
