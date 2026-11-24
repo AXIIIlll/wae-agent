@@ -640,67 +640,26 @@ class AssistActivity : Activity() {
         val text = raw.trim()
         if (text.isEmpty() || submitted) return
         submitted = true
-        // 開放式語句交給開放式執行器（模板／逐元素決策，不用 LLM）；明確指令仍走快速路徑
-        val agentSvc = WaeVisionAccessibilityService.activeInstance
-        val route = runCatching {
-            com.wae.agent.core.ExecutionRouter.route(applicationContext, text)
-        }.getOrDefault(com.wae.agent.core.ExecutionRouter.Route.FAST)
-        // 規則：拆得出完整目標 → 快速；拆不出但有意圖模板 → 開放式執行器；兩者皆無 → 請使用者打字
-        if (route == com.wae.agent.core.ExecutionRouter.Route.ASK) {
-            input.hint = "我不確定這是不是指令，請換個說法或打字"
-            submitted = false
-            switchToTyping()
-            return
-        }
-        if (route == com.wae.agent.core.ExecutionRouter.Route.AGENT && agentSvc != null) {
-            try {
-                input.setText(text)
-            } catch (_: Throwable) {}
-            VoiceLog.event(TAG_EVENT, "AGENT_DISPATCH")
-            finish()
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                com.wae.core.util.Degrade.orNull("assist:runAgent") { agentSvc.runAgentCommand(text) }
-            }, HANDOFF_DELAY_MS)
-            return
-        }
         if (fromVoice) countVoiceExecution()
-        runCatching {
+        com.wae.core.util.Degrade.orNull("assist:sessionHistory") {
             SessionHistory.append(applicationContext, text, voice = fromVoice)
             if (fromVoice) VoiceFeedback.speak(applicationContext, "好的")
         }
         com.wae.core.util.Degrade.orNull("assist:stopController") { controller?.stop() }
-        val svc = WaeVisionAccessibilityService.activeInstance
-        if (svc == null) {
-            finish()
-            return
-        }
         // 關鍵：先把助理介面關掉，讓底下的 App 回到前景，再送指令；
         // 否則無障礙管線會把「助理自己的 UI」當成目標畫面（TYPE/TAP 都會失敗）。
         finish()
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            // H3：語音先走 Gen-5（有動作就算它處理），完全沒動作才退回舊路徑
-            val gen5Enabled = com.wae.core.util.Degrade.orElse("assist:gen5Enabled", false) { com.wae.agent.gen5.Gen5Runtime.isEnabled(this) }
-            if (gen5Enabled) {
-                Thread {
-                    val result = runCatching {
-                        com.wae.agent.gen5.Gen5Runtime.runDetailed(applicationContext, text)
-                    }.getOrNull()
-                    val handled = result != null &&
-                        (result.outcome is com.wae.core.model.Outcome.Success || result.stepsUsed > 0)
-                    if (handled) {
-                        VoiceLog.event(TAG_EVENT, "GEN5_HANDLED")
-                        runCatching {
-                            com.wae.agent.voice.VoiceFeedback.speak(
-                                applicationContext,
-                                if (result!!.outcome is com.wae.core.model.Outcome.Success) "完成了" else "我停在這裡"
-                            )
-                        }
-                    } else {
-                        com.wae.core.util.Degrade.orNull("assist:overlayExecute") { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
-                    }
-                }.start()
-            } else {
-                com.wae.core.util.Degrade.orNull("assist:overlayExecute") { svc.overlayExecuteCommand(text, fromVoice = fromVoice) }
+            // 與主畫面／題庫走同一條入口（系統動作 → Gen-5 → 路由 → 管線）。
+            // 以前這裡自己寫了一份 Gen-5 優先＋路由＋送出，行為跟打字不一致。
+            val handled = com.wae.agent.core.UserCommandEntry.runFromContext(
+                applicationContext, text,
+                { msg -> com.wae.core.util.Degrade.orNull("assist:statusLog") { VoiceLog.event(TAG_EVENT, msg.take(40)) } }
+            )
+            if (!handled) {
+                com.wae.core.util.Degrade.orNull("assist:overlayExecute") {
+                    WaeVisionAccessibilityService.activeInstance?.overlayExecuteCommand(text, fromVoice = fromVoice)
+                }
             }
             VoiceLog.event(TAG_EVENT, "HANDOFF_DISPATCHED")
         }, HANDOFF_DELAY_MS)
