@@ -27,7 +27,7 @@ $baseline = @{
     runCatching = 581
     todo        = 0
     emoji       = 32
-    maxFile     = 3884
+    maxFile     = 3784
 }
 
 function Read-AllLines([string]$path) {

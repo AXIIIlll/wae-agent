@@ -3129,7 +3129,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             }
             if (runDetect || runOcr) {
                 // 1520 長邊：OCR 需要在縮小後仍能看清 14sp 左右的字（960 會糊掉）
-                val shot = captureScreenBitmapSync(1520)
+                val shot = com.wae.agent.core.service.ScreenCapture.bitmap(this, 1520)
                 if (shot != null) {
                     try {
                         val anchors = rawList.mapNotNull { r ->
@@ -3166,7 +3166,9 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             }
         }
 
-        val hwBuffer = if (captureScreenshot) takeHardwareScreenshotSync() else null
+        val hwBuffer = if (captureScreenshot) {
+            com.wae.agent.core.service.ScreenCapture.hardwareScreenshot(this)
+        } else null
         val hasScreenshot = hwBuffer != null
         val compiledJson = try {
             if (WaeNativeBridge.isNativeReady()) {
@@ -3753,111 +3755,9 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         )
     }
 
-    private fun takeHardwareScreenshotSync(): HardwareBuffer? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
-        val holder = AtomicReference<HardwareBuffer?>(null)
-        val latch = CountDownLatch(1)
-        try {
-            takeScreenshot(
-                Display.DEFAULT_DISPLAY,
-                screenshotExecutor,
-                object : TakeScreenshotCallback {
-                    override fun onSuccess(screenshot: ScreenshotResult) {
-                        try {
-                            holder.set(screenshot.hardwareBuffer)
-                        } catch (_: Throwable) {
-                        } finally {
-                            latch.countDown()
-                        }
-                    }
-
-                    override fun onFailure(errorCode: Int) {
-                        latch.countDown()
-                    }
-                }
-            )
-            latch.await(700L, TimeUnit.MILLISECONDS)
-        } catch (_: Throwable) {
-        }
-        return holder.get()
-    }
-
-    /**
-     * 截取目前畫面並轉成可讀像素的 Bitmap（供視覺通道使用）。
-     * 走無障礙服務的 takeScreenshot（已在 xml 宣告 canTakeScreenshot），不需要 MediaProjection 授權。
-     *
-     * @param maxLongEdge 長邊上限；視覺模型的輸入是 640，超過沒有意義，先縮小可省記憶體與拷貝時間
-     */
     /** 給 Agent 的感知用：截一張畫面給 OCR（覆蓋沒有無障礙樹的 App）。 */
-    fun captureScreenForPerception(): Bitmap? = runCatching { captureScreenBitmapSync(1520) }.getOrNull()
-
-    private fun captureScreenBitmapSync(maxLongEdge: Int): Bitmap? {
-        val hw = takeHardwareScreenshotSync() ?: return null
-        return try {
-            val wrapped = Bitmap.wrapHardwareBuffer(hw, ColorSpace.get(ColorSpace.Named.SRGB))
-                ?: return null
-            // HardwareBitmap 不能直接 getPixels，必須先複製成 ARGB_8888
-            val argb = wrapped.copy(Bitmap.Config.ARGB_8888, false) ?: return null
-            val longEdge = kotlin.math.max(argb.width, argb.height)
-            val bitmap = if (longEdge <= maxLongEdge) {
-                argb
-            } else {
-                val scale = maxLongEdge.toFloat() / longEdge.toFloat()
-                val sw = (argb.width * scale).toInt().coerceAtLeast(1)
-                val sh = (argb.height * scale).toInt().coerceAtLeast(1)
-                val scaled = Bitmap.createScaledBitmap(argb, sw, sh, true)
-                argb.recycle()
-                scaled
-            }
-            // 空白/單色截圖守衛：某些 App（含 FLAG_SECURE、或視窗切換動畫中）會回傳整片白/黑，
-            // 這種圖丟給檢測器只會得到幾十個假框（實測白圖 det=49 boxes）。直接判為無效。
-            if (!hasVisualContent(bitmap)) {
-                Log.w("WAE_VISION", "capture rejected: blank/uniform screenshot")
-                bitmap.recycle()
-                return null
-            }
-            bitmap
-        } catch (t: Throwable) {
-            Log.e("WAE_VISION", "captureScreenBitmapSync failed", t)
-            null
-        } finally {
-            try {
-                hw.close()
-            } catch (_: Throwable) {
-            }
-        }
-    }
-
-    /** 粗略判斷截圖是否有內容（亮度標準差過低 = 整片純色） */
-    private fun hasVisualContent(bitmap: Bitmap): Boolean {
-        return try {
-            val stepX = (bitmap.width / 32).coerceAtLeast(1)
-            val stepY = (bitmap.height / 32).coerceAtLeast(1)
-            var sum = 0.0
-            var sumSq = 0.0
-            var n = 0
-            var y = 0
-            while (y < bitmap.height) {
-                var x = 0
-                while (x < bitmap.width) {
-                    val p = bitmap.getPixel(x, y)
-                    val lum = (((p shr 16) and 0xFF) * 0.299 + ((p shr 8) and 0xFF) * 0.587 +
-                        (p and 0xFF) * 0.114)
-                    sum += lum
-                    sumSq += lum * lum
-                    n++
-                    x += stepX
-                }
-                y += stepY
-            }
-            if (n == 0) return false
-            val mean = sum / n
-            val variance = (sumSq / n) - mean * mean
-            variance > 36.0   // stddev > 6
-        } catch (_: Throwable) {
-            true
-        }
-    }
+    fun captureScreenForPerception(): Bitmap? =
+        com.wae.agent.core.service.ScreenCapture.forPerception(this)
 
     private fun notifyUiStatus(msg: String, stepCallback: ((String) -> Unit)? = null) {
         latestStatusMessage = msg
