@@ -66,3 +66,7 @@ baseline.back_delay_ms	450	按返回後等畫面穩定（毫秒）
 baseline.top_ratio	0.28	只認畫面上方這個比例內的返回入口（避免誤點內容區）
 baseline.max_nodes	160	掃描節點上限（避免大頁面拖慢）
 baseline.max_width_ratio	0.33	返回入口的寬度上限（佔螢幕寬比例）
+screen.stable_frames	2	畫面穩定判定：連續幾次指紋相同才算穩
+screen.stable_ms	300	畫面穩定判定：至少停留幾毫秒
+screen.stable_polls	6	等穩定最多重試幾次（等不到就用最後一幀）
+plan.trace_enabled	1	是否寫計畫軌跡（filesDir/eval/plan_trace.tsv）

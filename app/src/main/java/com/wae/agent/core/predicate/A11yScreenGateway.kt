@@ -31,8 +31,33 @@ class A11yScreenGateway(
     private var lastFindTarget: String = ""
     private var lastWinFp: String = ""
 
+    /** 畫面穩定判定（P0）：連續兩次以上指紋相同、且停留超過門檻，才當作「可以動手」。 */
+    private val stability = com.wae.core.plan.Stability(
+        requiredStableFrames = com.wae.agent.core.runtime.Tunables.getInt(
+            context, "screen.stable_frames", 2
+        ),
+        minStableMs = com.wae.agent.core.runtime.Tunables.getLong(
+            context, "screen.stable_ms", 300L
+        )
+    )
+
+    /**
+     * 擷取一幀「穩定」的畫面。
+     *
+     * 為什麼要等：同一題時好時壞的根因幾乎都是太早動手（列表還在載入、轉場動畫）。
+     * 最多重試 `screen.stable_polls` 次；真的等不到就用最後一幀（不要卡死整個任務）。
+     */
     private fun capture(): Frame {
-        frame = runCatching { A11yFrameSource(service, context).capture() }.getOrDefault(Frame.EMPTY)
+        val maxPolls = com.wae.agent.core.runtime.Tunables.getInt(context, "screen.stable_polls", 6)
+        var last = Frame.EMPTY
+        for (poll in 0 until maxPolls.coerceAtLeast(1)) {
+            last = com.wae.core.util.Degrade.orElse("gateway:capture", Frame.EMPTY) {
+                A11yFrameSource(service, context).capture()
+            }
+            if (stability.observe(last.fp, android.os.SystemClock.uptimeMillis())) break
+            if (poll < maxPolls - 1) Thread.sleep(120)
+        }
+        frame = last
         // **視窗診斷**（先量測再設計彈窗政策）：畫面變了才印一次，避免洗版
         if (frame.fp.isNotEmpty() && frame.fp != lastWinFp) {
             lastWinFp = frame.fp
@@ -512,31 +537,89 @@ class A11yScreenGateway(
     }
 
     /**
-     * 決策層現在只看「選項」。
+     * 決策層：在「可選項」上做選擇（PlanMatcher），並考慮負面知識與後置條件。
      *
-     * 為什麼：原始樹裡大多數節點不能點（標題、說明、分隔線），直接對整棵樹打分
-     * 會讓「字面剛好相符的說明文字」贏過真正的按鈕（實測第 19 題就是這樣）。
-     * 簡化器先把畫面收成「可互動的元素」，決策在這個小集合上做。
+     * 為什麼不再用「對整棵樹打一個分數」：
+     *  - 純說明文字只要字面相符就會贏過真正的按鈕（實測第 19 題）。
+     *  - 動作相容性沒被檢查：TYPE 可能選到按鈕、TOGGLE 可能選到不可切的列。
+     *  - 失敗過的組合會一直被重試（負面知識只在舊路徑生效）。
      */
     private fun bestControl(f: Frame, target: String): Control? {
         if (f.controls.isEmpty()) return null
         val pairs = optionsOf(f)
         if (pairs.isEmpty()) return null
-        val scored = pairs.map { pair ->
-            val option = pair.second
-            val labelScore = DecisionRanker.textScore(target, option.label, context)
-            // 群組也納入比對：「連接 › Wi-Fi」比別區的同名項更可能是目標
-            val groupScore = if (option.group.isNotEmpty()) {
-                DecisionRanker.textScore(target, option.group, context)
-            } else 0f
-            pair.first to maxOf(labelScore, groupScore * 0.8f)
+        val screen = com.wae.core.screen.ScreenModel(f.pkg, f.fp, pairs.map { it.second }, emptyList())
+
+        // 負面知識：這個 (pkg, 標籤, PICK) 最近失敗過兩次以上 → 這次跳過
+        val banned = HashSet<String>()
+        for (pair in pairs) {
+            val label = pair.second.label
+            val blocked = com.wae.core.util.Degrade.orElse("gateway:banned", false) {
+                com.wae.agent.core.action.NegativeEdgeStore.isBlocked(f.pkg, label, "PICK")
+            }
+            if (blocked) banned.add(com.wae.core.plan.PlanMatcher.banKey(f.pkg, label, "PICK"))
         }
-        val best = scored.filter { it.second >= 0.45f }.maxByOrNull { it.second } ?: return null
+
+        val step = com.wae.core.plan.PlanStep(action = "PICK", target = target)
+        val started = android.os.SystemClock.uptimeMillis()
+        val candidate = com.wae.core.plan.PlanMatcher.best(
+            step = step,
+            screen = screen,
+            scoreOf = { goal, label -> DecisionRanker.textScore(goal, label, context) },
+            banned = banned,
+            packageName = f.pkg
+        )
+        val elapsed = android.os.SystemClock.uptimeMillis() - started
+
+        if (candidate == null || candidate.reason == "banned") {
+            android.util.Log.i(
+                "WAE_OPTION",
+                "bestControl '$target' → 沒得選（options=${pairs.size} banned=${banned.size}）"
+            )
+            recordPlanTrace(f, target, pairs.size, "", 0f, true, elapsed)
+            return null
+        }
+
+        val chosen = pairs.firstOrNull { it.second.id == candidate.option.id }?.first
         android.util.Log.i(
             "WAE_OPTION",
-            "bestControl '$target' → '${best.first.label}' score=%.2f of ${pairs.size} options".format(best.second)
+            "bestControl '$target' → '${candidate.option.label}' score=%.2f via=${candidate.reason} of ${pairs.size}"
+                .format(candidate.score)
         )
-        return best.first
+        recordPlanTrace(
+            f, target, pairs.size, candidate.option.label, candidate.score, false, elapsed
+        )
+        return chosen
+    }
+
+    /** 計畫軌跡（P0 可觀測性）：每一步選了什麼、分數多少、花多久。 */
+    private fun recordPlanTrace(
+        f: Frame,
+        target: String,
+        optionCount: Int,
+        chosen: String,
+        score: Float,
+        skippedByBan: Boolean,
+        elapsedMs: Long
+    ) {
+        if (!com.wae.agent.core.runtime.Tunables.getBool(context, "plan.trace_enabled", true)) return
+        com.wae.core.util.Degrade.orNull("gateway:planTrace") {
+            val trace = com.wae.core.plan.PlanTrace(
+                planOrigin = "PREDICATE",
+                planRevision = 1,
+                stepIndex = 0,
+                action = "PICK",
+                target = target,
+                preconditionOk = f.fp.isNotEmpty(),
+                optionCount = optionCount,
+                chosenOption = chosen,
+                score = score,
+                skippedByBan = skippedByBan,
+                elapsedMs = elapsedMs
+            )
+            val dir = java.io.File(context.filesDir, "eval").apply { mkdirs() }
+            java.io.File(dir, "plan_trace.tsv").appendText(trace.toTsv() + "\n", Charsets.UTF_8)
+        }
     }
 
     /** 這一幀的「可選項」清單（與 OptionResolver 共用同一套抽取規則）。 */
