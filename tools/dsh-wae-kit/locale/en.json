@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "WAE project kit",
+    "description": "A sidebar code map for the WAE Android project: file tree, dependency mindmap, architecture overview, build and device status, TSV catalog, a ui_tunables editor, a technical-debt board, and the WAE development preset.",
+    "detail": "docs/DETAIL.md"
+  }
+}

@@ -138,7 +138,7 @@ object OpExecutor {
         val pkg = resolvePkg(context, appLabel) ?: return false
         val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return false
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return runCatching { context.startActivity(intent); true }.getOrDefault(false)
+        return com.wae.core.util.Degrade.orElse("opExecutor:startActivity1", false) { context.startActivity(intent); true }
     }
 
     private fun sendTo(context: Context, targetApp: String): Boolean {
@@ -148,7 +148,7 @@ object OpExecutor {
             setPackage(pkg)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        return runCatching { context.startActivity(intent); true }.getOrDefault(false)
+        return com.wae.core.util.Degrade.orElse("opExecutor:startActivity1", false) { context.startActivity(intent); true }
     }
 
     private fun pick(context: Context, mime: String): Boolean {
@@ -157,13 +157,13 @@ object OpExecutor {
             addCategory(Intent.CATEGORY_OPENABLE)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        return runCatching { context.startActivity(intent); true }.getOrDefault(false)
+        return com.wae.core.util.Degrade.orElse("opExecutor:startActivity1", false) { context.startActivity(intent); true }
     }
 
     private fun capture(context: Context): Boolean {
         val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return runCatching { context.startActivity(intent); true }.getOrDefault(false)
+        return com.wae.core.util.Degrade.orElse("opExecutor:startActivity1", false) { context.startActivity(intent); true }
     }
 
     private fun clickByText(context: Context, service: AccessibilityService?, target: String): Boolean {
@@ -174,7 +174,7 @@ object OpExecutor {
             val wanted = target.removePrefix("role:").trim()
             val el = snap.elements.firstOrNull { it.semanticRole == wanted && it.clickable } ?: return false
             val node = snap.nodes[el.id] ?: return false
-            return runCatching { DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_CLICK) }.getOrDefault(false)
+            return com.wae.core.util.Degrade.orElse("opExecutor:click", false) { DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_CLICK) }
         }
         val resolved = com.wae.core.step.ClickResolver.resolve(
             com.wae.core.step.StepKind.LIST_ITEM, target, snap.elements
@@ -249,18 +249,18 @@ object OpExecutor {
         }
     }
 
-    private fun copyLastResult(context: Context): Boolean = runCatching {
-        val dir = context.getExternalFilesDir(null) ?: return@runCatching false
+    private fun copyLastResult(context: Context): Boolean = com.wae.core.util.Degrade.orElse("opExecutor:copyLastResult", false) {
+        val dir = context.getExternalFilesDir(null) ?: return@orElse false
         val file = java.io.File(dir, "gen5_result.txt")
-        if (!file.exists()) return@runCatching false
-        val line = file.readLines(Charsets.UTF_8).lastOrNull { it.isNotBlank() } ?: return@runCatching false
+        if (!file.exists()) return@orElse false
+        val line = file.readLines(Charsets.UTF_8).lastOrNull { it.isNotBlank() } ?: return@orElse false
         val text = line.substringAfter('\t', "").trim()
-        if (text.isEmpty()) return@runCatching false
+        if (text.isEmpty()) return@orElse false
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
             as android.content.ClipboardManager
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("WAE", text))
         true
-    }.getOrDefault(false)
+    }
 
     private fun waitFor(service: AccessibilityService?, target: String, timeoutMs: Int): Boolean {
         if (service == null) return false
@@ -296,7 +296,7 @@ object OpExecutor {
 
     private fun facts(context: Context, service: AccessibilityService?): Map<String, String> {
         val out = HashMap<String, String>()
-        val root = runCatching { service?.rootInActiveWindow }.getOrNull()
+        val root = com.wae.core.util.Degrade.orNull("opExecutor:root") { service?.rootInActiveWindow }
         val pkg = root?.packageName?.toString().orEmpty()
         if (pkg.isNotEmpty()) {
             out["pkg"] = pkg
@@ -318,7 +318,7 @@ object OpExecutor {
                     if (it.isNotEmpty()) texts.add(it)
                 }
                 for (i in 0 until node.childCount) {
-                    runCatching { node.getChild(i) }.getOrNull()?.let { queue.add(it) }
+                    com.wae.core.util.Degrade.orNull("opExecutor:child") { node.getChild(i) }?.let { queue.add(it) }
                 }
             }
             out["texts"] = texts.joinToString(" ")

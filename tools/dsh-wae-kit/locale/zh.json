@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "WAE 專案工具箱",
+    "description": "側邊欄的代碼地圖：檔案樹、依賴心智圖、架構總覽、建置與裝置狀態、TSV 目錄、ui_tunables 編輯器與技術債看板，外加「WAE 開發模式」。",
+    "detail": "docs/DETAIL.md"
+  }
+}
