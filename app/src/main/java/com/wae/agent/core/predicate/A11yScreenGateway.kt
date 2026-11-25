@@ -271,11 +271,12 @@ class A11yScreenGateway(
             val why = ranked.firstOrNull { it.option.label == cand.label }?.reason ?: "plain"
             android.util.Log.i("WAE_MENU", "try overflow[$index] = '" + cand.label + "' (" + why + ")")
             val before = capture()
+            val beforeWindows = windowSignature()
+            val beforeLabels = labelsOf(before)
             val tapped = act(TaskNode.Op.PICK, cand.label, "")
             if (!tapped) continue
             Thread.sleep(com.wae.agent.core.runtime.Tunables.getLong(context, "menu.open_wait_ms", 350L))
             val after = capture()
-            // 成功判準：出現新的彈出層選項，或可選項數量明顯變化
             com.wae.core.util.Degrade.orNull("menu:dump") {
                 val opts = optionsOf(after)
                 android.util.Log.i(
@@ -285,16 +286,39 @@ class A11yScreenGateway(
                         opts.take(12).joinToString(" | ") { it.second.label.take(14) }
                 )
             }
-            val popupAppeared = optionsOf(after).any { it.second.layer == 0 } &&
-                !optionsOf(before).any { it.second.layer == 0 }
-            val grew = after.controls.size > before.controls.size
-            if (popupAppeared || grew) {
-                android.util.Log.i("WAE_MENU", "overflow opened by '" + cand.label + "' popup=" + popupAppeared + " grew=" + grew)
+
+            // 成功判準（不假設選單有幾項）：
+            //   ① 多了一個視窗（獨立 popup）
+            //   ② 畫面上出現「原本沒有的可選項」——兩項的選單也會成立
+            //   ③ 出現任何已知的選單項目用詞（資料驅動：`*_MENU` 家族）
+            // 這樣 2 項的小選單、以及沒有獨立視窗的自繪選單都能正確判定。
+            val afterLabels = labelsOf(after)
+            val newWindow = windowSignature() != beforeWindows
+            val newLabels = afterLabels - beforeLabels
+            val menuFamily = menuFamilyWords()
+            val familyHit = afterLabels.any { l -> menuFamily.any { it == l } }
+            val opened = newWindow || newLabels.isNotEmpty() || familyHit
+            if (opened) {
+                android.util.Log.i(
+                    "WAE_MENU",
+                    "overflow opened by '" + cand.label + "' window=" + newWindow +
+                        " new=" + newLabels.size + " family=" + familyHit +
+                        " [" + newLabels.take(6).joinToString(",") + "]"
+                )
                 return true
             }
-            // 點錯了：按返回復原，再試下一個候選
-            com.wae.core.util.Degrade.orNull("menu:backOut") { service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK) }
-            Thread.sleep(200)
+
+            // 真的沒開：只有在「已經離開原本的 App」時才按返回，
+            // 否則點下一個候選本身就會把目前的彈出層關掉（不需要 BACK，
+            // 按了反而會把已經開好的選單關掉）。
+            if (after.pkg != before.pkg) {
+                com.wae.core.util.Degrade.orNull("menu:backOut") {
+                    service.performGlobalAction(
+                        android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
+                    )
+                }
+                Thread.sleep(200)
+            }
         }
         android.util.Log.i("WAE_MENU", "all overflow candidates failed (" + pool.size + " candidates)")
         return false
@@ -767,6 +791,39 @@ class A11yScreenGateway(
             }
         }
         return false
+    }
+
+    /** 目前有幾個視窗（用 id 集合判斷「有沒有多出一個視窗」）。 */
+    private fun windowSignature(): Set<Int> {
+        val ids = HashSet<Int>(4)
+        com.wae.core.util.Degrade.orNull("menu:windowSig") {
+            service.windows?.forEach { ids.add(it.id) }
+        }
+        return ids
+    }
+
+    /** 一幀裡出現過的所有標籤（含不可點的），用來算「選單新增了什麼」。 */
+    private fun labelsOf(f: Frame): Set<String> {
+        val out = HashSet<String>(f.controls.size * 2)
+        for (c in f.controls) {
+            val l = c.label.trim()
+            if (l.isNotEmpty()) out.add(l)
+        }
+        return out
+    }
+
+    /**
+     * 已知的「選單項目用詞」（資料驅動）：概念表裡所有 `*_MENU` 家族的成員。
+     * 用來判斷「這一層看起來像不像一個選單」，不假設選單有幾項。
+     */
+    private fun menuFamilyWords(): Set<String> {
+        val table = com.wae.agent.core.plan.ConceptLexicon.table(context)
+        val out = HashSet<String>(32)
+        for ((family, members) in table.families) {
+            if (!family.endsWith("_MENU", ignoreCase = true)) continue
+            out.addAll(members)
+        }
+        return out
     }
 
     /** 上一幀指紋（changed 條件用）。 */
