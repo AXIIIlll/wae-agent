@@ -214,7 +214,8 @@ class A11yScreenGateway(
 
         run {
             val top = scored.sortedByDescending { it.third }.take(3).joinToString(" | ") { s ->
-                "#" + s.first + ":" + s.second.role + ":" + s.second.label.take(16) + ":%.2f".format(s.third)
+                "#" + s.first + ":" + s.second.role + ":" + s.second.label.take(12) +
+                    "@" + s.second.top + "," + s.second.left + ":%.2f".format(s.third)
             }
             android.util.Log.i("WAE_PICK", "find(option) top3=" + top + " of " + pairs.size)
         }
@@ -543,9 +544,9 @@ class A11yScreenGateway(
         val ok = if (node == null) {
             // key 失效（捲動／延遲載入）→ 用標籤在這一幀重新找
             val again = bestControl(capture(), target) ?: return false
-            performOn(NodeRegistry.get(again.key), op, arg)
+            performOn(NodeRegistry.get(again.key), op, arg, target)
         } else {
-            performOn(node, op, arg)
+            performOn(node, op, arg, target)
         }
         if (!ok) {
             // 驗證失敗（畫面沒變）→ 可能點到同名候選裡的錯的那個，逐一再試
@@ -895,7 +896,12 @@ class A11yScreenGateway(
         return com.wae.core.screen.OptionExtractor.scan(f.pkg, f.fp, f.controls, height).pairs
     }
 
-    private fun performOn(node: AccessibilityNodeInfo?, op: TaskNode.Op, arg: String): Boolean {
+    private fun performOn(
+        node: AccessibilityNodeInfo?,
+        op: TaskNode.Op,
+        arg: String,
+        target: String = ""
+    ): Boolean {
         if (node == null) return false
         return when (op) {
             TaskNode.Op.FILL -> {
@@ -908,8 +914,87 @@ class A11yScreenGateway(
             TaskNode.Op.FIND -> {
                 DeviceIO.tap(service, node) || DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_CLICK)
             }
-            else -> clickNode(node)
+            // 其他動作一律「出手 → 驗證 → 不行換策略」，不要送出就當成功
+            else -> clickWithVerify(target, node)
         }
+    }
+
+    /**
+     * 點擊的「策略 ＋ 驗證」迴圈（第 19 題的根因）。
+     *
+     * 為什麼不能只呼叫一次：很多自製元件（例如三星時鐘底部頁籤）
+     * 手勢會「成功送出」但畫面完全沒反應——舊寫法看到手勢送出就回報成功，
+     * 於是整條任務在錯誤的頁面上繼續跑，最後還回報完成。
+     *
+     * 依序嘗試四種打法，每一步都用「畫面指紋有沒有變」驗證：
+     *   ① 節點中心　② 可點祖先　③ 容器中心（頁籤列）　④ 同名的其他候選
+     */
+    private fun clickWithVerify(target: String, node: AccessibilityNodeInfo): Boolean {
+        val before = com.wae.core.util.Degrade.orElse("click:beforeFp", "") { capture().fp }
+        fun changed(): Boolean {
+            val now = com.wae.core.util.Degrade.orElse("click:afterFp", "") { capture().fp }
+            return now.isNotEmpty() && now != before
+        }
+        // ① 節點中心
+        if (DeviceIO.tap(service, node)) {
+            Thread.sleep(280)
+            if (changed()) return true
+        }
+        // ② 可點祖先（或對它發 ACTION_CLICK）
+        var cur: AccessibilityNodeInfo? = node
+        var up = 0
+        while (cur != null && up < 4) {
+            val parent = com.wae.core.util.Degrade.orNull("click:parent") { cur!!.parent } ?: break
+            if (parent.isClickable) {
+                if (DeviceIO.perform(parent, AccessibilityNodeInfo.ACTION_CLICK) ||
+                    DeviceIO.tap(service, parent)
+                ) {
+                    Thread.sleep(280)
+                    if (changed()) return true
+                }
+            }
+            cur = parent
+            up++
+        }
+        // ③ 容器中心：往上三層，點整個容器的中心（圖示頁籤就是這種）
+        if (tapContainerCenter(node)) {
+            Thread.sleep(280)
+            if (changed()) return true
+        }
+        // ④ 同名的其他候選
+        if (target.isNotBlank() && clickSameLabelCandidates(capture(), target)) return true
+        return false
+    }
+
+    /** 往上找容器並點它的中心（座標退路，不是硬編位置）。 */
+    private fun tapContainerCenter(node: AccessibilityNodeInfo): Boolean {
+        val rect = android.graphics.Rect()
+        var container: AccessibilityNodeInfo? = node
+        var hops = 0
+        while (container != null && hops < 3) {
+            container.getBoundsInScreen(rect)
+            if (rect.width() > 0 && rect.height() > 0) {
+                val cx = (rect.left + rect.right) / 2f
+                val cy = (rect.top + rect.bottom) / 2f
+                val tapped = com.wae.core.util.Degrade.orElse("click:containerTap", false) {
+                    val path = android.graphics.Path().apply { moveTo(cx, cy) }
+                    val g = android.accessibilityservice.GestureDescription.Builder()
+                        .addStroke(
+                            android.accessibilityservice.GestureDescription
+                                .StrokeDescription(path, 0L, 60L)
+                        )
+                        .build()
+                    service.dispatchGesture(g, null, null)
+                }
+                if (tapped) {
+                    android.util.Log.i("WAE_PICK", "containerTap @($cx,$cy) hops=$hops")
+                    return true
+                }
+            }
+            container = com.wae.core.util.Degrade.orNull("click:containerUp") { container!!.parent }
+            hops++
+        }
+        return false
     }
 
     /** 點節點；不可點就往上找可點祖先（圖示在列裡就是這種情況）。 */
