@@ -1,5 +1,7 @@
 package com.wae.agent.core.component
 
+import com.wae.agent.core.data.AssetTable
+
 /**
  * 調整類動詞／形容詞表（`ui_value_verbs.tsv`）。
  *
@@ -21,33 +23,21 @@ object ValueVerbLexicon {
     @Volatile
     private var adjectives: Set<String> = emptySet()
 
-    @Volatile
-    private var loadAttempted: Boolean = false
+    private val table = AssetTable(
+        DB_RELATIVE_PATH,
+        listOf(
+            "src/main/assets/$DB_RELATIVE_PATH",
+            "app/src/main/assets/$DB_RELATIVE_PATH",
+            "../app/src/main/assets/$DB_RELATIVE_PATH"
+        )
+    )
 
     fun isLoaded(): Boolean = verbs.isNotEmpty()
 
     fun ensureLoaded(context: android.content.Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        val lines = readAssetLines(context) ?: return
-        loadFromLines(lines)
+        table.linesOrNull(context)?.let { loadFromLines(it) }
     }
 
-    private fun readAssetLines(context: android.content.Context?): List<String>? {
-        if (context != null) {
-            runCatching {
-                context.assets.open(DB_RELATIVE_PATH)
-                    .bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            }.onSuccess { return it }
-        }
-        val candidates = listOf(
-            java.io.File("src/main/assets/$DB_RELATIVE_PATH"),
-            java.io.File("app/src/main/assets/$DB_RELATIVE_PATH"),
-            java.io.File("../app/src/main/assets/$DB_RELATIVE_PATH")
-        )
-        return candidates.firstOrNull { it.exists() }
-            ?.let { runCatching { it.readLines(Charsets.UTF_8) }.getOrNull() }
-    }
 
     fun loadFromLines(lines: List<String>) {
         val v = HashSet<String>(30000)
@@ -71,7 +61,7 @@ object ValueVerbLexicon {
     fun resetForTest() {
         verbs = emptySet()
         adjectives = emptySet()
-        loadAttempted = false
+        table.reset()
     }
 
     fun isVerb(word: String): Boolean = verbs.contains(word)

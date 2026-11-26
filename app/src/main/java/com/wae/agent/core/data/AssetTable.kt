@@ -23,7 +23,14 @@ import android.content.Context
  *  - 讀檔失敗回 null／fallback，不拋例外
  *  - 同一個 [AssetTable] 實例只嘗試讀一次（失敗也記住，不重試）
  */
-class AssetTable(private val path: String) {
+class AssetTable(
+    private val path: String,
+    /**
+     * JVM 單元測試沒有 Android Context 時，改從工作目錄找檔的相對路徑清單。
+     * Gradle 測試的 cwd 是模組根，所以列「模組內」與「往上一層」兩種；不寫死絕對路徑。
+     */
+    private val jvmFallbackPaths: List<String> = emptyList()
+) {
 
     @Volatile
     private var attempted = false
@@ -38,8 +45,19 @@ class AssetTable(private val path: String) {
             cached?.let { return it }
             if (attempted) return null
             attempted = true
-            val got = com.wae.core.util.Degrade.orNull("asset:$path") {
+            var got = com.wae.core.util.Degrade.orNull("asset:$path") {
                 context?.assets?.open(path)?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
+            }
+            if (got == null && jvmFallbackPaths.isNotEmpty()) {
+                // 沒有 Context（單元測試）或有 Context 但 assets 沒有這個檔 → 從工作目錄找
+                got = jvmFallbackPaths.asSequence()
+                    .map { java.io.File(it) }
+                    .firstOrNull { it.isFile }
+                    ?.let { f ->
+                        com.wae.core.util.Degrade.orNull("asset:file:$path") {
+                            f.readLines(Charsets.UTF_8)
+                        }
+                    }
             }
             cached = got
             return got
