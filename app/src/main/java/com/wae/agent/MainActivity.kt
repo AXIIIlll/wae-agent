@@ -114,237 +114,13 @@ class MainActivity : Activity() {
             setPadding(padH, padV, padH, padV)
         }
 
-        // 頂部列：左側標題 + 右側「⚙️ 設定」按鈕
-        val headerRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
+        buildHeader(centerCard)
 
-        // 品牌識別：小助手（向量圖，跟著 App 配色）
-        val logoMark = GhostView(this).apply {
-            bloom = 0.75f
-            animated = true
-        }
-        centerCard.addView(
-            logoMark,
-            LinearLayout.LayoutParams(dp(104), dp(104)).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = dp(4)
-            }
-        )
+        buildOnboarding(centerCard)
 
-        val titleBox = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-        }
-        val titleView = TextView(this).apply {
-            text = "WAE"
-            textSize = 22f
-            gravity = Gravity.CENTER
-            letterSpacing = 0.06f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.parseColor("#F2F4FF"))
-            letterSpacing = 0.04f
-        }
-        titleBox.addView(titleView)
-        titleBox.addView(TextView(this).apply {
-            text = "手機 AI 代理人"
-            textSize = 12f
-            gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#8B96B4"))
-        })
-        headerRow.addView(
-            titleBox,
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
+        buildCommandInput(centerCard)
 
-        val settingsBtn = Button(this).apply {
-            text = "設定"
-            isAllCaps = false
-            textSize = 12.5f
-            setTextColor(Color.parseColor("#D7DEF2"))
-            background = GlassDrawable(radius = dp(14).toFloat())
-            minHeight = 0
-            minimumHeight = 0
-            minWidth = 0
-            minimumWidth = 0
-            setPadding(dp(12), dp(6), dp(12), dp(6))
-            setOnClickListener {
-                settingsDrawer.visibility = if (settingsDrawer.visibility == View.VISIBLE) {
-                    View.GONE
-                } else {
-                    refreshEngineStats()
-                    refreshCrashLogButton()
-                    refreshSystemChecks()
-                    refreshRecentCommands()
-                    refreshRuntimeFlagButtons()
-                    refreshLanguageButton()
-                    View.VISIBLE
-                }
-            }
-        }
-        headerRow.addView(settingsBtn)
-        centerCard.addView(
-            headerRow,
-            paramsFullWidth(bottom = 14)
-        )
-
-        // P1：首次使用引導（3 步）
-        onboardingCard = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F5F3FF"))
-                setStroke(dp(1), Color.parseColor("#DDD6FE"))
-                cornerRadius = dp(12).toFloat()
-            }
-            setPadding(dp(14), dp(12), dp(14), dp(12))
-        }
-        onboardingCard.addView(TextView(this).apply {
-            text = "開始使用（3 步）"
-            textSize = 13f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.parseColor("#4C1D95"))
-        })
-        onboardingCard.addView(TextView(this).apply {
-            text = "1. 開啟無障礙  2. 設為預設助理  3. 按住電源鍵說話"
-            textSize = 11.5f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            setPadding(0, dp(4), 0, dp(8))
-        })
-        val onboardRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        onboardRow.addView(Button(this).apply {
-            text = "開啟無障礙"
-            isAllCaps = false
-            textSize = 11.5f
-            minHeight = 0
-            minimumHeight = 0
-            setPadding(dp(10), dp(6), dp(10), dp(6))
-            setOnClickListener { com.wae.core.util.Degrade.orNull("main:openAccessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } }
-        })
-        onboardRow.addView(Button(this).apply {
-            text = "設為助理"
-            isAllCaps = false
-            textSize = 11.5f
-            minHeight = 0
-            minimumHeight = 0
-            setPadding(dp(10), dp(6), dp(10), dp(6))
-            setOnClickListener { fixCheck("assistant") }
-        })
-        onboardRow.addView(Button(this).apply {
-            text = "語音"
-            isAllCaps = false
-            textSize = 11.5f
-            minHeight = 0
-            minimumHeight = 0
-            setPadding(dp(10), dp(6), dp(10), dp(6))
-            setOnClickListener {
-                com.wae.core.util.Degrade.orNull("main:onboardVoice") {
-                    startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
-                }
-            }
-        })
-        onboardRow.addView(TextView(this).apply {
-            text = "略過"
-            textSize = 11.5f
-            setTextColor(Color.parseColor("#7C3AED"))
-            setPadding(dp(12), dp(6), dp(4), dp(6))
-            setOnClickListener {
-                getSharedPreferences("wae_ui", MODE_PRIVATE).edit().putBoolean("onboarded", true).apply()
-                onboardingCard.visibility = View.GONE
-            }
-        })
-        onboardingCard.addView(onboardRow)
-        centerCard.addView(
-            onboardingCard,
-            paramsFullWidth().apply { bottomMargin = dp(12) }
-        )
-        refreshOnboarding()
-
-        buildSafetyConfirmRow(centerCard)
-
-        buildServiceBanner(centerCard)
-
-        // 單一指令輸入框
-        goalInputBox = EditText(this).apply {
-            hint = "想做什麼？"
-            setHintTextColor(Color.parseColor("#6C7899"))
-            setTextColor(Color.parseColor("#F2F4FF"))
-            textSize = 15f
-            inputType = InputType.TYPE_CLASS_TEXT
-            background = GlassDrawable(radius = dp(18).toFloat())
-            val padH = dp(14)
-            val padV = dp(12)
-            setPadding(padH, padV, padH, padV)
-        }
-        centerCard.addView(
-            goalInputBox,
-            paramsFullWidth(bottom = 10)
-        )
-
-        // 開發輔助：若 filesDir 存在 debug_command，自動填入指令。
-        // 用途：adb 無法輸入中文，靠這個檔案把中文指令送進 App 做端到端驗證；讀取後立即刪除。
-        applyDebugCommandIfPresent()
-        // S35：開發輔助——存在 filesDir/debug_overlay 就自動開懸浮窗（adb 驗證用）
-        applyDebugOverlayIfPresent()
-        // Gen-5 開發輔助：存在外部 gen5_command.txt 就走新管線（不影響正式路徑）
-        com.wae.agent.gen5.Gen5Probe.check(this)
-
-        // 執行按鈕（執行中會切換為「停止」，支援協作式中止）
-        executeBtnView = Button(this).apply {
-            text = "執行"
-            isAllCaps = false
-            textSize = 14.5f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            background = GradientDrawable(
-                GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(Color.parseColor("#8B5CF6"), Color.parseColor("#4F46E5"))
-            ).apply {
-                cornerRadius = dp(18).toFloat()
-                setStroke(dp(1), Color.argb(70, 255, 255, 255))
-            }
-            setPadding(dp(14), dp(13), dp(14), dp(13))
-            setOnClickListener {
-                if (WaeVisionAccessibilityService.isBusy()) {
-                    WaeVisionAccessibilityService.activeInstance?.requestCancel()
-                    statusLineView.text = "⏹ 正在停止...（於下一個檢查點安全結束）"
-                    refreshServiceBanner()
-                    return@setOnClickListener
-                }
-                triggerCommandExecution()
-            }
-        }
-        centerCard.addView(
-            executeBtnView,
-            paramsFullWidth(bottom = 10)
-        )
-
-        buildDevBenchmarkRow(centerCard)
-
-
-        // 動態歧義澄清選項列 (僅在 AMBIGUOUS + ASK_USER 觸發時顯示 Top-3 選項)
-        ambiguityContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            setPadding(0, 0, 0, dp(8))
-        }
-        centerCard.addView(
-            ambiguityContainer,
-            paramsFullWidth()
-        )
-
-        // 單行精簡狀態提示
-        statusLineView = TextView(this).apply {
-            text = buildMinimalStatusText()
-            textSize = 12f
-            gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#64748B"))
-        }
-        centerCard.addView(
-            statusLineView,
-            paramsFullWidth()
-        )
+        buildStatusRows(centerCard)
 
         // 可折疊「⚙️ 設定」抽屜
         settingsDrawer = LinearLayout(this).apply {
@@ -819,6 +595,246 @@ class MainActivity : Activity() {
 
     /** 安全確認列：命中金流／破壞性操作時出現，需要使用者明確放行。 */
     /** 無障礙服務未啟用時的醒目橫幅（重裝 APK 後 Android 會自動關閉該服務）。 */
+
+    /** 頂部列：品牌小助手（向量圖）＋ 右側設定入口。 */
+    private fun buildHeader(centerCard: LinearLayout) {
+    // 頂部列：左側標題 + 右側「⚙️ 設定」按鈕
+    val headerRow = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+    }
+
+    // 品牌識別：小助手（向量圖，跟著 App 配色）
+    val logoMark = GhostView(this).apply {
+        bloom = 0.75f
+        animated = true
+    }
+    centerCard.addView(
+        logoMark,
+        LinearLayout.LayoutParams(dp(104), dp(104)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            bottomMargin = dp(4)
+        }
+    )
+
+    val titleBox = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+    }
+    val titleView = TextView(this).apply {
+        text = "WAE"
+        textSize = 22f
+        gravity = Gravity.CENTER
+        letterSpacing = 0.06f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.parseColor("#F2F4FF"))
+        letterSpacing = 0.04f
+    }
+    titleBox.addView(titleView)
+    titleBox.addView(TextView(this).apply {
+        text = "手機 AI 代理人"
+        textSize = 12f
+        gravity = Gravity.CENTER
+        setTextColor(Color.parseColor("#8B96B4"))
+    })
+    headerRow.addView(
+        titleBox,
+        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+    )
+
+    val settingsBtn = Button(this).apply {
+        text = "設定"
+        isAllCaps = false
+        textSize = 12.5f
+        setTextColor(Color.parseColor("#D7DEF2"))
+        background = GlassDrawable(radius = dp(14).toFloat())
+        minHeight = 0
+        minimumHeight = 0
+        minWidth = 0
+        minimumWidth = 0
+        setPadding(dp(12), dp(6), dp(12), dp(6))
+        setOnClickListener {
+            settingsDrawer.visibility = if (settingsDrawer.visibility == View.VISIBLE) {
+                View.GONE
+            } else {
+                refreshEngineStats()
+                refreshCrashLogButton()
+                refreshSystemChecks()
+                refreshRecentCommands()
+                refreshRuntimeFlagButtons()
+                refreshLanguageButton()
+                View.VISIBLE
+            }
+        }
+    }
+    headerRow.addView(settingsBtn)
+    centerCard.addView(
+        headerRow,
+        paramsFullWidth(bottom = 14)
+    )
+    }
+    /** 首次使用引導（3 步）：只在尚未完成引導時顯示。 */
+    private fun buildOnboarding(centerCard: LinearLayout) {
+    // P1：首次使用引導（3 步）
+    onboardingCard = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        visibility = View.GONE
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F5F3FF"))
+            setStroke(dp(1), Color.parseColor("#DDD6FE"))
+            cornerRadius = dp(12).toFloat()
+        }
+        setPadding(dp(14), dp(12), dp(14), dp(12))
+    }
+    onboardingCard.addView(TextView(this).apply {
+        text = "開始使用（3 步）"
+        textSize = 13f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.parseColor("#4C1D95"))
+    })
+    onboardingCard.addView(TextView(this).apply {
+        text = "1. 開啟無障礙  2. 設為預設助理  3. 按住電源鍵說話"
+        textSize = 11.5f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        setPadding(0, dp(4), 0, dp(8))
+    })
+    val onboardRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+    onboardRow.addView(Button(this).apply {
+        text = "開啟無障礙"
+        isAllCaps = false
+        textSize = 11.5f
+        minHeight = 0
+        minimumHeight = 0
+        setPadding(dp(10), dp(6), dp(10), dp(6))
+        setOnClickListener { com.wae.core.util.Degrade.orNull("main:openAccessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } }
+    })
+    onboardRow.addView(Button(this).apply {
+        text = "設為助理"
+        isAllCaps = false
+        textSize = 11.5f
+        minHeight = 0
+        minimumHeight = 0
+        setPadding(dp(10), dp(6), dp(10), dp(6))
+        setOnClickListener { fixCheck("assistant") }
+    })
+    onboardRow.addView(Button(this).apply {
+        text = "語音"
+        isAllCaps = false
+        textSize = 11.5f
+        minHeight = 0
+        minimumHeight = 0
+        setPadding(dp(10), dp(6), dp(10), dp(6))
+        setOnClickListener {
+            com.wae.core.util.Degrade.orNull("main:onboardVoice") {
+                startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
+            }
+        }
+    })
+    onboardRow.addView(TextView(this).apply {
+        text = "略過"
+        textSize = 11.5f
+        setTextColor(Color.parseColor("#7C3AED"))
+        setPadding(dp(12), dp(6), dp(4), dp(6))
+        setOnClickListener {
+            getSharedPreferences("wae_ui", MODE_PRIVATE).edit().putBoolean("onboarded", true).apply()
+            onboardingCard.visibility = View.GONE
+        }
+    })
+    onboardingCard.addView(onboardRow)
+    centerCard.addView(
+        onboardingCard,
+        paramsFullWidth().apply { bottomMargin = dp(12) }
+    )
+    refreshOnboarding()
+
+    buildSafetyConfirmRow(centerCard)
+
+    buildServiceBanner(centerCard)
+    }
+    /** 指令輸入框 ＋ 執行／停止鍵（含 debug_command 自動填入）。 */
+    private fun buildCommandInput(centerCard: LinearLayout) {
+    // 單一指令輸入框
+    goalInputBox = EditText(this).apply {
+        hint = "想做什麼？"
+        setHintTextColor(Color.parseColor("#6C7899"))
+        setTextColor(Color.parseColor("#F2F4FF"))
+        textSize = 15f
+        inputType = InputType.TYPE_CLASS_TEXT
+        background = GlassDrawable(radius = dp(18).toFloat())
+        val padH = dp(14)
+        val padV = dp(12)
+        setPadding(padH, padV, padH, padV)
+    }
+    centerCard.addView(
+        goalInputBox,
+        paramsFullWidth(bottom = 10)
+    )
+
+    // 開發輔助：若 filesDir 存在 debug_command，自動填入指令。
+    // 用途：adb 無法輸入中文，靠這個檔案把中文指令送進 App 做端到端驗證；讀取後立即刪除。
+    applyDebugCommandIfPresent()
+    // S35：開發輔助——存在 filesDir/debug_overlay 就自動開懸浮窗（adb 驗證用）
+    applyDebugOverlayIfPresent()
+    // Gen-5 開發輔助：存在外部 gen5_command.txt 就走新管線（不影響正式路徑）
+    com.wae.agent.gen5.Gen5Probe.check(this)
+
+    // 執行按鈕（執行中會切換為「停止」，支援協作式中止）
+    executeBtnView = Button(this).apply {
+        text = "執行"
+        isAllCaps = false
+        textSize = 14.5f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        background = GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(Color.parseColor("#8B5CF6"), Color.parseColor("#4F46E5"))
+        ).apply {
+            cornerRadius = dp(18).toFloat()
+            setStroke(dp(1), Color.argb(70, 255, 255, 255))
+        }
+        setPadding(dp(14), dp(13), dp(14), dp(13))
+        setOnClickListener {
+            if (WaeVisionAccessibilityService.isBusy()) {
+                WaeVisionAccessibilityService.activeInstance?.requestCancel()
+                statusLineView.text = "⏹ 正在停止...（於下一個檢查點安全結束）"
+                refreshServiceBanner()
+                return@setOnClickListener
+            }
+            triggerCommandExecution()
+        }
+    }
+    centerCard.addView(
+        executeBtnView,
+        paramsFullWidth(bottom = 10)
+    )
+
+    buildDevBenchmarkRow(centerCard)
+    }
+    /** 狀態列 ＋ 動態歧義澄清按鈕列。 */
+    private fun buildStatusRows(centerCard: LinearLayout) {
+    // 動態歧義澄清選項列 (僅在 AMBIGUOUS + ASK_USER 觸發時顯示 Top-3 選項)
+    ambiguityContainer = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        visibility = View.GONE
+        setPadding(0, 0, 0, dp(8))
+    }
+    centerCard.addView(
+        ambiguityContainer,
+        paramsFullWidth()
+    )
+
+    // 單行精簡狀態提示
+    statusLineView = TextView(this).apply {
+        text = buildMinimalStatusText()
+        textSize = 12f
+        gravity = Gravity.CENTER
+        setTextColor(Color.parseColor("#64748B"))
+    }
+    centerCard.addView(
+        statusLineView,
+        paramsFullWidth()
+    )
+    }
     private fun buildServiceBanner(centerCard: LinearLayout) {
     serviceBannerRow = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
