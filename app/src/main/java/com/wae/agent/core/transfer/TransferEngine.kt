@@ -1,6 +1,7 @@
 package com.wae.agent.core.transfer
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.automaton.Automaton
 import com.wae.agent.core.automaton.AutomatonEdge
 
@@ -34,8 +35,7 @@ object TransferEngine {
     @Volatile
     private var families: List<Pair<String, String>> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     private val DEFAULT_FAMILIES = listOf(
         "search" to "SEARCH_ENTRY", "query" to "SEARCH_ENTRY",
@@ -50,14 +50,12 @@ object TransferEngine {
     private val failures = HashMap<String, Int>()
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             families = DEFAULT_FAMILIES
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -74,7 +72,7 @@ object TransferEngine {
 
     fun resetForTest() {
         families = emptyList()
-        loadAttempted = false
+        table.reset()
         failures.clear()
     }
 

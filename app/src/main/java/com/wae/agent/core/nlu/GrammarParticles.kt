@@ -1,6 +1,7 @@
 package com.wae.agent.core.nlu
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 語法助詞表（介詞與方位助詞）：**資料驅動，不含任何 App 資料**。
@@ -44,18 +45,15 @@ object GrammarParticles {
     @Volatile
     private var suffixes: List<String> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             // 保持空表：stripAppPhrase 會退化成「只切別名」，行為與舊版相同（安全失敗）
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -129,7 +127,7 @@ object GrammarParticles {
     fun resetForTest() {
         prefixes = emptyList()
         suffixes = emptyList()
-        loadAttempted = false
+        table.reset()
     }
 
     fun prefixCount(): Int = prefixes.size

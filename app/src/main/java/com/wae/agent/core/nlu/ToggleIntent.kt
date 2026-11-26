@@ -1,6 +1,7 @@
 ﻿package com.wae.agent.core.nlu
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.CandidateOption
 
 /**
@@ -39,19 +40,16 @@ object ToggleIntent {
     @Volatile
     private var offWords: List<String> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             onWords = DEFAULT_ON
             offWords = DEFAULT_OFF
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -76,7 +74,7 @@ object ToggleIntent {
     fun resetForTest() {
         onWords = emptyList()
         offWords = emptyList()
-        loadAttempted = false
+        table.reset()
     }
 
     private fun onList(): List<String> = if (onWords.isEmpty()) DEFAULT_ON else onWords

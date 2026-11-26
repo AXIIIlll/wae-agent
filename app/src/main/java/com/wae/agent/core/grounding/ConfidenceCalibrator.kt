@@ -1,6 +1,7 @@
 package com.wae.agent.core.grounding
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 元素定位的信心校準（S32 / 計畫 I2 + I1 的第一道防線）。
@@ -46,19 +47,15 @@ object ConfidenceCalibrator {
     @Volatile
     private var points: List<Pair<Float, Float>> = DEFAULT_POINTS
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        try {
-            val lines = context?.assets?.open(DB_PATH)
-                ?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
-            if (lines != null) loadFromLines(lines) else resetToDefaults()
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             resetToDefaults()
+            return
         }
+        loadFromLines(lines)
     }
 
     /**
@@ -105,7 +102,7 @@ object ConfidenceCalibrator {
 
     fun resetForTest() {
         resetToDefaults()
-        loadAttempted = false
+        table.reset()
     }
 
     private fun resetToDefaults() {

@@ -1,6 +1,7 @@
 package com.wae.agent.core.automaton
 
 import android.app.ActivityManager
+import com.wae.agent.core.data.AssetTable
 import android.content.Context
 
 /** 一個預算級別（來自資料檔 ui_graph_budget_policy.tsv） */
@@ -55,21 +56,17 @@ object GraphBudget {
     @Volatile
     private var tiers: List<BudgetTier> = DEFAULT_TIERS
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable("open_source_ai_databases/ui_graph_budget_policy.tsv")
 
     fun all(): List<BudgetTier> = tiers
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open("open_source_ai_databases/ui_graph_budget_policy.tsv")
-                .bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             // 保持預設表（與資料檔同值）
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -96,7 +93,7 @@ object GraphBudget {
 
     fun resetForTest() {
         tiers = DEFAULT_TIERS
-        loadAttempted = false
+        table.reset()
     }
 
     /** 低階裝置判定（純規則） */

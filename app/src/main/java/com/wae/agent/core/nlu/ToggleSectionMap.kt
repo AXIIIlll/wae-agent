@@ -1,6 +1,7 @@
 package com.wae.agent.core.nlu
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 開關目標 → 所在設定分類（資料驅動，**支援 OEM 差異**）。
@@ -27,18 +28,15 @@ object ToggleSectionMap {
     @Volatile
     private var mapping: List<Entry> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             mapping = emptyList()
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -58,7 +56,7 @@ object ToggleSectionMap {
 
     fun resetForTest() {
         mapping = emptyList()
-        loadAttempted = false
+        table.reset()
     }
 
     /** 通用查詢（不考慮品牌）。 */
