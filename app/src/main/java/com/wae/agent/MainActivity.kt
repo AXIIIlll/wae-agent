@@ -186,12 +186,7 @@ class MainActivity : Activity() {
         headerRow.addView(settingsBtn)
         centerCard.addView(
             headerRow,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(14)
-            }
+            paramsFullWidth(bottom = 14)
         )
 
         // P1：首次使用引導（3 步）
@@ -262,10 +257,7 @@ class MainActivity : Activity() {
         onboardingCard.addView(onboardRow)
         centerCard.addView(
             onboardingCard,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(12) }
+            paramsFullWidth().apply { bottomMargin = dp(12) }
         )
         refreshOnboarding()
 
@@ -323,10 +315,7 @@ class MainActivity : Activity() {
         safetyConfirmRow.addView(confirmBtnRow)
         centerCard.addView(
             safetyConfirmRow,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(12) }
+            paramsFullWidth().apply { bottomMargin = dp(12) }
         )
 
         // 無障礙服務未啟用時的醒目橫幅（重裝 APK 後 Android 會自動關閉該服務）
@@ -366,12 +355,7 @@ class MainActivity : Activity() {
         serviceBannerRow.addView(bannerOpenBtn)
         centerCard.addView(
             serviceBannerRow,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(12)
-            }
+            paramsFullWidth(bottom = 12)
         )
 
         // 單一指令輸入框
@@ -388,12 +372,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             goalInputBox,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(10)
-            }
+            paramsFullWidth(bottom = 10)
         )
 
         // 開發輔助：若 filesDir 存在 debug_command，自動填入指令。
@@ -431,12 +410,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             executeBtnView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(10)
-            }
+            paramsFullWidth(bottom = 10)
         )
 
         // ── DEV_BENCHMARK：開發期內建評測（正式版請整塊刪除）──────────────
@@ -513,10 +487,7 @@ class MainActivity : Activity() {
             devBenchmarkRow = row
             centerCard.addView(
                 row,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply { bottomMargin = dp(10) }
+                paramsFullWidth().apply { bottomMargin = dp(10) }
             )
         }
 
@@ -528,10 +499,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             ambiguityContainer,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         // 單行精簡狀態提示
@@ -543,10 +511,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             statusLineView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         // 可折疊「⚙️ 設定」抽屜
@@ -576,10 +541,7 @@ class MainActivity : Activity() {
         systemCheckContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         settingsDrawer.addView(
             systemCheckContainer,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(10) }
+            paramsFullWidth().apply { bottomMargin = dp(10) }
         )
         addCheckRow("a11y", "無障礙服務")
         addCheckRow("assistant", "助理角色")
@@ -597,10 +559,7 @@ class MainActivity : Activity() {
                 cornerRadius = dp(10).toFloat()
             }
             setOnClickListener { runSelfTest() }
-        }, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply { bottomMargin = dp(8) })
+        }, paramsFullWidth().apply { bottomMargin = dp(8) })
 
         // 反例檢視（H7）：讓使用者看得到它學到哪些禁令，而且能刪
         settingsDrawer.addView(Button(this).apply {
@@ -613,10 +572,7 @@ class MainActivity : Activity() {
                 cornerRadius = dp(10).toFloat()
             }
             setOnClickListener { showRefutations() }
-        }, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply { bottomMargin = dp(8) })
+        }, paramsFullWidth().apply { bottomMargin = dp(8) })
 
         // App 類型排序（每個型別的 App 順序，可拖動）
         settingsDrawer.addView(Button(this).apply {
@@ -634,10 +590,7 @@ class MainActivity : Activity() {
                     Intent(this@MainActivity, com.wae.agent.settings.AppTypeOrderActivity::class.java)
                 )
             }
-        }, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply { bottomMargin = dp(8) })
+        }, paramsFullWidth().apply { bottomMargin = dp(8) })
 
         val openA11yBtn = Button(this).apply {
             text = "開啟無障礙服務"
@@ -658,12 +611,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             openA11yBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
+            paramsFullWidth(bottom = 8)
         )
 
         runModeBtn = Button(this).apply {            text = getRunModeButtonText()
@@ -689,12 +637,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             runModeBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
+            paramsFullWidth(bottom = 8)
         )
 
         // S35：懸浮窗 UI（HTML/WebView）開關（開發輔助）
@@ -723,12 +666,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             overlayBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
+            paramsFullWidth(bottom = 8)
         )
 
         // S36：語音助理（設為系統預設助理 → 長按電源鍵／Home 召喚，不用開 App）
@@ -761,10 +699,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             assistRoleBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(8) }
+            paramsFullWidth().apply { bottomMargin = dp(8) }
         )
 
         val voiceNowBtn = Button(this).apply {
@@ -786,10 +721,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             voiceNowBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(8) }
+            paramsFullWidth().apply { bottomMargin = dp(8) }
         )
 
         // 上次崩潰紀錄入口（WaeApp 會把未捕捉例外寫到 filesDir/crash-last.txt）
@@ -807,12 +739,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             crashLogBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
+            paramsFullWidth(bottom = 8)
         )
 
         // P1：進階設定
@@ -837,10 +764,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             languageBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(8) }
+            paramsFullWidth().apply { bottomMargin = dp(8) }
         )
 
         // 設定頁只留「語言」。其餘四個開關改成自動判斷，不再讓使用者手動切：
@@ -887,10 +811,7 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             diagBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(8) }
+            paramsFullWidth().apply { bottomMargin = dp(8) }
         )
 
         versionView = TextView(this).apply {
@@ -910,10 +831,7 @@ class MainActivity : Activity() {
         refreshEngineStats()
         settingsDrawer.addView(
             engineStatsView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         wakeWordBtn = makeToggleButton("Hey WAE 喚醒詞（測試）") { enabled ->
@@ -921,26 +839,17 @@ class MainActivity : Activity() {
         }
         settingsDrawer.addView(
             wakeWordBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(8) }
+            paramsFullWidth().apply { bottomMargin = dp(8) }
         )
 
         centerCard.addView(
             settingsDrawer,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         outerScreenFrame.addView(
             centerCard,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
         installMinimalHome(centerCard)
 
@@ -1304,10 +1213,7 @@ class MainActivity : Activity() {
         )
         centerCard.addView(
             homeTopRow,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         homeHeading = TextView(this).apply {
@@ -1320,10 +1226,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             homeHeading,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = dp(10) }
+            paramsFullWidth().apply { topMargin = dp(10) }
         )
         homeSub = TextView(this).apply {
             text = "說一句話，它自己去按"
@@ -1334,10 +1237,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             homeSub,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
 
         mascotView = GhostView(this).apply {
@@ -1394,26 +1294,17 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             hintView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            paramsFullWidth()
         )
         goalInputBox.visibility = View.VISIBLE
         executeBtnView.visibility = View.VISIBLE
         centerCard.addView(
             goalInputBox,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = dp(16); bottomMargin = dp(10) }
+            paramsFullWidth().apply { topMargin = dp(16); bottomMargin = dp(10) }
         )
         centerCard.addView(
             executeBtnView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(4) }
+            paramsFullWidth().apply { bottomMargin = dp(4) }
         )
 
         backToMinimalBtn = Button(this).apply {
@@ -1430,10 +1321,7 @@ class MainActivity : Activity() {
         }
         centerCard.addView(
             backToMinimalBtn,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = dp(12) }
+            paramsFullWidth().apply { topMargin = dp(12) }
         )
         centerCard.gravity = Gravity.CENTER_HORIZONTAL
         refreshMascotState()
@@ -1786,12 +1674,7 @@ class MainActivity : Activity() {
             }
             ambiguityContainer.addView(
                 btn,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    bottomMargin = dp(6)
-                }
+                paramsFullWidth(bottom = 6)
             )
         }
     }
@@ -2274,4 +2157,25 @@ class MainActivity : Activity() {
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
     }
+
+    /**
+     * 「整寬、高度自適應」的列參數（本頁最常見的排版需求，原本被抄了 30 多次）。
+     *
+     * @param bottom 下外距（dp）
+     * @param top 上外距（dp）
+     * @param left 左外距（dp）
+     * @param end 右外距（dp，支援 RTL）
+     */
+    private fun paramsFullWidth(
+        bottom: Int = 0,
+        top: Int = 0,
+        left: Int = 0,
+        end: Int = 0
+    ): LinearLayout.LayoutParams =
+        paramsFullWidth().apply {
+            if (bottom != 0) bottomMargin = dp(bottom)
+            if (top != 0) topMargin = dp(top)
+            if (left != 0) leftMargin = dp(left)
+            if (end != 0) marginEnd = dp(end)
+        }
 }
