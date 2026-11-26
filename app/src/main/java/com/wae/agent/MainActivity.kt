@@ -2187,7 +2187,10 @@ class MainActivity : Activity() {
         left: Int = 0,
         end: Int = 0
     ): LinearLayout.LayoutParams =
-        paramsFullWidth().apply {
+        LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
             if (bottom != 0) bottomMargin = dp(bottom)
             if (top != 0) topMargin = dp(top)
             if (left != 0) leftMargin = dp(left)
