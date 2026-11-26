@@ -261,102 +261,9 @@ class MainActivity : Activity() {
         )
         refreshOnboarding()
 
-        // 安全確認列：當動作命中金流/破壞性/公開發布政策時出現，需使用者明確放行
-        safetyConfirmRow = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#FEF2F2"))
-                setStroke(dp(1), Color.parseColor("#F87171"))
-                cornerRadius = dp(10).toFloat()
-            }
-            val pad = dp(12)
-            setPadding(pad, pad, pad, pad)
-        }
-        safetyConfirmText = TextView(this).apply {
-            textSize = 12f
-            setTextColor(Color.parseColor("#991B1B"))
-        }
-        safetyConfirmRow.addView(safetyConfirmText)
-        val confirmBtnRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-        }
-        repeat(2) { idx ->
-            val isConfirm = idx == 0
-            val btn = Button(this).apply {
-                text = if (isConfirm) "確認執行" else "取消"
-                isAllCaps = false
-                textSize = 12f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                minHeight = 0
-                minimumHeight = 0
-                background = GradientDrawable().apply {
-                    setColor(Color.parseColor(if (isConfirm) "#DC2626" else "#64748B"))
-                    cornerRadius = dp(8).toFloat()
-                }
-                setPadding(dp(12), dp(6), dp(12), dp(6))
-                setOnClickListener {
-                    val svc = WaeVisionAccessibilityService.activeInstance
-                    if (isConfirm) svc?.confirmPendingSafetyAction() else svc?.cancelPendingSafetyAction()
-                    statusLineView.text = if (isConfirm) "已放行一次動作" else "已取消該動作"
-                    refreshServiceBanner()
-                }
-            }
-            confirmBtnRow.addView(
-                btn,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply { leftMargin = dp(8) }
-            )
-        }
-        safetyConfirmRow.addView(confirmBtnRow)
-        centerCard.addView(
-            safetyConfirmRow,
-            paramsFullWidth().apply { bottomMargin = dp(12) }
-        )
+        buildSafetyConfirmRow(centerCard)
 
-        // 無障礙服務未啟用時的醒目橫幅（重裝 APK 後 Android 會自動關閉該服務）
-        serviceBannerRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            visibility = View.GONE
-            background = GlassDrawable(radius = dp(18).toFloat())
-            setPadding(dp(12), dp(8), dp(8), dp(8))
-        }
-        serviceBannerText = TextView(this).apply {
-            text = "無障礙服務未啟用，AI 無法點擊任何東西"
-            textSize = 12f
-            setTextColor(Color.parseColor("#FCD34D"))
-        }
-        serviceBannerRow.addView(
-            serviceBannerText,
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
-        val bannerOpenBtn = Button(this).apply {
-            text = "去開啟"
-            isAllCaps = false
-            textSize = 12f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            minHeight = 0
-            minimumHeight = 0
-            minWidth = 0
-            minimumWidth = 0
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F59E0B"))
-                cornerRadius = dp(12).toFloat()
-            }
-            setPadding(dp(10), dp(5), dp(10), dp(5))
-            setOnClickListener { openAccessibilitySettingsSafely() }
-        }
-        serviceBannerRow.addView(bannerOpenBtn)
-        centerCard.addView(
-            serviceBannerRow,
-            paramsFullWidth(bottom = 12)
-        )
+        buildServiceBanner(centerCard)
 
         // 單一指令輸入框
         goalInputBox = EditText(this).apply {
@@ -413,83 +320,8 @@ class MainActivity : Activity() {
             paramsFullWidth(bottom = 10)
         )
 
-        // ── DEV_BENCHMARK：開發期內建評測（正式版請整塊刪除）──────────────
-        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#F1F5F9"))
-                    setStroke(dp(1), Color.parseColor("#CBD5E1"))
-                    cornerRadius = dp(10).toFloat()
-                }
-                val pad = dp(10)
-                setPadding(pad, pad, pad, pad)
-            }
-            val title = TextView(this).apply {
-                text = " 開發期評測（debug only）"
-                textSize = 12f
-                setTextColor(Color.parseColor("#334155"))
-            }
-            row.addView(title)
+        buildDevBenchmarkRow(centerCard)
 
-            val controls = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            devTierSpinner = android.widget.Spinner(this).apply {
-                adapter = android.widget.ArrayAdapter(
-                    this@MainActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    listOf("全部", "EASY", "MEDIUM", "HARD", "EXTREME")
-                )
-            }
-            controls.addView(
-                devTierSpinner,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f)
-            )
-            devCountInput = EditText(this).apply {
-                hint = "數量"
-                inputType = InputType.TYPE_CLASS_NUMBER
-                textSize = 12f
-                setText("10")
-            }
-            controls.addView(
-                devCountInput,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            )
-            val startBtn = Button(this).apply {
-                text = "開始"
-                isAllCaps = false
-                textSize = 12f
-                setOnClickListener { startDevBenchmark() }
-            }
-            controls.addView(startBtn)
-            val promptsBtn = Button(this).apply {
-                text = "▶ 提示詞"
-                isAllCaps = false
-                textSize = 12f
-                setOnClickListener { startPromptSuite() }
-            }
-            controls.addView(promptsBtn)
-            val scanBtn = Button(this).apply {
-                text = " 相容性"
-                isAllCaps = false
-                textSize = 12f
-                setOnClickListener { startCompatibilityScan() }
-            }
-            controls.addView(scanBtn)
-            row.addView(controls)
-
-            devBenchmarkStatus = TextView(this).apply {
-                textSize = 11f
-                setTextColor(Color.parseColor("#475569"))
-                text = "任務數：${com.wae.agent.dev.DevBenchmark.load(this@MainActivity).size}"
-            }
-            row.addView(devBenchmarkStatus)
-
-            devBenchmarkRow = row
-            centerCard.addView(
-                row,
-                paramsFullWidth().apply { bottomMargin = dp(10) }
-            )
-        }
 
         // 動態歧義澄清選項列 (僅在 AMBIGUOUS + ASK_USER 觸發時顯示 Top-3 選項)
         ambiguityContainer = LinearLayout(this).apply {
@@ -901,6 +733,189 @@ class MainActivity : Activity() {
     }
 
     /** 開發輔助：debug_command 檔案存在時自動填入指令（adb 無法輸入中文） */
+    /**
+     * 開發期評測列（debug only）：題庫抽樣、提示詞套件、相容性掃描。
+     *
+     * 從 onCreate 抽出來：這塊與畫面其餘部分無關，正式版預定整塊移除，
+     * 獨立成方法比較好刪，也讓 onCreate 少 77 行。
+     */
+    private fun buildDevBenchmarkRow(centerCard: LinearLayout) {
+        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) == 0) return
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#F1F5F9"))
+                setStroke(dp(1), Color.parseColor("#CBD5E1"))
+                cornerRadius = dp(10).toFloat()
+            }
+            val pad = dp(10)
+            setPadding(pad, pad, pad, pad)
+        }
+        val title = TextView(this).apply {
+            text = " 開發期評測（debug only）"
+            textSize = 12f
+            setTextColor(Color.parseColor("#334155"))
+        }
+        row.addView(title)
+
+        val controls = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        devTierSpinner = android.widget.Spinner(this).apply {
+            adapter = android.widget.ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                listOf("全部", "EASY", "MEDIUM", "HARD", "EXTREME")
+            )
+        }
+        controls.addView(
+            devTierSpinner,
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f)
+        )
+        devCountInput = EditText(this).apply {
+            hint = "數量"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            textSize = 12f
+            setText("10")
+        }
+        controls.addView(
+            devCountInput,
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        )
+        val startBtn = Button(this).apply {
+            text = "開始"
+            isAllCaps = false
+            textSize = 12f
+            setOnClickListener { startDevBenchmark() }
+        }
+        controls.addView(startBtn)
+        val promptsBtn = Button(this).apply {
+            text = "▶ 提示詞"
+            isAllCaps = false
+            textSize = 12f
+            setOnClickListener { startPromptSuite() }
+        }
+        controls.addView(promptsBtn)
+        val scanBtn = Button(this).apply {
+            text = " 相容性"
+            isAllCaps = false
+            textSize = 12f
+            setOnClickListener { startCompatibilityScan() }
+        }
+        controls.addView(scanBtn)
+        row.addView(controls)
+
+        devBenchmarkStatus = TextView(this).apply {
+            textSize = 11f
+            setTextColor(Color.parseColor("#475569"))
+            text = "任務數：${com.wae.agent.dev.DevBenchmark.load(this@MainActivity).size}"
+        }
+        row.addView(devBenchmarkStatus)
+
+        devBenchmarkRow = row
+        centerCard.addView(
+            row,
+            paramsFullWidth().apply { bottomMargin = dp(10) }
+        )
+    }
+
+    /** 安全確認列：命中金流／破壞性操作時出現，需要使用者明確放行。 */
+    /** 無障礙服務未啟用時的醒目橫幅（重裝 APK 後 Android 會自動關閉該服務）。 */
+    private fun buildServiceBanner(centerCard: LinearLayout) {
+    serviceBannerRow = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        visibility = View.GONE
+        background = GlassDrawable(radius = dp(18).toFloat())
+        setPadding(dp(12), dp(8), dp(8), dp(8))
+    }
+    serviceBannerText = TextView(this).apply {
+        text = "無障礙服務未啟用，AI 無法點擊任何東西"
+        textSize = 12f
+        setTextColor(Color.parseColor("#FCD34D"))
+    }
+    serviceBannerRow.addView(
+        serviceBannerText,
+        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+    )
+    val bannerOpenBtn = Button(this).apply {
+        text = "去開啟"
+        isAllCaps = false
+        textSize = 12f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        minHeight = 0
+        minimumHeight = 0
+        minWidth = 0
+        minimumWidth = 0
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F59E0B"))
+            cornerRadius = dp(12).toFloat()
+        }
+        setPadding(dp(10), dp(5), dp(10), dp(5))
+        setOnClickListener { openAccessibilitySettingsSafely() }
+    }
+    serviceBannerRow.addView(bannerOpenBtn)
+    centerCard.addView(
+        serviceBannerRow,
+        paramsFullWidth(bottom = 12)
+    )
+    }
+    private fun buildSafetyConfirmRow(centerCard: LinearLayout) {
+    safetyConfirmRow = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        visibility = View.GONE
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#FEF2F2"))
+            setStroke(dp(1), Color.parseColor("#F87171"))
+            cornerRadius = dp(10).toFloat()
+        }
+        val pad = dp(12)
+        setPadding(pad, pad, pad, pad)
+    }
+    safetyConfirmText = TextView(this).apply {
+        textSize = 12f
+        setTextColor(Color.parseColor("#991B1B"))
+    }
+    safetyConfirmRow.addView(safetyConfirmText)
+    val confirmBtnRow = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.END
+    }
+    repeat(2) { idx ->
+        val isConfirm = idx == 0
+        val btn = Button(this).apply {
+            text = if (isConfirm) "確認執行" else "取消"
+            isAllCaps = false
+            textSize = 12f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+            minHeight = 0
+            minimumHeight = 0
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor(if (isConfirm) "#DC2626" else "#64748B"))
+                cornerRadius = dp(8).toFloat()
+            }
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            setOnClickListener {
+                val svc = WaeVisionAccessibilityService.activeInstance
+                if (isConfirm) svc?.confirmPendingSafetyAction() else svc?.cancelPendingSafetyAction()
+                statusLineView.text = if (isConfirm) "已放行一次動作" else "已取消該動作"
+                refreshServiceBanner()
+            }
+        }
+        confirmBtnRow.addView(
+            btn,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { leftMargin = dp(8) }
+        )
+    }
+    safetyConfirmRow.addView(confirmBtnRow)
+    centerCard.addView(
+        safetyConfirmRow,
+        paramsFullWidth().apply { bottomMargin = dp(12) }
+    )
+    }
     private fun applyDebugCommandIfPresent() {
         try {
             val f = File(filesDir, "debug_command")
