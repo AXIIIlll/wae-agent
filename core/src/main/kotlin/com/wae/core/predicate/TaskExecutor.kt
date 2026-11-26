@@ -48,6 +48,12 @@ object TaskExecutor {
          * 預設回空值＝沒有資訊，條件會因此判不成立（寧可看到 false，也不要假裝成立）。
          */
         fun facts(): com.wae.core.plan.PlanCondition.Facts = com.wae.core.plan.PlanCondition.Facts()
+
+        /**
+         * 上一次動作是否「不需要做」（例如目標頁已經開著）。
+         * 這種情況不能套用「畫面必須改變」的後置條件，否則會被判成失敗。
+         */
+        fun lastActWasNoop(): Boolean = false
     }
 
     enum class Status { DONE, ASK, FAILED }
@@ -139,26 +145,28 @@ object TaskExecutor {
                     // previousFingerprint 就會被覆寫成跟現在一樣，變成永遠「沒變」。
                     val fpBeforeAct = gateway.facts().fingerprint
                     if (gateway.act(leaf.op, leaf.target, leaf.arg)) {
+                        // 「不需要動作」的成功（已在本頁）不適用『必須改變』的後置條件
+                        val post = if (gateway.lastActWasNoop()) "" else leaf.post
                         // 後置條件：說要變就必須真的變，否則視為這一步沒成（讓上層重規劃）
-                        if (leaf.post.isNotBlank()) {
+                        if (post.isNotBlank()) {
                             val after = gateway.facts()
-                            val checked = if (leaf.post.equals("changed", ignoreCase = true)) {
+                            val checked = if (post.equals("changed", ignoreCase = true)) {
                                 // 量不到「動作前」就不要判失敗（避免把成功當失敗）
                                 if (fpBeforeAct.isEmpty()) true else after.fingerprint != fpBeforeAct
                             } else {
                                 com.wae.core.plan.PlanCondition.holds(
-                                    leaf.post,
+                                    post,
                                     after.copy(previousFingerprint = fpBeforeAct)
                                 )
                             }
                             if (!checked) {
                                 outcomes.add(
-                                    StepOutcome(i, leaf, false, "postcondition_failed(${leaf.post})")
+                                    StepOutcome(i, leaf, false, "postcondition_failed(${post})")
                                 )
                                 return Result(
                                     Status.FAILED, outcomes, i,
                                     "「${leaf.target}」做完但後置條件不成立：" +
-                                        com.wae.core.plan.PlanCondition.describe(leaf.post)
+                                        com.wae.core.plan.PlanCondition.describe(post)
                                 )
                             }
                         }
@@ -177,6 +185,8 @@ object TaskExecutor {
                         if (score2 >= groundFloor && idx2 >= 0) {
                             everFound = true
                             if (gateway.act(leaf.op, leaf.target, leaf.arg)) {
+                        // 「不需要動作」的成功（已在本頁）不適用『必須改變』的後置條件
+                        val post = if (gateway.lastActWasNoop()) "" else leaf.post
                                 acted = true
                                 break
                             }

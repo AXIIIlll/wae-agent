@@ -12,7 +12,7 @@
 #   FAMILY  <familyId>  <成員1|成員2|...>
 #   MEMBER  <conceptId> <familyId> <成員>
 
-CONCEPT	CALL_HISTORY	PHONE	通話記錄|通話紀錄|通話記錄清單|來電記錄|未接來電|已接來電|通話明細
+CONCEPT	CALL_HISTORY	PHONE	通話記錄|通話紀錄|通話記錄清單|來電記錄|未接來電|已接來電|通話明細|最近記錄|最近通話|最近
 CONCEPT	BROWSER_HISTORY	BROWSER|GOOGLE_BROWSER	歷史記錄|歷史紀錄|瀏覽記錄|瀏覽紀錄|瀏覽歷史|歷史
 CONCEPT	ALARM_LIST		鬧鐘清單|所有鬧鐘|鬧鐘設定|已設定的鬧鐘|鬧鐘列表|鬧鐘
 CONCEPT	BOOKMARKS	BROWSER|GOOGLE_BROWSER	書籤|我的書籤|已儲存的書籤

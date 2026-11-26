@@ -44,6 +44,8 @@ data class ScreenOption(
     val layer: Int = 1,
     /** 是否位在網頁內容裡（排除 Chrome 頁面內嵌的三點）。 */
     val inWeb: Boolean = false,
+    /** 是否已選取（頁籤／清單選取項）：已選取就不需要再點一次。 */
+    val selected: Boolean = false,
     /** 同一個標籤出現多次時用來區分（1 起算）。 */
     val ordinal: Int
 ) {

@@ -294,7 +294,18 @@ class A11yScreenGateway(
         val ranked = com.wae.core.screen.MenuRanker.rank(
             options = candidates.mapNotNull { byKey[it.key] },
             screenHeightPx = dm.heightPixels,
-            screenWidthPx = dm.widthPixels
+            screenWidthPx = dm.widthPixels,
+            // 權重全部走 tunables（程式碼裡不留魔術數字）
+            weights = com.wae.core.screen.MenuRanker.Weights(
+                notInWeb = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_not_in_web", 0.5f),
+                inWeb = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_in_web", -1.0f),
+                top = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_top", 0.3f),
+                right = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_right", 0.3f),
+                hasViewId = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_view_id", 0.2f),
+                popupLayer = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.w_popup", -0.2f),
+                topRatio = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.top_ratio", 0.15f),
+                rightRatio = com.wae.agent.core.runtime.Tunables.getFloat(context, "menu.right_ratio", 0.70f)
+            )
         )
         val ordered = ranked.mapNotNull { r -> candidates.firstOrNull { c -> byKey[c.key]?.id == r.option.id } }
         val pool = if (ordered.isNotEmpty()) ordered else candidates
@@ -373,6 +384,7 @@ class A11yScreenGateway(
     }
 
     override fun act(op: TaskNode.Op, target: String, arg: String): Boolean {
+        noopAction = false
         // LAUNCH：target 是「App 名稱」不是套件名 → 先用資料庫/裝置解析成 package
         if (op == TaskNode.Op.LAUNCH) {
             val resolved = runCatching {
@@ -539,6 +551,16 @@ class A11yScreenGateway(
             android.util.Log.i("WAE_PICK", "PICK '$target' 三層都失敗（walk／byText／ocr）")
             return false
         }
+        // 已經是「目標那一頁」嗎？（已選取 + 同概念，例如電話 App 一開啟就停在最近記錄）
+        if (control.state.selected == true && sameConcept(control.label, target)) {
+            android.util.Log.i(
+                "WAE_PICK",
+                "PICK '$target' 已在目標頁（'" + control.label + "' 已選取）→ 直接完成"
+            )
+            noopAction = true
+            return true
+        }
+
         val beforeFp = f.fp
         val node = NodeRegistry.get(control.key)
         val ok = if (node == null) {
@@ -564,7 +586,30 @@ class A11yScreenGateway(
                 "WAE_TASK",
                 "verify ${op.name} '$target' screenChanged=$changed (n=${after.controls.size})"
             )
-            return changed || after.controls.any { it.label.isNotBlank() && it.label.contains(target) }
+            if (changed) return true
+
+            // 沒變化不代表失敗：可能點開的是「清單／頁籤」，目標物在裡面。
+            // 例：電話 App 的「最近記錄」頁籤，清單裡才有一項叫「通話紀錄」。
+            // 所以在這一層「再找一次」，找到就直接點它。
+            val inner = bestControl(capture(), target)
+            if (inner != null && inner.key != control.key) {
+                android.util.Log.i("WAE_PICK", "PICK '$target' 在展開後的清單內找到 → 直接點")
+                if (performOn(NodeRegistry.get(inner.key), TaskNode.Op.PICK, "", target)) {
+                    Thread.sleep(400)
+                    return true
+                }
+            }
+
+            // 展開後還是沒有目標 → **自己收回**（不留使用者在錯誤的畫面）
+            if (target.isNotBlank()) {
+                val collapsed = com.wae.core.util.Degrade.orElse("pick:collapse", false) {
+                    service.performGlobalAction(
+                        android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
+                    )
+                }
+                android.util.Log.i("WAE_PICK", "PICK '$target' 展開後沒有目標 → 收回 collapsed=$collapsed")
+            }
+            return false
         }
         return true
     }
@@ -776,11 +821,28 @@ class A11yScreenGateway(
         val concept = com.wae.core.util.Degrade.orNull("gateway:conceptOf") {
             table.conceptOf(folded) ?: table.conceptOf(target)
         }?.id
-        return com.wae.core.util.Degrade.orEmpty("gateway:familyLabels") {
-            com.wae.core.screen.ConceptMatcher
-                .familyLabelsFor(concept, options.map { it.label }, table)
-                .toList()
-        }.toSet()
+        val out = HashSet<String>()
+
+        // ① 直接同概念：畫面上的標籤本身也是這個概念的說法
+        //    例：目標「通話紀錄」、畫面標籤「最近記錄」→ 兩者都是 CALL_HISTORY。
+        if (concept != null) {
+            for (option in options) {
+                val c = com.wae.core.util.Degrade.orNull("gateway:optionConcept") {
+                    table.conceptOf(VariantFold.fold(context, option.label))
+                }?.id
+                if (c == concept) out.add(option.label)
+            }
+        }
+
+        // ② 同族推論：概念本身沒寫在畫面上，但同族詞一起出現（例：鍵盤／聯絡人／最近）
+        out.addAll(
+            com.wae.core.util.Degrade.orEmpty("gateway:familyLabels") {
+                com.wae.core.screen.ConceptMatcher
+                    .familyLabelsFor(concept, options.map { it.label }, table)
+                    .toList()
+            }
+        )
+        return out
     }
 
     /** 標籤分數：字面優先，其次才是同族推論（同族分數低於包含，避免壓過真正相符的標籤）。 */
@@ -788,7 +850,10 @@ class A11yScreenGateway(
         val direct = DecisionRanker.textScore(target, label, context)
         if (direct >= 0.85f) return direct
         val isFamily = boost.any { com.wae.core.predicate.TextFold.fold(it) == com.wae.core.predicate.TextFold.fold(label) }
-        return if (isFamily) maxOf(direct, com.wae.core.screen.ConceptMatcher.FAMILY_SCORE) else direct
+        val familyScore = com.wae.agent.core.runtime.Tunables.getFloat(
+        context, "match.family_score", com.wae.core.screen.ConceptMatcher.FAMILY_SCORE
+    )
+        return if (isFamily) maxOf(direct, familyScore) else direct
     }
 
     /**
@@ -864,6 +929,29 @@ class A11yScreenGateway(
         }
         return out
     }
+
+    /**
+     * 兩個標籤是不是同一個概念（例：「通話紀錄」與「最近記錄」都是 CALL_HISTORY）。
+     * 用來判斷「目前這一頁是不是已經就是目標那一頁」。
+     */
+    private fun sameConcept(a: String, b: String): Boolean {
+        if (a.isBlank() || b.isBlank()) return false
+        val table = com.wae.agent.core.plan.ConceptLexicon.table(context)
+        if (table.concepts.isEmpty()) return false
+        val ca = com.wae.core.util.Degrade.orNull("concept:a") {
+            table.conceptOf(VariantFold.fold(context, a))
+        }?.id
+        val cb = com.wae.core.util.Degrade.orNull("concept:b") {
+            table.conceptOf(VariantFold.fold(context, b))
+        }?.id
+        return ca != null && ca == cb
+    }
+
+    /** 上一次 PICK 是否「不需要動作」（目標頁已經開著）。 */
+    @Volatile
+    private var noopAction = false
+
+    override fun lastActWasNoop(): Boolean = noopAction
 
     /** 上一幀指紋（changed 條件用）。 */
     private var previousFp: String = ""

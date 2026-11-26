@@ -15,6 +15,18 @@ object MenuRanker {
 
     data class Ranked(val option: ScreenOption, val score: Float, val reason: String)
 
+    /** 排序權重（全部可調，不寫死在邏輯裡）。 */
+    data class Weights(
+        val notInWeb: Float = 0.5f,
+        val inWeb: Float = -1.0f,
+        val top: Float = 0.3f,
+        val right: Float = 0.3f,
+        val hasViewId: Float = 0.2f,
+        val popupLayer: Float = -0.2f,
+        val topRatio: Float = 0.15f,
+        val rightRatio: Float = 0.70f
+    )
+
     /** 上方多少比例內算「工具列」。 */
     const val TOP_RATIO = 0.15f
 
@@ -24,7 +36,9 @@ object MenuRanker {
     fun rank(
         options: List<ScreenOption>,
         screenHeightPx: Int,
-        screenWidthPx: Int
+        screenWidthPx: Int,
+        /** 這些權重可從 ui_tunables.tsv 注入；預設值只是沒有設定時的後備。 */
+        weights: Weights = Weights()
     ): List<Ranked> {
         if (options.isEmpty()) return emptyList()
         val h = screenHeightPx.coerceAtLeast(1)
@@ -34,30 +48,30 @@ object MenuRanker {
             val reasons = ArrayList<String>(3)
             // 在網頁內容裡 → 幾乎一定不是瀏覽器工具列
             if (o.inWeb) {
-                score -= 1.0f
+                score += weights.inWeb
                 reasons.add("inWeb")
             } else {
-                score += 0.5f
+                score += weights.notInWeb
             }
             // 上方
-            if (o.top <= (h * TOP_RATIO).toInt()) {
-                score += 0.3f
+            if (o.top <= (h * weights.topRatio).toInt()) {
+                score += weights.top
                 reasons.add("top")
             }
             // 右側（用中心點判斷，避免寬按鈕被判錯）
             val cx = (o.left + o.right) / 2f
-            if (cx >= w * RIGHT_RATIO) {
-                score += 0.3f
+            if (cx >= w * weights.rightRatio) {
+                score += weights.right
                 reasons.add("right")
             }
             // 有資源名：真正的工具列按鈕幾乎都有
             if (o.viewId.isNotEmpty()) {
-                score += 0.2f
+                score += weights.hasViewId
                 reasons.add("viewId")
             }
             // 彈出層裡的選單按鈕反而是「已經開過的選單」，優先度低
             if (o.layer == 0) {
-                score -= 0.2f
+                score += weights.popupLayer
                 reasons.add("popupLayer")
             }
             Ranked(o, score, reasons.joinToString("+").ifEmpty { "plain" })

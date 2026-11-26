@@ -77,3 +77,12 @@ match.nearest_floor	0.45	找不到完全相符時，「最近似」的最低相�
 match.nearest_margin	0.10	最近似必須領先第二名的差距（避免瞎猜）
 menu.candidate_tries	2	選單按鈕點錯時，最多再試幾個候選
 menu.open_wait_ms	350	點選單後等彈出層出現的時間
+menu.w_not_in_web	0.5	選單候選：不在網頁內容裡的分數
+menu.w_in_web	-1.0	選單候選：在網頁內容裡（通常是頁面內嵌三點）的分數
+menu.w_top	0.3	選單候選：位於畫面上方的加分
+menu.w_right	0.3	選單候選：位於畫面右側的加分
+menu.w_view_id	0.2	選單候選：有資源名的加分
+menu.w_popup	-0.2	選單候選：已在彈出層裡的扣分
+menu.top_ratio	0.15	「上方」的判定比例（螢幕高度）
+menu.right_ratio	0.70	「右側」的判定比例（螢幕寬度）
+match.family_score	0.80	概念同族推論命中時的分數（低於字面包含 0.88）
