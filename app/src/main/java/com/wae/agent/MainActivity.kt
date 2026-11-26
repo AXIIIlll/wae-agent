@@ -122,338 +122,7 @@ class MainActivity : Activity() {
 
         buildStatusRows(centerCard)
 
-        // 可折疊「⚙️ 設定」抽屜
-        settingsDrawer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            setPadding(0, dp(12), 0, 0)
-        }
-
-        val divider = View(this).apply {
-            setBackgroundColor(Color.parseColor("#E2E8F0"))
-        }
-        settingsDrawer.addView(
-            divider,
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)).apply {
-                bottomMargin = dp(12)
-            }
-        )
-
-        // P1：系統檢查（一眼看出缺什麼，一鍵修復）
-        settingsDrawer.addView(TextView(this).apply {
-            text = "系統檢查"
-            textSize = 12f
-            setTextColor(Color.parseColor("#71717A"))
-            setPadding(0, 0, 0, dp(6))
-        })
-        systemCheckContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        settingsDrawer.addView(
-            systemCheckContainer,
-            paramsFullWidth().apply { bottomMargin = dp(10) }
-        )
-        addCheckRow("a11y", "無障礙服務")
-        addCheckRow("assistant", "助理角色")
-        addCheckRow("mic", "麥克風")
-        addCheckRow("voice", "語音服務")
-
-        // 自我測試：不用 adb 就知道「它現在還能不能用」
-        settingsDrawer.addView(Button(this).apply {
-            text = " 自我測試（9 項）"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#0F172A"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F1F5F9"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setOnClickListener { runSelfTest() }
-        }, paramsFullWidth().apply { bottomMargin = dp(8) })
-
-        // 反例檢視（H7）：讓使用者看得到它學到哪些禁令，而且能刪
-        settingsDrawer.addView(Button(this).apply {
-            text = " 反例（它學到的禁令）"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#0F172A"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#FEF2F2"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setOnClickListener { showRefutations() }
-        }, paramsFullWidth().apply { bottomMargin = dp(8) })
-
-        // App 類型排序（每個型別的 App 順序，可拖動）
-        settingsDrawer.addView(Button(this).apply {
-            text = "\uD83E\uDDE9 App 類型排序（拖拉順序）"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#0F172A"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#EEF2FF"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                startActivity(
-                    Intent(this@MainActivity, com.wae.agent.settings.AppTypeOrderActivity::class.java)
-                )
-            }
-        }, paramsFullWidth().apply { bottomMargin = dp(8) })
-
-        val openA11yBtn = Button(this).apply {
-            text = "開啟無障礙服務"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#0F172A"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F1F5F9"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                try {
-                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                } catch (_: Throwable) {
-                }
-            }
-        }
-        settingsDrawer.addView(
-            openA11yBtn,
-            paramsFullWidth(bottom = 8)
-        )
-
-        runModeBtn = Button(this).apply {            text = getRunModeButtonText()
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F5F3FF"))
-                setStroke(dp(1), Color.parseColor("#DDD6FE"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                WaeV26PipelineOrchestrator.currentRunMode =
-                    if (WaeV26PipelineOrchestrator.currentRunMode == RunMode.PRODUCTION) {
-                        RunMode.TEST
-                    } else {
-                        RunMode.PRODUCTION
-                    }
-                runModeBtn.text = getRunModeButtonText()
-                statusLineView.text = buildMinimalStatusText()
-            }
-        }
-        settingsDrawer.addView(
-            runModeBtn,
-            paramsFullWidth(bottom = 8)
-        )
-
-        // S35：懸浮窗 UI（HTML/WebView）開關（開發輔助）
-        val overlayBtn = Button(this).apply {
-            text = "懸浮窗"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#EFF6FF"))
-                setStroke(dp(1), Color.parseColor("#93C5FD"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                val svc = WaeVisionAccessibilityService.activeInstance
-                if (svc == null) {
-                    statusLineView.text = "⚠ 請先開啟無障礙服務，懸浮窗需要它以 TYPE_ACCESSIBILITY_OVERLAY 顯示"
-            
-        settingsDrawer.visibility = View.VISIBLE
-                } else {
-                    val showing = svc.toggleFloatingOverlay()
-                    statusLineView.text = if (showing) " 懸浮窗已開啟（可拖曳標題列移動）" else " 懸浮窗已關閉"
-                }
-            }
-        }
-        settingsDrawer.addView(
-            overlayBtn,
-            paramsFullWidth(bottom = 8)
-        )
-
-        // S36：語音助理（設為系統預設助理 → 長按電源鍵／Home 召喚，不用開 App）
-        val assistRoleBtn = Button(this).apply {
-            text = "設為手機助理（長按電源鍵）"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F5F3FF"))
-                setStroke(dp(1), Color.parseColor("#DDD6FE"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                val rm = com.wae.core.util.Degrade.orNull("main:roleManager") { getSystemService(RoleManager::class.java) }
-                if (rm == null || !rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT)) {
-                    statusLineView.text = "⚠ 此裝置不支援助理角色；可用「 懸浮窗」或快捷設定磚"
-                } else if (rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
-                    statusLineView.text = "✓ WAE 已是預設助理：長按電源鍵／Home 即可召喚"
-                } else {
-                    com.wae.core.util.Degrade.orNull("main:requestAssistantRole") {
-                        startActivityForResult(
-                            rm.createRequestRoleIntent(RoleManager.ROLE_ASSISTANT),
-                            REQ_ASSISTANT_ROLE
-                        )
-                    }
-                }
-            }
-        }
-        settingsDrawer.addView(
-            assistRoleBtn,
-            paramsFullWidth().apply { bottomMargin = dp(8) }
-        )
-
-        val voiceNowBtn = Button(this).apply {
-            text = "語音指令"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#EFF6FF"))
-                setStroke(dp(1), Color.parseColor("#93C5FD"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener {
-                com.wae.core.util.Degrade.orNull("main:openAssistVoice") {
-                    startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
-                }
-            }
-        }
-        settingsDrawer.addView(
-            voiceNowBtn,
-            paramsFullWidth().apply { bottomMargin = dp(8) }
-        )
-
-        // 上次崩潰紀錄入口（WaeApp 會把未捕捉例外寫到 filesDir/crash-last.txt）
-        crashLogBtn = Button(this).apply {            text = " 查看上次崩潰紀錄"
-            isAllCaps = false
-            textSize = 13f
-            setTextColor(Color.parseColor("#7C2D12"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#FFF7ED"))
-                setStroke(dp(1), Color.parseColor("#FDBA74"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            setOnClickListener { showCrashLogDialog() }
-        }
-        settingsDrawer.addView(
-            crashLogBtn,
-            paramsFullWidth(bottom = 8)
-        )
-
-        // P1：進階設定
-        settingsDrawer.addView(TextView(this).apply {
-            text = "進階"
-            textSize = 12f
-            setTextColor(Color.parseColor("#71717A"))
-            setPadding(0, dp(8), 0, dp(4))
-        })
-        languageBtn = Button(this).apply {
-            text = "語音語言"
-            isAllCaps = false
-            textSize = 12.5f
-            setTextColor(Color.parseColor("#52525B"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#F4F4F5"))
-                setStroke(dp(1), Color.parseColor("#E4E4E7"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(8), dp(14), dp(8))
-            setOnClickListener { showLanguagePicker() }
-        }
-        settingsDrawer.addView(
-            languageBtn,
-            paramsFullWidth().apply { bottomMargin = dp(8) }
-        )
-
-        // 設定頁只留「語言」。其餘四個開關改成自動判斷，不再讓使用者手動切：
-        //   - LLM Agent：由「APK 是否有模型 / 是否有模板可解析」自動決定（ExecutionRouter）
-        //   - Grounding 2.0：預設開啟（多來源 grounding 融合）
-        //   - Task OS：預設開啟（模板沒命中會自動回落舊拆解路徑）
-        //   - WAE-Ω：shadow 模式只寫 log，對使用者沒有好處 → 不顯示
-        // 需要除錯時用 adb 改 SharedPreferences，不必留在 UI。
-        refreshRuntimeFlagButtons()
-        refreshRuntimeFlagButtons()
-
-        recentCommandsView = TextView(this).apply {
-            textSize = 11.5f
-            setTextColor(Color.parseColor("#52525B"))
-            text = "最近指令：—"
-            setPadding(0, dp(4), 0, dp(4))
-        }
-        settingsDrawer.addView(recentCommandsView)
-        settingsDrawer.addView(Button(this).apply {
-            text = "清除紀錄"
-            isAllCaps = false
-            textSize = 12f
-            setTextColor(Color.parseColor("#71717A"))
-            minHeight = 0
-            minimumHeight = 0
-            setOnClickListener {
-                com.wae.agent.voice.SessionHistory.clear(this@MainActivity)
-                refreshRecentCommands()
-            }
-        })
-
-        val diagBtn = Button(this).apply {
-            text = "匯出診斷包"
-            isAllCaps = false
-            textSize = 12.5f
-            setTextColor(Color.parseColor("#1D4ED8"))
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#EFF6FF"))
-                setStroke(dp(1), Color.parseColor("#BFDBFE"))
-                cornerRadius = dp(10).toFloat()
-            }
-            setPadding(dp(14), dp(8), dp(14), dp(8))
-            setOnClickListener { exportDiagnostics() }
-        }
-        settingsDrawer.addView(
-            diagBtn,
-            paramsFullWidth().apply { bottomMargin = dp(8) }
-        )
-
-        versionView = TextView(this).apply {
-            textSize = 10.5f
-            gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#C7CFE4"))
-            text = "WAE 2.1.0-wae · 離線 · 無 INTERNET 權限"
-        }
-        settingsDrawer.addView(versionView)
-
-        engineStatsView = TextView(this).apply {
-            textSize = 11.5f
-            gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#64748B"))
-        }
-        refreshCrashLogButton()
-        refreshEngineStats()
-        settingsDrawer.addView(
-            engineStatsView,
-            paramsFullWidth()
-        )
-
-        wakeWordBtn = makeToggleButton("Hey WAE 喚醒詞（測試）") { enabled ->
-            handleWakeWordToggle(enabled)
-        }
-        settingsDrawer.addView(
-            wakeWordBtn,
-            paramsFullWidth().apply { bottomMargin = dp(8) }
-        )
-
-        centerCard.addView(
-            settingsDrawer,
-            paramsFullWidth()
-        )
+        buildSettingsDrawer(centerCard)
 
         outerScreenFrame.addView(
             centerCard,
@@ -597,6 +266,348 @@ class MainActivity : Activity() {
     /** 無障礙服務未啟用時的醒目橫幅（重裝 APK 後 Android 會自動關閉該服務）。 */
 
     /** 頂部列：品牌小助手（向量圖）＋ 右側設定入口。 */
+
+    /**
+     * 可折疊設定抽屜：系統檢查、自我測試、反例、App 排序、懸浮窗、語音助理、
+     * 崩潰紀錄、進階設定。
+     *
+     * 從 onCreate 抽出來（原本 339 行），內容彼此獨立、只依賴欄位，
+     * 所以可以整段搬走而不改變行為。
+     */
+    private fun buildSettingsDrawer(centerCard: LinearLayout) {
+    // 可折疊「⚙️ 設定」抽屜
+    settingsDrawer = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        visibility = View.GONE
+        setPadding(0, dp(12), 0, 0)
+    }
+
+    val divider = View(this).apply {
+        setBackgroundColor(Color.parseColor("#E2E8F0"))
+    }
+    settingsDrawer.addView(
+        divider,
+        LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)).apply {
+            bottomMargin = dp(12)
+        }
+    )
+
+    // P1：系統檢查（一眼看出缺什麼，一鍵修復）
+    settingsDrawer.addView(TextView(this).apply {
+        text = "系統檢查"
+        textSize = 12f
+        setTextColor(Color.parseColor("#71717A"))
+        setPadding(0, 0, 0, dp(6))
+    })
+    systemCheckContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+    settingsDrawer.addView(
+        systemCheckContainer,
+        paramsFullWidth().apply { bottomMargin = dp(10) }
+    )
+    addCheckRow("a11y", "無障礙服務")
+    addCheckRow("assistant", "助理角色")
+    addCheckRow("mic", "麥克風")
+    addCheckRow("voice", "語音服務")
+
+    // 自我測試：不用 adb 就知道「它現在還能不能用」
+    settingsDrawer.addView(Button(this).apply {
+        text = " 自我測試（9 項）"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#0F172A"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F1F5F9"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setOnClickListener { runSelfTest() }
+    }, paramsFullWidth().apply { bottomMargin = dp(8) })
+
+    // 反例檢視（H7）：讓使用者看得到它學到哪些禁令，而且能刪
+    settingsDrawer.addView(Button(this).apply {
+        text = " 反例（它學到的禁令）"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#0F172A"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#FEF2F2"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setOnClickListener { showRefutations() }
+    }, paramsFullWidth().apply { bottomMargin = dp(8) })
+
+    // App 類型排序（每個型別的 App 順序，可拖動）
+    settingsDrawer.addView(Button(this).apply {
+        text = "\uD83E\uDDE9 App 類型排序（拖拉順序）"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#0F172A"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#EEF2FF"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            startActivity(
+                Intent(this@MainActivity, com.wae.agent.settings.AppTypeOrderActivity::class.java)
+            )
+        }
+    }, paramsFullWidth().apply { bottomMargin = dp(8) })
+
+    val openA11yBtn = Button(this).apply {
+        text = "開啟無障礙服務"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#0F172A"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F1F5F9"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            try {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            } catch (_: Throwable) {
+            }
+        }
+    }
+    settingsDrawer.addView(
+        openA11yBtn,
+        paramsFullWidth(bottom = 8)
+    )
+
+    runModeBtn = Button(this).apply {            text = getRunModeButtonText()
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F5F3FF"))
+            setStroke(dp(1), Color.parseColor("#DDD6FE"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            WaeV26PipelineOrchestrator.currentRunMode =
+                if (WaeV26PipelineOrchestrator.currentRunMode == RunMode.PRODUCTION) {
+                    RunMode.TEST
+                } else {
+                    RunMode.PRODUCTION
+                }
+            runModeBtn.text = getRunModeButtonText()
+            statusLineView.text = buildMinimalStatusText()
+        }
+    }
+    settingsDrawer.addView(
+        runModeBtn,
+        paramsFullWidth(bottom = 8)
+    )
+
+    // S35：懸浮窗 UI（HTML/WebView）開關（開發輔助）
+    val overlayBtn = Button(this).apply {
+        text = "懸浮窗"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#EFF6FF"))
+            setStroke(dp(1), Color.parseColor("#93C5FD"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            val svc = WaeVisionAccessibilityService.activeInstance
+            if (svc == null) {
+                statusLineView.text = "⚠ 請先開啟無障礙服務，懸浮窗需要它以 TYPE_ACCESSIBILITY_OVERLAY 顯示"
+        
+    settingsDrawer.visibility = View.VISIBLE
+            } else {
+                val showing = svc.toggleFloatingOverlay()
+                statusLineView.text = if (showing) " 懸浮窗已開啟（可拖曳標題列移動）" else " 懸浮窗已關閉"
+            }
+        }
+    }
+    settingsDrawer.addView(
+        overlayBtn,
+        paramsFullWidth(bottom = 8)
+    )
+
+    // S36：語音助理（設為系統預設助理 → 長按電源鍵／Home 召喚，不用開 App）
+    val assistRoleBtn = Button(this).apply {
+        text = "設為手機助理（長按電源鍵）"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F5F3FF"))
+            setStroke(dp(1), Color.parseColor("#DDD6FE"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            val rm = com.wae.core.util.Degrade.orNull("main:roleManager") { getSystemService(RoleManager::class.java) }
+            if (rm == null || !rm.isRoleAvailable(RoleManager.ROLE_ASSISTANT)) {
+                statusLineView.text = "⚠ 此裝置不支援助理角色；可用「 懸浮窗」或快捷設定磚"
+            } else if (rm.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
+                statusLineView.text = "✓ WAE 已是預設助理：長按電源鍵／Home 即可召喚"
+            } else {
+                com.wae.core.util.Degrade.orNull("main:requestAssistantRole") {
+                    startActivityForResult(
+                        rm.createRequestRoleIntent(RoleManager.ROLE_ASSISTANT),
+                        REQ_ASSISTANT_ROLE
+                    )
+                }
+            }
+        }
+    }
+    settingsDrawer.addView(
+        assistRoleBtn,
+        paramsFullWidth().apply { bottomMargin = dp(8) }
+    )
+
+    val voiceNowBtn = Button(this).apply {
+        text = "語音指令"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#EFF6FF"))
+            setStroke(dp(1), Color.parseColor("#93C5FD"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener {
+            com.wae.core.util.Degrade.orNull("main:openAssistVoice") {
+                startActivity(Intent(this@MainActivity, com.wae.agent.voice.AssistActivity::class.java))
+            }
+        }
+    }
+    settingsDrawer.addView(
+        voiceNowBtn,
+        paramsFullWidth().apply { bottomMargin = dp(8) }
+    )
+
+    // 上次崩潰紀錄入口（WaeApp 會把未捕捉例外寫到 filesDir/crash-last.txt）
+    crashLogBtn = Button(this).apply {            text = " 查看上次崩潰紀錄"
+        isAllCaps = false
+        textSize = 13f
+        setTextColor(Color.parseColor("#7C2D12"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#FFF7ED"))
+            setStroke(dp(1), Color.parseColor("#FDBA74"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setOnClickListener { showCrashLogDialog() }
+    }
+    settingsDrawer.addView(
+        crashLogBtn,
+        paramsFullWidth(bottom = 8)
+    )
+
+    // P1：進階設定
+    settingsDrawer.addView(TextView(this).apply {
+        text = "進階"
+        textSize = 12f
+        setTextColor(Color.parseColor("#71717A"))
+        setPadding(0, dp(8), 0, dp(4))
+    })
+    languageBtn = Button(this).apply {
+        text = "語音語言"
+        isAllCaps = false
+        textSize = 12.5f
+        setTextColor(Color.parseColor("#52525B"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#F4F4F5"))
+            setStroke(dp(1), Color.parseColor("#E4E4E7"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(8), dp(14), dp(8))
+        setOnClickListener { showLanguagePicker() }
+    }
+    settingsDrawer.addView(
+        languageBtn,
+        paramsFullWidth().apply { bottomMargin = dp(8) }
+    )
+
+    // 設定頁只留「語言」。其餘四個開關改成自動判斷，不再讓使用者手動切：
+    //   - LLM Agent：由「APK 是否有模型 / 是否有模板可解析」自動決定（ExecutionRouter）
+    //   - Grounding 2.0：預設開啟（多來源 grounding 融合）
+    //   - Task OS：預設開啟（模板沒命中會自動回落舊拆解路徑）
+    //   - WAE-Ω：shadow 模式只寫 log，對使用者沒有好處 → 不顯示
+    // 需要除錯時用 adb 改 SharedPreferences，不必留在 UI。
+    refreshRuntimeFlagButtons()
+    refreshRuntimeFlagButtons()
+
+    recentCommandsView = TextView(this).apply {
+        textSize = 11.5f
+        setTextColor(Color.parseColor("#52525B"))
+        text = "最近指令：—"
+        setPadding(0, dp(4), 0, dp(4))
+    }
+    settingsDrawer.addView(recentCommandsView)
+    settingsDrawer.addView(Button(this).apply {
+        text = "清除紀錄"
+        isAllCaps = false
+        textSize = 12f
+        setTextColor(Color.parseColor("#71717A"))
+        minHeight = 0
+        minimumHeight = 0
+        setOnClickListener {
+            com.wae.agent.voice.SessionHistory.clear(this@MainActivity)
+            refreshRecentCommands()
+        }
+    })
+
+    val diagBtn = Button(this).apply {
+        text = "匯出診斷包"
+        isAllCaps = false
+        textSize = 12.5f
+        setTextColor(Color.parseColor("#1D4ED8"))
+        background = GradientDrawable().apply {
+            setColor(Color.parseColor("#EFF6FF"))
+            setStroke(dp(1), Color.parseColor("#BFDBFE"))
+            cornerRadius = dp(10).toFloat()
+        }
+        setPadding(dp(14), dp(8), dp(14), dp(8))
+        setOnClickListener { exportDiagnostics() }
+    }
+    settingsDrawer.addView(
+        diagBtn,
+        paramsFullWidth().apply { bottomMargin = dp(8) }
+    )
+
+    versionView = TextView(this).apply {
+        textSize = 10.5f
+        gravity = Gravity.CENTER
+        setTextColor(Color.parseColor("#C7CFE4"))
+        text = "WAE 2.1.0-wae · 離線 · 無 INTERNET 權限"
+    }
+    settingsDrawer.addView(versionView)
+
+    engineStatsView = TextView(this).apply {
+        textSize = 11.5f
+        gravity = Gravity.CENTER
+        setTextColor(Color.parseColor("#64748B"))
+    }
+    refreshCrashLogButton()
+    refreshEngineStats()
+    settingsDrawer.addView(
+        engineStatsView,
+        paramsFullWidth()
+    )
+
+    wakeWordBtn = makeToggleButton("Hey WAE 喚醒詞（測試）") { enabled ->
+        handleWakeWordToggle(enabled)
+    }
+    settingsDrawer.addView(
+        wakeWordBtn,
+        paramsFullWidth().apply { bottomMargin = dp(8) }
+    )
+
+    centerCard.addView(
+        settingsDrawer,
+        paramsFullWidth()
+    )
+    }
     private fun buildHeader(centerCard: LinearLayout) {
     // 頂部列：左側標題 + 右側「⚙️ 設定」按鈕
     val headerRow = LinearLayout(this).apply {
