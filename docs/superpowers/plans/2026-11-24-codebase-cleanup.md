@@ -17,9 +17,9 @@
 | 1 債務指標 | 完成 | `tools/debt_report.ps1` 四項 ok；commit `e6aa792` |
 | 2 清 emoji | 完成 | 32 → 0；`tools/strip_emoji.py`；commit `f8d02ad` |
 | 3 系統目標進 TSV | 完成 | `ui_system_targets.tsv` ＋ 5 個新測試；commit（Task 3） |
-| 4 runCatching | 進行中 | 593 → **471**（11 批共 122 處）；ratchet 558 → 434 |
-| 5 拆 Service | 進行中 | 3977 → **3784**（已抽 BaselineRecovery、ScreenCapture）|
-| 6 拆 MainActivity | 未開始 | 目前 2078 行 |
+| 4 runCatching | 進行中 | 593 → **457**（12 批共 136 處）；ratchet 558 → 420 |
+| 5 拆 Service | 進行中 | 3977 → **3784**（已抽 BaselineRecovery、ScreenCapture；PipelineEntry 待真機）|
+| 6 拆 MainActivity | **完成** | `onCreate` **817 → 100 行**；抽出 8 個 builder（header／onboarding／safety／banner／input／devBench／status／drawer）＋ `paramsFullWidth()`（34 處）|
 | 7 10 題回歸腳本 | 完成（待真機驗證） | `tools/run_smoke_10.ps1` |
 | 8 死碼／TODO | 完成（TODO） | 實測 **0 筆**：原 46 筆是 `-match 'TODO'` 誤命中 `.toDouble()`，腳本已修 |
 | 9 語音入口統一 | **完成（待真機）** | `UserCommandEntry.runFromContext`；語音 execute 從 69 行縮到 27 行；commit `9f5126b` |
@@ -343,3 +343,23 @@ git commit -m "refactor(voice): 語音入口改用共用指令入口"
 - **Task 5／6 是結構性搬移**：每個檔案一個 commit，任何關卡失敗只回退該 commit。
 - **Task 4 可能暴露既有 bug**：把吞錯改成拋出時若測試失敗，代表原本就有錯被藏住——先修 bug，再繼續該批。
 - **Task 3 的資料搬移**：別名一字不改；若 `PlannerSystemTargetsTest` 需要修改，代表搬移不忠實，回退重做。
+
+## 本輪額外整理（非原計畫項目）
+
+| 項目 | 內容 | 證據 |
+|---|---|---|
+| AssetTable | 合併 16 個類別的 assets 載入樣板（21 → 5 個特例） | commit 2d83d6a |
+| ejectDecision() | WaeV26PipelineOrchestrator 5 處重複的 REJECT 結果建構合併 | commit（refactor decision） |
+| paramsFullWidth() | MainActivity 34 處「整寬列」排版樣板合併 | commit c43264 |
+| 計畫層 | Plan／PlanMatcher／Stability／PlanCondition／PlanVars／Ambiguity／Tokenizer（含 24 個測試） | commits 3150702、e640b46 |
+| 畫面簡化器 | ScreenModel／OptionExtractor／OptionResolver，決策層改走選項 | commits 95a122、82b0e83 |
+| 覆蓋率 | 區域式 OCR（只辨識可疑區塊） | commit 3ee88c3 |
+| 25／26 題 | 概念＋同族比對、選單位置排序、三層後援、異體字折疊、2 項選單判準 | commits c3c4a88、8b75bc2、172a998 |
+| 點擊健壯性 | 策略＋驗證迴圈（節點→可點祖先→容器→同名候選） | commit 69119ba |
+| 指紋 | 排除跳動文字（時鐘秒數），避免「假成功」 | commit 842e0f |
+
+### 過程中修掉的自身錯誤（避免復發）
+
+1. paramsFullWidth 被批次替換改成自我呼叫 → StackOverflow；**批次替換必須先替換、後加 helper**。
+2. 區塊抽取用大括號計數會在 pply { } 結束時誤判 → 改用「下一個區塊註解」或先算好所有範圍。
+3. 邊抽邊找 marker 會把後續 marker 吃掉 → 先一次算好所有範圍，再由下往上替換。
