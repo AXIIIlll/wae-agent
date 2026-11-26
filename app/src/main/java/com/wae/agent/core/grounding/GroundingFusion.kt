@@ -1,6 +1,7 @@
 package com.wae.agent.core.grounding
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
@@ -102,8 +103,7 @@ object GroundingFusion {
     @Volatile
     private var model: LinearModel = LinearModel()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     /**
      * Bootstrap 權重（資料表載入失敗時使用；方向 = 通道可信度 + 可動作性 + 與文字的空間關係）。
@@ -150,15 +150,7 @@ object GroundingFusion {
      * 由整合層在需要時印 [loadedSummary]（核心邏輯不依賴 android.util.Log）。
      */
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        try {
-            val lines = context?.assets?.open(DB_PATH)
-                ?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
-            loadFromLines(lines ?: DEFAULT_ROWS)
-        } catch (_: Throwable) {
-            loadFromLines(DEFAULT_ROWS)
-        }
+        loadFromLines(table.lines(context, DEFAULT_ROWS))
     }
 
     /**
@@ -176,7 +168,7 @@ object GroundingFusion {
     /** 測試/緊急除錯用：清空模型（weightCount 變 0，等於「沒有權重」） */
     fun resetForTest() {
         model = LinearModel()
-        loadAttempted = false
+        table.reset()
     }
 
     /** 目前權重列數（正式檔/bootrap 應 > 20） */

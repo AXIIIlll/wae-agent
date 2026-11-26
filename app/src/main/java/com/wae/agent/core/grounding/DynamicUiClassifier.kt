@@ -1,6 +1,7 @@
 package com.wae.agent.core.grounding
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 動態 UI 辨識（S32 / 計畫「動態 UI」）：畫面不一定已經準備好可以點。
@@ -33,8 +34,7 @@ object DynamicUiClassifier {
     /** 每種狀態的關鍵詞（lowercase） */
     private val words = HashMap<DynamicUiState, MutableList<String>>()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     data class Signal(
         val state: DynamicUiState,
@@ -48,15 +48,7 @@ object DynamicUiClassifier {
     }
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        try {
-            val lines = context?.assets?.open(DB_PATH)
-                ?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
-            loadFromLines(lines ?: DEFAULT_ROWS)
-        } catch (_: Throwable) {
-            loadFromLines(DEFAULT_ROWS)
-        }
+        loadFromLines(table.lines(context, DEFAULT_ROWS))
     }
 
     /** 解析：`state<TAB>keyword`；state ∈ loading / ad / permission / snackbar / keyboard */
@@ -89,7 +81,7 @@ object DynamicUiClassifier {
 
     fun resetForTest() {
         synchronized(words) { words.clear() }
-        loadAttempted = false
+        table.reset()
     }
 
     fun wordCount(): Int = synchronized(words) { words.values.sumOf { it.size } }

@@ -1,6 +1,7 @@
-﻿package com.wae.agent.core.nlu
+package com.wae.agent.core.nlu
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 目標連接詞語意（S28：條件依賴）。
@@ -28,19 +29,16 @@ object GoalConnectors {
     @Volatile
     private var independent: List<String> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             sequential = DEFAULT_SEQUENTIAL
             independent = DEFAULT_INDEPENDENT
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -65,7 +63,7 @@ object GoalConnectors {
     fun resetForTest() {
         sequential = emptyList()
         independent = emptyList()
-        loadAttempted = false
+        table.reset()
     }
 
     private fun seqList(): List<String> = if (sequential.isEmpty()) DEFAULT_SEQUENTIAL else sequential

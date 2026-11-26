@@ -1,6 +1,7 @@
 package com.wae.agent.core.nlu
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.ActionKind
 
 /**
@@ -25,8 +26,7 @@ object ActionSelectorTable {
     @Volatile
     private var rules: Map<String, ActionKind> = emptyMap()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     /** 受詞型別 */
     object ObjectType {
@@ -48,13 +48,7 @@ object ActionSelectorTable {
     }
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
-        }
+        table.linesOrNull(context)?.let { loadFromLines(it) }
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -74,7 +68,7 @@ object ActionSelectorTable {
 
     fun resetForTest() {
         rules = emptyMap()
-        loadAttempted = false
+        table.reset()
     }
 
     fun ruleCount(): Int = rules.size

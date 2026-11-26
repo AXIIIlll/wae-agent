@@ -1,6 +1,7 @@
-﻿package com.wae.agent.core.goal
+package com.wae.agent.core.goal
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.ActionKind
 
 /**
@@ -23,8 +24,7 @@ object GoalCompiler {
     @Volatile
     private var rules: Map<String, String> = emptyMap()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     /** bootstrap：資料檔載入失敗時的後備（與 TSV 同語意） */
     private val DEFAULT_RULES = mapOf(
@@ -45,14 +45,12 @@ object GoalCompiler {
     )
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             rules = DEFAULT_RULES
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -69,7 +67,7 @@ object GoalCompiler {
 
     fun resetForTest() {
         rules = emptyMap()
-        loadAttempted = false
+        table.reset()
     }
 
     fun effectiveRules(): Map<String, String> = if (rules.isEmpty()) DEFAULT_RULES else rules

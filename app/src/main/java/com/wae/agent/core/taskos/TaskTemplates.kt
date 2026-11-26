@@ -1,6 +1,7 @@
 package com.wae.agent.core.taskos
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 任務模板（HTN 的「方法」層）：把常見長任務的骨架資料化。
@@ -54,8 +55,7 @@ object TaskTemplates {
         "clear_text" to com.wae.agent.core.ActionKind.CLEAR_TEXT
     )
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     private val DEFAULT_ROWS = listOf(
         // 讀資訊：打開設定的關於頁 → 收集版本號
@@ -73,15 +73,7 @@ object TaskTemplates {
     )
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        try {
-            val lines = context?.assets?.open(DB_PATH)
-                ?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
-            loadFromLines(lines ?: DEFAULT_ROWS)
-        } catch (_: Throwable) {
-            loadFromLines(DEFAULT_ROWS)
-        }
+        loadFromLines(table.lines(context, DEFAULT_ROWS))
     }
 
     /** 每行：`template<TAB>pattern<TAB>steps`；`#` 註解；壞行跳過（不 panic） */
@@ -124,7 +116,7 @@ object TaskTemplates {
     fun resetForTest() {
         synchronized(templates) { templates.clear() }
         synchronized(verbs) { verbs.clear() }
-        loadAttempted = false
+        table.reset()
     }
 
     /** 動詞數量（診斷） */

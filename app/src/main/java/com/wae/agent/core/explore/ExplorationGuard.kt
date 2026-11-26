@@ -1,6 +1,7 @@
 package com.wae.agent.core.explore
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * S5：探索護欄（架構書 §7.2「三層護欄」）。
@@ -37,20 +38,17 @@ object ExplorationGuard {
     @Volatile
     private var policy: Policy? = null
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     fun effective(): Policy = policy ?: Policy()
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             policy = Policy()
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>): Unit {
@@ -91,7 +89,7 @@ object ExplorationGuard {
 
     fun resetForTest() {
         policy = null
-        loadAttempted = false
+        table.reset()
     }
 
     /** 第一層：環境與預算 */

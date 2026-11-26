@@ -1,6 +1,7 @@
-﻿package com.wae.agent.core.decision
+package com.wae.agent.core.decision
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.CandidateOption
 
 /**
@@ -34,20 +35,17 @@ object ContentItemEvidence {
     @Volatile
     private var navKeywords: List<String> = emptyList()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     private val TIME_HINT = Regex("(\\d{1,2}:\\d{2})|(\\d{1,2}月\\d{1,2}日)|(昨天)|(星期[一二三四五六日])|(\\d{4}/\\d{1,2}/\\d{1,2})")
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             navKeywords = DEFAULT_NAV
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -64,7 +62,7 @@ object ContentItemEvidence {
 
     fun resetForTest() {
         navKeywords = emptyList()
-        loadAttempted = false
+        table.reset()
     }
 
     fun keywords(): List<String> = if (navKeywords.isEmpty()) DEFAULT_NAV else navKeywords

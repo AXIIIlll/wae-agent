@@ -1,6 +1,7 @@
 package com.wae.agent.core.taskos
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 
 /**
  * 槽位填充（SlotFiller）：把使用者指令裡的參數抽出來，餵給任務模板。
@@ -20,8 +21,7 @@ object SlotFiller {
 
     private val slots = LinkedHashMap<String, Regex>()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     private val DEFAULT_ROWS = listOf(
         "slot\tapp\t(?:打開|開啟|啟動)([^，,。\\s]{1,12})",
@@ -32,15 +32,7 @@ object SlotFiller {
     )
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted) return
-        loadAttempted = true
-        try {
-            val lines = context?.assets?.open(DB_PATH)
-                ?.bufferedReader(Charsets.UTF_8)?.use { it.readLines() }
-            loadFromLines(lines ?: DEFAULT_ROWS)
-        } catch (_: Throwable) {
-            loadFromLines(DEFAULT_ROWS)
-        }
+        loadFromLines(table.lines(context, DEFAULT_ROWS))
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -62,7 +54,7 @@ object SlotFiller {
 
     fun resetForTest() {
         synchronized(slots) { slots.clear() }
-        loadAttempted = false
+        table.reset()
     }
 
     fun count(): Int = synchronized(slots) { slots.size }

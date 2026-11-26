@@ -1,6 +1,7 @@
-﻿package com.wae.agent.core.decision
+package com.wae.agent.core.decision
 
 import android.content.Context
+import com.wae.agent.core.data.AssetTable
 import com.wae.agent.core.ActionKind
 import com.wae.agent.core.CandidateOption
 
@@ -34,8 +35,7 @@ object TargetPreference {
     @Volatile
     private var weights: Map<String, List<Feature>> = emptyMap()
 
-    @Volatile
-    private var loadAttempted = false
+    private val table = AssetTable(DB_PATH)
 
     /** 內建 bootstrap（資料表載入失敗時使用，確保行為不退化） */
     private val DEFAULT_ROWS = listOf(
@@ -51,14 +51,12 @@ object TargetPreference {
     )
 
     fun ensureLoaded(context: Context?) {
-        if (loadAttempted || context == null) return
-        loadAttempted = true
-        try {
-            val lines = context.assets.open(DB_PATH).bufferedReader(Charsets.UTF_8).use { it.readLines() }
-            loadFromLines(lines)
-        } catch (_: Throwable) {
+        val lines = table.linesOrNull(context)
+        if (lines == null) {
             loadFromLines(DEFAULT_ROWS)
+            return
         }
+        loadFromLines(lines)
     }
 
     fun loadFromLines(lines: List<String>) {
@@ -80,7 +78,7 @@ object TargetPreference {
 
     fun resetForTest() {
         weights = emptyMap()
-        loadAttempted = false
+        table.reset()
     }
 
     fun ruleCount(): Int = weights.values.sumOf { it.size }
