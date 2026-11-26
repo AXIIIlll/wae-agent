@@ -38,6 +38,34 @@ object WaeV26PipelineOrchestrator {
     }
 
     // ========================================================================
+    // 0. 決策結果建構（避免同樣的 8 個欄位被抄 5 次）
+    // ========================================================================
+
+    /**
+     * 建立「不選任何元素」的決策結果（REJECT）。
+     *
+     * 為什麼要抽：原本 5 個否決分支各自複製 8 行欄位指派，
+     * 只要欄位改名或新增欄位，就得改 5 個地方，而且很容易漏一個。
+     * 現在只剩「原因字串」不同，其餘由這裡保證一致。
+     */
+    private fun rejectDecision(
+        optionSet: ImmutableOptionSet,
+        p1: Float,
+        p2: Float,
+        margin: Float,
+        reason: String
+    ): CuaDecisionResult = CuaDecisionResult(
+        frameId = optionSet.frameId,
+        windowIdx = optionSet.windowIdx,
+        outcomeType = DecisionOutcomeType.REJECT,
+        selectedOption = null,
+        top1Prob = p1,
+        top2Prob = p2,
+        margin = margin,
+        reason = reason
+    )
+
+    // ========================================================================
     // 1. L6 Coordinator：完全基於 command_lexicon.tsv 與系統已安裝 App 資料庫拆解指令與提取槽位
     // ========================================================================
     private fun trimClausePunctuation(text: String): String {
@@ -1327,13 +1355,10 @@ object WaeV26PipelineOrchestrator {
             val contentOnly = classCandidates.filter { !it.isSearchAffordance && !it.isEditable }
             // B：完全沒有內容元素 → 視為「查無結果」，不再盲目重試
             if (contentOnly.isEmpty()) {
-                return CuaDecisionResult(
-                    frameId = optionSet.frameId,
-                    windowIdx = optionSet.windowIdx,
-                    outcomeType = DecisionOutcomeType.REJECT,
-                    selectedOption = null,
-                    top1Prob = p1,
-                    top2Prob = p2,
+                return rejectDecision(
+                    optionSet = optionSet,
+                    p1 = p1,
+                    p2 = p2,
                     margin = margin,
                     reason = "EMPTY_CONTENT_SET(target='${goal.inputPayload}')"
                 )
@@ -1358,13 +1383,10 @@ object WaeV26PipelineOrchestrator {
             ).firstOrNull()
             // 目標語意與所有內容元素都不相似 → 不要硬點（例如「把亮度調高一點」沒有任何元素符合）
             if (fallback == null || fallback.hybridSimScore < 0.20f) {
-                return CuaDecisionResult(
-                    frameId = optionSet.frameId,
-                    windowIdx = optionSet.windowIdx,
-                    outcomeType = DecisionOutcomeType.REJECT,
-                    selectedOption = null,
-                    top1Prob = p1,
-                    top2Prob = p2,
+                return rejectDecision(
+                    optionSet = optionSet,
+                    p1 = p1,
+                    p2 = p2,
                     margin = margin,
                     reason = "NO_PLAUSIBLE_TARGET(target='${goal.inputPayload}', best=${"%.2f".format(fallback?.hybridSimScore ?: 0f)})"
                 )
@@ -1497,13 +1519,10 @@ object WaeV26PipelineOrchestrator {
             }
             if (inputCandidates.isEmpty()) {
                 Log.i("WAE_EXEC", "TYPE gate: no input entry on screen → REJECT (pkg=${optionSet.packageName})")
-                return CuaDecisionResult(
-                    frameId = optionSet.frameId,
-                    windowIdx = optionSet.windowIdx,
-                    outcomeType = DecisionOutcomeType.REJECT,
-                    selectedOption = null,
-                    top1Prob = p1,
-                    top2Prob = p2,
+                return rejectDecision(
+                    optionSet = optionSet,
+                    p1 = p1,
+                    p2 = p2,
                     margin = margin,
                     reason = "NO_INPUT_ENTRY(pkg=${optionSet.packageName})"
                 )
@@ -1574,29 +1593,23 @@ object WaeV26PipelineOrchestrator {
         }
 
         if (probR > p1 || p1 < thetaAbs || top1Opt.hybridSimScore < thetaSimFloor) {
-            return CuaDecisionResult(
-                frameId = optionSet.frameId,
-                windowIdx = optionSet.windowIdx,
-                outcomeType = DecisionOutcomeType.REJECT,
-                selectedOption = null,
-                top1Prob = p1,
-                top2Prob = p2,
-                margin = margin,
-                reason = "LOW_CONFIDENCE_OR_SIM (P1=${"%.2f".format(p1)} < ${"%.2f".format(thetaAbs)}, Sim=${"%.2f".format(top1Opt.hybridSimScore)})"
-            )
+            return rejectDecision(
+                    optionSet = optionSet,
+                    p1 = p1,
+                    p2 = p2,
+                    margin = margin,
+                    reason = "LOW_CONFIDENCE_OR_SIM (P1=${"%.2f".format(p1)} < ${"%.2f".format(thetaAbs)}, Sim=${"%.2f".format(top1Opt.hybridSimScore)})"
+                )
         }
 
         if (margin < thetaMargin) {
-            return CuaDecisionResult(
-                frameId = optionSet.frameId,
-                windowIdx = optionSet.windowIdx,
-                outcomeType = DecisionOutcomeType.REJECT,
-                selectedOption = null,
-                top1Prob = p1,
-                top2Prob = p2,
-                margin = margin,
-                reason = "LOW_MARGIN_FUZZY (Margin=${"%.2f".format(margin)} < ${"%.2f".format(thetaMargin)})"
-            )
+            return rejectDecision(
+                    optionSet = optionSet,
+                    p1 = p1,
+                    p2 = p2,
+                    margin = margin,
+                    reason = "LOW_MARGIN_FUZZY (Margin=${"%.2f".format(margin)} < ${"%.2f".format(thetaMargin)})"
+                )
         }
 
         return CuaDecisionResult(
