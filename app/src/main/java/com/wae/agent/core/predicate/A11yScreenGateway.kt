@@ -176,7 +176,41 @@ class A11yScreenGateway(
             val bExact = if (com.wae.core.predicate.TextFold.fold(b.second.label) == goalFold) 1 else 0
             if (aExact != bExact) return@maxWithOrNull (aExact - bExact)
             b.second.label.length.compareTo(a.second.label.length)
-        } ?: return -1 to 0f
+        }
+
+        // 最近似退路（第 19 題踩到）：「鬧鐘清單」對上畫面標籤「鬧鐘」時，
+        // 兩邊互不包含 → 分數 0 → 這裡若直接回 -1，TaskExecutor 的門檻會擋掉，
+        // 連 act() 都不會呼叫，後面的選項層後援也就永遠用不到。
+        // 所以「找不到明確相符」時，這裡先做一次最近似，並把分數抬到門檻之上。
+        if (best == null || best.third < 0.45f) {
+            val nearest = com.wae.core.util.Degrade.orNull("gateway:nearestFind") {
+                com.wae.core.screen.ConceptMatcher.nearest(
+                    VariantFold.fold(context, target),
+                    pairs.map { VariantFold.fold(context, it.second.label) },
+                    floor = com.wae.agent.core.runtime.Tunables.getFloat(
+                        context, "match.nearest_floor", 0.45f
+                    ),
+                    margin = com.wae.agent.core.runtime.Tunables.getFloat(
+                        context, "match.nearest_margin", 0.10f
+                    )
+                )
+            }
+            if (nearest != null) {
+                val idx = pairs.indexOfFirst {
+                    VariantFold.fold(context, it.second.label) == nearest.first
+                }
+                if (idx >= 0) {
+                    val lifted = maxOf(nearest.second, 0.56f)
+                    android.util.Log.i(
+                        "WAE_PICK",
+                        "find nearest '$target' → '${pairs[idx].second.label}' dice=%.2f 抬到 %.2f"
+                            .format(nearest.second, lifted)
+                    )
+                    return idx to lifted
+                }
+            }
+        }
+        if (best == null) return -1 to 0f
 
         run {
             val top = scored.sortedByDescending { it.third }.take(3).joinToString(" | ") { s ->
@@ -513,7 +547,11 @@ class A11yScreenGateway(
         } else {
             performOn(node, op, arg)
         }
-        if (!ok) return false
+        if (!ok) {
+            // 驗證失敗（畫面沒變）→ 可能點到同名候選裡的錯的那個，逐一再試
+            if (clickSameLabelCandidates(capture(), target)) return true
+            return false
+        }
 
         // ⑥ 點擊後的結果驗證：PICK/SHARE/SEND 之後畫面必須有變化
         //    （否則就是「點了但沒進去」——例如搜尋結果沒點開）
@@ -889,6 +927,64 @@ class A11yScreenGateway(
             }
             cur = parent
             up += 1
+        }
+        // 最後手段：沒有任何可點祖先時，直接點「容器」的中心。
+        // 為什麼需要：三星時鐘的底部頁籤是圖示＋文字，無障礙上沒有一個節點標成可點，
+        // 但點容器中心就會切換（第 19 題）。這是座標退路，不是硬編位置。
+        val rect = android.graphics.Rect()
+        var container: AccessibilityNodeInfo? = node
+        var hops = 0
+        while (container != null && hops < 3) {
+            container.getBoundsInScreen(rect)
+            if (rect.width() > 0 && rect.height() > 0) {
+                val cx = (rect.left + rect.right) / 2f
+                val cy = (rect.top + rect.bottom) / 2f
+                val tapped = com.wae.core.util.Degrade.orElse("click:containerTap", false) {
+                    val path = android.graphics.Path().apply { moveTo(cx, cy) }
+                    val g = android.accessibilityservice.GestureDescription.Builder()
+                        .addStroke(android.accessibilityservice.GestureDescription.StrokeDescription(path, 0L, 60L))
+                        .build()
+                    service.dispatchGesture(g, null, null)
+                }
+                if (tapped) {
+                    android.util.Log.i("WAE_PICK", "containerTap @($cx,$cy) hops=$hops")
+                    return true
+                }
+            }
+            container = runCatching { container!!.parent }.getOrNull()
+            hops += 1
+        }
+        return false
+    }
+
+    /**
+     * 同一頁上「同名候選」依序嘗試（第 19 題踩到）。
+     *
+     * 為什麼需要：三星時鐘的底部頁籤是「圖示＋文字」，無障礙樹上會出現多個同名節點
+     * （UNKNOWN／ROW 各一個），其中只有一個是真的可切換的頁籤。
+     * 只點第一個常常點到文字節點，什麼都不會發生——所以要「點一個、驗一次、換下一個」。
+     */
+    private fun clickSameLabelCandidates(f: Frame, target: String, limit: Int = 3): Boolean {
+        val pairs = optionsOf(f)
+        val fTarget = VariantFold.fold(context, target)
+        val same = pairs.filter { p ->
+            val l = VariantFold.fold(context, p.second.label)
+            l == fTarget || (l.isNotEmpty() && (l.contains(fTarget) || fTarget.contains(l)))
+        }.take(limit)
+        if (same.isEmpty()) return false
+        for (p in same) {
+            val node = NodeRegistry.get(p.first.key) ?: continue
+            val before = f.fp
+            if (!clickNode(node)) continue
+            Thread.sleep(350)
+            val after = capture()
+            if (after.fp != before) {
+                android.util.Log.i(
+                    "WAE_PICK",
+                    "sameLabel '${p.second.label}' (${p.second.role} viewId=${p.second.viewId.substringAfterLast('/')}) 切換成功"
+                )
+                return true
+            }
         }
         return false
     }

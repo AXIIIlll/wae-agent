@@ -16,8 +16,23 @@ object FrameFingerprint {
     private const val HEX_OFFSET = 0x100
     private const val PREFIX = "fp:"
 
+    /**
+     * 這個標籤是不是「會自己變動」的內容（時間、數字、電量百分比）。
+     * 這類文字對「畫面是否改變」沒有意義，卻會讓指紋每秒都不同。
+     */
+    private fun looksVolatile(label: String): Boolean {
+        if (label.isEmpty()) return false
+        val digits = label.count { it.isDigit() }
+        val others = label.count { !it.isDigit() && !it.isWhitespace() && it != ':' && it != '.' && it != '%' && it != '-' && it != '+' }
+        // 幾乎只有數字與時間符號 → 視為會變動
+        return digits >= 2 && others <= 1
+    }
+
     fun of(pkg: String, appVersion: Long, controls: List<Control>): String {
+        // 會變動的文字（時間、秒數、電量…）不能進指紋：時鐘 頁的秒數每秒都變，
+        // 指紋就會每秒不同，於是「畫面有沒有變」的判定永遠是「變了」（第 19 題踩到）。
         val canonical = controls
+            .filterNot { looksVolatile(it.label) }
             .map { c ->
                 buildString {
                     append(c.key).append('|')

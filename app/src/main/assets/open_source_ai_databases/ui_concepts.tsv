@@ -14,14 +14,17 @@
 
 CONCEPT	CALL_HISTORY	PHONE	通話記錄|通話紀錄|通話記錄清單|來電記錄|未接來電|已接來電|通話明細
 CONCEPT	BROWSER_HISTORY	BROWSER|GOOGLE_BROWSER	歷史記錄|歷史紀錄|瀏覽記錄|瀏覽紀錄|瀏覽歷史|歷史
+CONCEPT	ALARM_LIST		鬧鐘清單|所有鬧鐘|鬧鐘設定|已設定的鬧鐘|鬧鐘列表|鬧鐘
 CONCEPT	BOOKMARKS	BROWSER|GOOGLE_BROWSER	書籤|我的書籤|已儲存的書籤
 CONCEPT	DOWNLOADS	BROWSER|GOOGLE_BROWSER	下載|下載內容|下載項目
 
 # 撥號 App 的分頁群
 FAMILY	PHONE_TABS	鍵盤|撥號|電話|聯絡人|通訊錄|最近|通話|語音信箱|最愛
 # 瀏覽器選單群
+FAMILY	CLOCK_TABS	鬧鐘|世界時鐘|計時器|碼錶|計時|秒錶
 FAMILY	BROWSER_MENU	新分頁|新無痕式分頁|書籤|歷史記錄|歷史紀錄|下載|設定|列印|翻譯|分享
 
 MEMBER	CALL_HISTORY	PHONE_TABS	最近
 MEMBER	CALL_HISTORY	PHONE_TABS	通話
 MEMBER	BROWSER_HISTORY	BROWSER_MENU	歷史
+MEMBER	ALARM_LIST	CLOCK_TABS	鬧鐘

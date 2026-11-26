@@ -134,19 +134,33 @@ object TaskExecutor {
                 lastScore = score
                 if (score >= groundFloor && idx >= 0) {
                     everFound = true
+                    // 動作前的畫面指紋：後置條件 `changed` 必須跟「動作前」比，
+                    // 不能跟「上一次 capture」比——中間只要有其他 capture（驗證、選單等待），
+                    // previousFingerprint 就會被覆寫成跟現在一樣，變成永遠「沒變」。
+                    val fpBeforeAct = gateway.facts().fingerprint
                     if (gateway.act(leaf.op, leaf.target, leaf.arg)) {
                         // 後置條件：說要變就必須真的變，否則視為這一步沒成（讓上層重規劃）
-                        if (leaf.post.isNotBlank() &&
-                            !com.wae.core.plan.PlanCondition.holds(leaf.post, gateway.facts())
-                        ) {
-                            outcomes.add(
-                                StepOutcome(i, leaf, false, "postcondition_failed(${leaf.post})")
-                            )
-                            return Result(
-                                Status.FAILED, outcomes, i,
-                                "「${leaf.target}」做完但後置條件不成立：" +
-                                    com.wae.core.plan.PlanCondition.describe(leaf.post)
-                            )
+                        if (leaf.post.isNotBlank()) {
+                            val after = gateway.facts()
+                            val checked = if (leaf.post.equals("changed", ignoreCase = true)) {
+                                // 量不到「動作前」就不要判失敗（避免把成功當失敗）
+                                if (fpBeforeAct.isEmpty()) true else after.fingerprint != fpBeforeAct
+                            } else {
+                                com.wae.core.plan.PlanCondition.holds(
+                                    leaf.post,
+                                    after.copy(previousFingerprint = fpBeforeAct)
+                                )
+                            }
+                            if (!checked) {
+                                outcomes.add(
+                                    StepOutcome(i, leaf, false, "postcondition_failed(${leaf.post})")
+                                )
+                                return Result(
+                                    Status.FAILED, outcomes, i,
+                                    "「${leaf.target}」做完但後置條件不成立：" +
+                                        com.wae.core.plan.PlanCondition.describe(leaf.post)
+                                )
+                            }
                         }
                         acted = true
                         break
