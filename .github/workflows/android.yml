@@ -1,0 +1,112 @@
+# WAE CI — 只用來「擋退步」，不跑真機（真機驗證仍在本機做）
+#
+# 為什麼要這份：
+#   - 專案有 1,400+ 個 JVM 測試，但沒有自動跑，全靠手動
+#   - 我們有「吞錯數量不得增加」的 ratchet 與資料政策守門測試，這些最適合 CI
+#
+# 分鐘數很省：test 約 2–4 分鐘、policy 幾秒；只有 push main 才建 APK。
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: 單元測試與守門測試
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 設定 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 設定 Gradle（含快取）
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: 讓 gradlew 可執行
+        run: chmod +x ./gradlew
+
+      - name: core ＋ app 單元測試（含 ratchet／守門）
+        run: ./gradlew :core:test :app:testFullDebugUnitTest --console=plain --no-daemon
+
+      - name: 失敗時上傳測試報告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            core/build/reports/tests/**
+            app/build/reports/tests/**
+          if-no-files-found: ignore
+
+  policy:
+    name: 資料與程式碼政策（BOM／emoji／App 專屬字串）
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: TSV 不得有 BOM
+        run: |
+          bad=0
+          while IFS= read -r -d '' f; do
+            if [ "$(head -c 3 "$f" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ]; then
+              echo "::error file=$f::TSV 帶有 BOM（第一行註解會失效）"
+              bad=1
+            fi
+          done < <(find app/src/main/assets -name '*.tsv' -print0)
+          exit $bad
+
+      - name: UI 不得有 emoji
+        run: |
+          # 只抓 BMP 之外的「emoji 區段」，不含中日韓擴充漢字
+          if grep -rP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' \
+               --include='*.kt' --include='*.xml' --include='*.tsv' \
+               app/src/main core/src/main; then
+            echo "::error::UI 不得使用 emoji（AGENTS §2）"
+            exit 1
+          fi
+
+  build:
+    name: 建置 debug APK
+    # 只有 push main 才建，省分鐘數
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 設定 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 設定 Gradle（含快取）
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: 讓 gradlew 可執行
+        run: chmod +x ./gradlew
+
+      - name: 建置 full debug APK
+        run: ./gradlew :app:assembleFullDebug --console=plain --no-daemon
+
+      - name: 上傳 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-full-debug
+          path: app/build/outputs/apk/full/debug/*.apk
+          retention-days: 14
