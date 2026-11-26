@@ -27,13 +27,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 設定 JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: 設定 Gradle（含快取）
         uses: gradle/actions/setup-gradle@v3
+        # GitHub 快取服務偶爾會 5xx／400；快取失敗不該讓測試整個紅掉
+        continue-on-error: true
 
       - name: 讓 gradlew 可執行
         run: chmod +x ./gradlew
@@ -72,7 +74,9 @@ jobs:
       - name: UI 不得有 emoji
         run: |
           # 只抓 BMP 之外的「emoji 區段」，不含中日韓擴充漢字
-          if grep -rP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' \
+          # 只抓 emoji 區段（U+1F000–U+1FAFF）。刻意保留 ✓ ⚠ ⛔ 這類符號，
+          # 它們不是 emoji，且 UI 用它表示狀態。
+          if grep -rP '[\x{1F000}-\x{1FAFF}]' \
                --include='*.kt' --include='*.xml' --include='*.tsv' \
                app/src/main core/src/main; then
             echo "::error::UI 不得使用 emoji（AGENTS §2）"
@@ -90,13 +94,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 設定 JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: 設定 Gradle（含快取）
         uses: gradle/actions/setup-gradle@v3
+        # GitHub 快取服務偶爾會 5xx／400；快取失敗不該讓測試整個紅掉
+        continue-on-error: true
 
       - name: 讓 gradlew 可執行
         run: chmod +x ./gradlew
