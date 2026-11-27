@@ -73,12 +73,14 @@ jobs:
 
       - name: UI 不得有 emoji
         run: |
-          # 只抓 BMP 之外的「emoji 區段」，不含中日韓擴充漢字
-          # 只抓 emoji 區段（U+1F000–U+1FAFF）。刻意保留 ✓ ⚠ ⛔ 這類符號，
-          # 它們不是 emoji，且 UI 用它表示狀態。
+          # 範圍刻意只含「UI 會顯示到的地方」：Kotlin 程式碼與 app 資源。
+          #  - 抓 emoji 區段 U+1F000–U+1FAFF（不含中日韓擴充漢字）
+          #  - ✓ ⚠ ⛔ 這類符號不算 emoji（AGENTS 允許用它表示狀態）
+          #  - 資料檔（core/src/main/resources/**）不檢查：那裡可能有 emoji
+          #    當「辨識用詞」（例：附加按鈕的描述是 📎），那是輸入資料不是 UI
           if grep -rP '[\x{1F000}-\x{1FAFF}]' \
-               --include='*.kt' --include='*.xml' --include='*.tsv' \
-               app/src/main core/src/main; then
+               --include='*.kt' --include='*.xml' \
+               app/src/main/java app/src/main/res core/src/main/kotlin; then
             echo "::error::UI 不得使用 emoji（AGENTS §2）"
             exit 1
           fi
