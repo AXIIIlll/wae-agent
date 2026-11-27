@@ -1,0 +1,49 @@
+# Git 屬性：統一換行與二進位判定
+#
+# 為什麼要這個檔：
+#   每次 commit 都出現「LF will be replaced by CRLF」警告，代表專案沒有明確規則。
+#   明確寫下來之後，Git 不再猜測，跨平台（Windows 開發 / Linux CI）行為一致。
+#
+# 規則：
+#   - 程式與資料檔一律 LF（避免 BOM／CRLF 造成的解析問題）
+#   - Windows 腳本（.ps1 / .bat）用 CRLF：PowerShell 5.1 對 LF 的處理較差
+#   - 二進位檔標記 binary，避免 Git 嘗試合併或轉換
+
+* text=auto eol=lf
+
+# 程式碼與資料
+*.kt      text eol=lf
+*.kts     text eol=lf
+*.java    text eol=lf
+*.md      text eol=lf
+*.tsv     text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.xml     text eol=lf
+*.pro     text eol=lf
+*.toml    text eol=lf
+
+# Windows 腳本
+*.ps1     text eol=crlf
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# 二進位（不可合併、不可轉換）
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.webp    binary
+*.gif     binary
+*.zip     binary
+*.onnx    binary
+*.so      binary
+*.jar     binary
+*.apk     binary
+*.aar     binary
+*.pdf     binary
+*.pptx    binary
+*.docx    binary
+*.xlsx    binary
+*.wav     binary
+*.mp3     binary

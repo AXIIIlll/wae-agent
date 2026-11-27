@@ -1,0 +1,58 @@
+name: 錯誤回報
+description: 程式崩潰、建置失敗、UI 異常
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        這個專案的重點是「行為正確」，若問題是「代理人做錯事」，請改用「任務失敗」範本。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 發生什麼事
+      description: 一句話說明，越具體越好
+      placeholder: 開啟設定抽屜時 App 閃退
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟
+      placeholder: |
+        1. 安裝 debug APK
+        2. 開 App
+        3. 點右上「設定」
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影響範圍
+      options:
+        - UI（畫面／版面）
+        - 建置（Gradle／CI）
+        - 語音（ASR／喚醒詞）
+        - 視覺（OCR／圖示／截圖）
+        - 決策（選錯目標）
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相關日誌
+      description: |
+        `adb logcat -d -b crash | tail -50`
+        或 `adb logcat -d -s WAE_TASK WAE_PICK WAE_OPTION | tail -30`
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 設定頁最下方顯示的版本，或 commit 短碼
+      placeholder: WAE 2.1.0-wae / 6a38f0e

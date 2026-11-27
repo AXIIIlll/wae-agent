@@ -1,0 +1,32 @@
+# 授權聲明
+
+Copyright (c) 2026 WAE Project. All rights reserved.
+
+本專案為**私有軟體**，未授予任何開源授權。未經著作權人書面同意，不得複製、修改、
+散布、再授權或用於商業用途。
+
+## 為什麼不是開源授權
+
+這個 repo 目前是 private，且程式碼包含：
+
+- 專案的架構決策與實驗數據（`benchmark/`、`docs/`）
+- 自行整理的中文語料與詞表（`app/src/main/assets/open_source_ai_databases/`）
+- 與特定裝置行為相關的除錯經驗（`docs/WAE_*`）
+
+在商業模式確定之前，保留全部權利比較安全。
+
+## 第三方元件
+
+本專案使用多個第三方元件（ONNX 模型、sherpa-onnx、AndroidX 等），各自的授權條款
+與出處列於 [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md)。那些元件的授權
+**不受**本檔限制。
+
+## 如果要改成開源
+
+需要你明確決定授權種類（例如 MIT / Apache-2.0），並確認：
+
+1. 所有第三方元件的授權相容
+2. `app/src/main/assets/` 內的語料沒有再散布限制
+3. 文件中沒有不該公開的內部資訊
+
+在那之前，請保持本檔為 All rights reserved。

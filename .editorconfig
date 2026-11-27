@@ -1,0 +1,29 @@
+root = true
+
+# 編輯器設定：跨 IDE（IntelliJ / VS Code / 記事本）一致
+#
+# 為什麼要這個檔：這個專案對編碼很敏感——
+#   .kt / .tsv 必須 UTF-8 無 BOM；.ps1 必須 UTF-8 有 BOM。
+#   靠人記住很容易出錯，寫在這裡讓編輯器自動套用。
+#   （BOM 無法由 EditorConfig 控制，仍由 CI 的 policy job 把關。）
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{kt,kts}]
+indent_size = 4
+
+[*.{tsv}]
+indent_style = tab
+trim_trailing_whitespace = false
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

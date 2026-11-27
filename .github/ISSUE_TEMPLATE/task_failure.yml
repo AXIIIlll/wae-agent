@@ -1,0 +1,68 @@
+name: 任務失敗（benchmark）
+description: 某一題指令沒有正確完成，或回報的成功與畫面不符
+labels: ["benchmark"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        這個範本是為「行為正確性」設計的。請盡量附上可重跑的證據，
+        否則很難判斷是「找不到目標」還是「找到但點錯」。
+
+  - type: input
+    id: task-id
+    attributes:
+      label: 題號
+      description: `benchmark/tasks_100.tsv` 的編號；不是 benchmark 就填「無」
+      placeholder: "025"
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: 指令原文
+      placeholder: 在電話查看通話紀錄
+    validations:
+      required: true
+
+  - type: input
+    id: package
+    attributes:
+      label: 目標 App 套件
+      placeholder: com.samsung.android.dialer
+
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: App 回報的結果
+      options:
+        - DONE（但它其實沒做到）
+        - FAILED（其實做到了）
+        - ASK（反問）
+        - 沒有任何反應
+    validations:
+      required: true
+
+  - type: textarea
+    id: screen
+    attributes:
+      label: 實際畫面
+      description: 貼上截圖，或描述停在哪一頁、目標物在哪
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 決策日誌
+      description: |
+        `adb logcat -d -s WAE_ENTRY WAE_TASK WAE_PICK WAE_OPTION WAE_MENU | tail -40`
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: guess
+    attributes:
+      label: 你的猜測（可選）
+      description: 例如「它找到了頁籤但沒點進去」、「它把說明文字當成按鈕」

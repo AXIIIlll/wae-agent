@@ -1,0 +1,37 @@
+# Dependabot：每週檢查相依更新
+#
+# 為什麼只開這兩類：
+#   - Gradle 相依（AndroidX、Kotlin、ONNX Runtime…）→ 安全修補與相容性
+#   - GitHub Actions → 避免像 2026-11 那次 Node 20 棄用累積成紅色警告
+#
+# 刻意不開：Android SDK／Gradle wrapper 版本。
+#   那些升級會改變建置行為（AGP 相容性、Kotlin 版本），必須人工評估，
+#   讓 Dependabot 自動開 PR 只會製造噪音。
+
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+    # 只收 minor/patch；major 版本要人工評估
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "dependencies"
