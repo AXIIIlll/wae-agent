@@ -144,7 +144,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20231013")
     // 無需裝置的 Android 依賴測試（assets / Context 行為）
-    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("org.robolectric:robolectric:4.18.1")
     testImplementation("androidx.test:core:1.6.1")
     // P1 #9：instrumentation 測試（需裝置/模擬器執行；CI 可先編譯）
     androidTestImplementation("androidx.test:runner:1.6.2")
