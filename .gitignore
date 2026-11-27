@@ -25,7 +25,6 @@ music_graduation/
 .tmp_zenodo/
 
 # 單檔 113MB，超過 GitHub 100MB 硬限，不進版控（缺少時 CrossEncoder 自動降級）
-app/src/full/assets/models/mmarco-minilm-cross-int8.onnx
 
 # 根目錄的真機除錯暫存
 /_*.txt

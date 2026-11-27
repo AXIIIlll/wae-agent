@@ -1,3 +1,8 @@
+# Git LFS：大型模型檔（cross-encoder 精排，113 MB）
+#
+# 為什麼用 LFS：這個檔是 full flavor 的功能差異來源，必須進版控才能讓 CI 建出
+# 與開發機相同的 APK；但它太大，放一般 blob 會讓 repo 永久膨脹。
+# CI 的 test／policy job 不抓 LFS（省頻寬），只有 build／release 才抓。
 # Git 屬性：統一換行與二進位判定
 #
 # 為什麼要這個檔：
@@ -8,9 +13,7 @@
 #   - 程式與資料檔一律 LF（避免 BOM／CRLF 造成的解析問題）
 #   - Windows 腳本（.ps1 / .bat）用 CRLF：PowerShell 5.1 對 LF 的處理較差
 #   - 二進位檔標記 binary，避免 Git 嘗試合併或轉換
-
 * text=auto eol=lf
-
 # 程式碼與資料
 *.kt      text eol=lf
 *.kts     text eol=lf
@@ -23,12 +26,10 @@
 *.xml     text eol=lf
 *.pro     text eol=lf
 *.toml    text eol=lf
-
 # Windows 腳本
 *.ps1     text eol=crlf
 *.bat     text eol=crlf
 *.cmd     text eol=crlf
-
 # 二進位（不可合併、不可轉換）
 *.png     binary
 *.jpg     binary
@@ -36,7 +37,6 @@
 *.webp    binary
 *.gif     binary
 *.zip     binary
-*.onnx    binary
 *.so      binary
 *.jar     binary
 *.apk     binary
@@ -47,3 +47,4 @@
 *.xlsx    binary
 *.wav     binary
 *.mp3     binary
+app/src/full/assets/models/*.onnx filter=lfs diff=lfs merge=lfs -text
