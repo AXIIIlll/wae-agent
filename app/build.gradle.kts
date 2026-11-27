@@ -140,7 +140,7 @@ dependencies {
     // 端側真實推理引擎（MiniLM 語意編碼；後續 NanoDet / PaddleOCR 共用同一引擎）
     // 注意：1.21.0 起官方 so 才符合 Android 15 的 16KB page size 對齊要求，
     // 用 1.19.x 會被系統判定「16 KB ELF 對齊檢查失敗」而彈窗阻止執行。
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0") // 全域共用一份 ORT（16KB 對齊）
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.32.0") // 全域共用一份 ORT（16KB 對齊）
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20231013")
     // 無需裝置的 Android 依賴測試（assets / Context 行為）
