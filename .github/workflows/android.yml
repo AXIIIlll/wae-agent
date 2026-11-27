@@ -33,7 +33,7 @@ jobs:
           java-version: '21'
 
       - name: 設定 Gradle（含快取）
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v6
         # GitHub 快取服務偶爾會 5xx／400；快取失敗不該讓測試整個紅掉
         continue-on-error: true
 
@@ -45,7 +45,7 @@ jobs:
 
       - name: 失敗時上傳測試報告
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports
           path: |
@@ -102,7 +102,7 @@ jobs:
           java-version: '21'
 
       - name: 設定 Gradle（含快取）
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v6
         # GitHub 快取服務偶爾會 5xx／400；快取失敗不該讓測試整個紅掉
         continue-on-error: true
 
@@ -113,7 +113,7 @@ jobs:
         run: ./gradlew :app:assembleFullDebug --console=plain --no-daemon
 
       - name: 上傳 APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-full-debug
           path: app/build/outputs/apk/full/debug/*.apk
