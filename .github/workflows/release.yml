@@ -1,0 +1,86 @@
+# Release：打 tag 就自動建 APK 並建立 GitHub Release
+#
+# 使用方式：
+#   git tag v2.1.0 && git push origin v2.1.0
+#
+# 注意（重要）：
+#   這裡建的是 **debug 簽章** 的 APK。原因是 release keystore 不進版控，
+#   CI 沒有那把金鑰。若要讓 CI 產出正式簽章 APK，請在 repo Secrets 設定：
+#     WAE_KEYSTORE_BASE64   （keystore 檔的 base64）
+#     WAE_STORE_PASSWORD    （store 密碼）
+#     WAE_KEY_ALIAS         （預設 upload_key）
+#     WAE_KEY_PASSWORD      （金鑰密碼；PKCS12 通常與 store 相同）
+#   然後把下面的 assembleFullDebug 改成 assembleFullRelease。
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要建立 Release 的 tag（例如 v2.1.0）'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 建置並發佈 APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 設定 JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 設定 Gradle（含快取）
+        uses: gradle/actions/setup-gradle@v6
+        continue-on-error: true
+
+      - name: 讓 gradlew 可執行
+        run: chmod +x ./gradlew
+
+      - name: 建置 full debug APK
+        run: ./gradlew :app:assembleFullDebug --console=plain --no-daemon
+
+      - name: 重新命名（帶版本）
+        id: apk
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [ -z "$TAG" ] || [ "$TAG" = "main" ]; then TAG="${{ inputs.tag }}"; fi
+          SRC=$(ls app/build/outputs/apk/full/debug/*.apk | head -n 1)
+          OUT="wae-${TAG}-debug.apk"
+          cp "$SRC" "$OUT"
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          ls -lh "$OUT"
+
+      - name: 產生 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.apk.outputs.tag }}
+          name: ${{ steps.apk.outputs.tag }}
+          files: ${{ steps.apk.outputs.path }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 安裝
+
+            1. 下載下面的 `wae-*.apk`
+            2. 安裝後到「設定 → 無障礙」開啟 WAE 的服務
+
+            > 這是 **debug 簽章** 的建置（CI 沒有 release keystore）。
+            > 若要正式簽章版本，請在 repo Secrets 設定金鑰，見 `.github/workflows/release.yml` 開頭說明。
+
+            ## 這版包含什麼
+
+            見下方自動產生的變更清單。
