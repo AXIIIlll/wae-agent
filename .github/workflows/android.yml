@@ -85,6 +85,13 @@ jobs:
             exit 1
           fi
 
+      - name: 技術債指標不得退步
+        shell: pwsh
+        run: |
+          # 五項指標：runCatching / TODO / emoji / 最大檔 / TSV BOM
+          # 這一步是「整理成果不再流失」的保險：任何一項退步就讓 CI 紅。
+          ./tools/debt_report.ps1
+
   build:
     name: 建置 debug APK
     # 只有 push main 才建，省分鐘數
