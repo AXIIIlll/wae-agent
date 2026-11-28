@@ -36,7 +36,7 @@ object Gen5Probe {
             // 剪貼簿在 Android 10+ 只給「有焦點」的 App；剛啟動時焦點還沒到位，
             // 太早讀寫會被系統靜默丟棄（實測：寫入回 ok、讀回卻是空的）。
             com.wae.core.util.Degrade.orNull("probe:clipboardFocusWait") { Thread.sleep(600) }
-            val result = runCatching {
+            val result = com.wae.core.util.Degrade.orElse("probe:command", "ERROR") {
                 when (command) {
                     ADMIN_CLEAR -> clearMemory(context)
                     ADMIN_SELFTEST -> SelfTest.runToText(context)
@@ -74,9 +74,6 @@ object Gen5Probe {
                         }
                     }
                 }
-            }.getOrElse { t ->
-                Log.e(TAG, "probe failed", t)
-                "ERROR:" + t.message
             }
             com.wae.core.util.Degrade.orNull("probe:writeResult") { File(dir, RESULT_FILE).writeText("$command\t$result\n", Charsets.UTF_8) }
             val tookMs = android.os.SystemClock.elapsedRealtime() - startedAt
@@ -100,7 +97,7 @@ object Gen5Probe {
      * 使用者要回報問題時，把這個檔給出去就夠了。
      */
     private fun exportDiagnostics(context: Context): String {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:exportDiagnostics", "ERROR") {
             val dir = java.io.File(context.filesDir, "mem")
             fun lines(name: String): Int {
                 val f = java.io.File(dir, name)
@@ -113,9 +110,9 @@ object Gen5Probe {
             sb.appendLine("time=" + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
                 .format(java.util.Date()))
             sb.appendLine("pkg=" + context.packageName)
-            sb.appendLine("version=" + runCatching {
+            sb.appendLine("version=" + com.wae.core.util.Degrade.orElse("probe:version", "?") {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
-            }.getOrDefault("?"))
+            })
             sb.appendLine("android=" + android.os.Build.VERSION.RELEASE + " sdk=" + android.os.Build.VERSION.SDK_INT)
             sb.appendLine("device=" + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL)
             sb.appendLine("a11yBound=" + (com.wae.agent.core.WaeVisionAccessibilityService.activeInstance != null))
@@ -125,13 +122,13 @@ object Gen5Probe {
                 "transitions.tsv", "frames.tsv").forEach { name ->
                 sb.appendLine("  " + name + "=" + lines(name))
             }
-            sb.appendLine("  twin=" + runCatching {
+            sb.appendLine("  twin=" + com.wae.core.util.Degrade.orElse("probe:twin", 0) {
                 val f = java.io.File(context.filesDir, "twin/steps.jsonl")
                 if (f.exists()) f.readLines().count { it.isNotBlank() } else 0
-            }.getOrDefault(0))
+            })
             sb.appendLine()
             sb.appendLine("[最近 5 筆收據（只含效果與結果，不含指令原文）]")
-            runCatching {
+            com.wae.core.util.Degrade.orNull("probe:recentReceipts") {
                 val f = java.io.File(dir, "receipts.tsv")
                 if (f.exists()) f.readLines().filter { it.isNotBlank() && !it.startsWith("#") }
                     .takeLast(5)
@@ -146,7 +143,7 @@ object Gen5Probe {
             val out = java.io.File(shots, "diag.txt")
             out.writeText(sb.toString(), Charsets.UTF_8)
             "DIAG " + out.absolutePath + " bytes=" + out.length()
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     /**
@@ -216,15 +213,15 @@ object Gen5Probe {
      * 「空字串有幾個」直接決定「用類別挑 App」可不可靠。
      */
     private fun appsReport(context: Context, command: String): String {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:appsReport", "ERROR") {
             val apps = com.wae.agent.core.app.InstalledAppCatalog.load(context, force = true)
             val wanted = command.removePrefix(APPS_PREFIX).trim()
             if (wanted.isNotEmpty()) {
                 val inCat = apps.filter { it.category.equals(wanted, ignoreCase = true) }
                 if (inCat.isEmpty()) {
-                    return@runCatching "APPS category=$wanted count=0"
+                    return@orElse "APPS category=$wanted count=0"
                 }
-                return@runCatching "APPS category=$wanted count=" + inCat.size + " → " +
+                return@orElse "APPS category=$wanted count=" + inCat.size + " → " +
                     inCat.take(10).joinToString("、") { it.label + "(" + it.pkg + ")" }
             }
             val byCat = apps.groupBy { it.category.ifEmpty { "(未分類)" } }
@@ -234,19 +231,19 @@ object Gen5Probe {
             val pct = if (apps.isEmpty()) 0 else (100 - unclassified * 100 / apps.size)
             "APPS total=" + apps.size + " categorized=" + pct + "% unclassified=" + unclassified +
                 " | " + byCat.take(8).joinToString(", ") { it.first + "=" + it.second }
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     /** 剪貼簿寫入（D14 探針）：`!copy 文字`。 */
     private fun copyToClipboard(context: Context, text: String): String {
         if (text.isEmpty()) return "ERROR:empty"
         return onMainThread(context) {
-            runCatching {
+            com.wae.core.util.Degrade.orElse("probe:copyToClipboard", "ERROR") {
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
                     as android.content.ClipboardManager
                 clipboard.setPrimaryClip(android.content.ClipData.newPlainText("WAE", text))
                 "COPIED chars=" + text.length
-            }.getOrElse { t -> "ERROR:" + t.message }
+            }
         }
     }
 
@@ -266,7 +263,7 @@ object Gen5Probe {
     /** 剪貼簿讀取（D14 探針）：`!clip`。注意 Android 10+ 只讓前景 App 讀。 */
     private fun readClipboard(context: Context): String {
         return onMainThread(context) {
-          runCatching {
+          com.wae.core.util.Degrade.orElse("probe:readClipboard", "ERROR") {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
                 as android.content.ClipboardManager
             val clip = clipboard.primaryClip
@@ -276,12 +273,12 @@ object Gen5Probe {
                 val text = clip.getItemAt(0).coerceToText(context).toString()
                 "CLIP chars=" + text.length + " text=" + text.take(80)
             }
-          }.getOrElse { t -> "ERROR:" + t.message }
+          }
         }
     }
 
     private fun exportConstraints(context: Context): String {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:exportConstraints", "ERROR") {
             val src = java.io.File(java.io.File(context.filesDir, "mem"), "refutations.tsv")
             val body = StringBuilder()
             if (src.exists()) {
@@ -308,7 +305,7 @@ object Gen5Probe {
             val out = java.io.File(shots, "constraints.txt")
             out.writeText(header + body.toString(), Charsets.UTF_8)
             "EXPORT rows=" + body.count { it == '\n' } + " checksum=" + checksum + " path=" + out.absolutePath
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     /**
@@ -317,15 +314,15 @@ object Gen5Probe {
      * 安全邊界：**只合併反例，不執行任何動作**；checksum 不對就整批拒絕。
      */
     private fun importConstraints(context: Context): String {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:importConstraints", "ERROR") {
             val incoming = java.io.File(context.filesDir, "import/constraints.txt")
-            if (!incoming.exists()) return@runCatching "ERROR:no_file files/import/constraints.txt"
+            if (!incoming.exists()) return@orElse "ERROR:no_file files/import/constraints.txt"
             val lines = incoming.readLines(Charsets.UTF_8)
             val claimed = com.wae.core.memory.ConstraintBundle.claimedChecksumOf(lines)
-                ?: return@runCatching "ERROR:no_checksum"
+                ?: return@orElse "ERROR:no_checksum"
             val rows = com.wae.core.memory.ConstraintBundle.rowsOf(lines)
             if (!com.wae.core.memory.ConstraintBundle.verify(rows, claimed)) {
-                return@runCatching "ERROR:checksum_mismatch"
+                return@orElse "ERROR:checksum_mismatch"
             }
             val target = java.io.File(java.io.File(context.filesDir, "mem"), "refutations.tsv")
             target.parentFile?.mkdirs()
@@ -352,7 +349,7 @@ object Gen5Probe {
             }
             target.writeText((header + existing).joinToString("\n") + "\n", Charsets.UTF_8)
             "IMPORT rows=" + rows.size + " added=" + added
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     private fun sha256(text: String): String {
@@ -369,7 +366,7 @@ object Gen5Probe {
             if (built.startsWith("ERROR")) return built
         }
         if (!file.exists()) return "ERROR:no diag file"
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:shareDiagnostics", "ERROR") {
             val contentUri = android.net.Uri.parse(
                 "content://" + com.wae.agent.gen5.ShotProvider.authority(context.packageName) + "/diag.txt"
             )
@@ -384,12 +381,12 @@ object Gen5Probe {
                 .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
             "DIAG_SHARE " + contentUri
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     /** 分享診斷包（H9 完成版）用的檔案（cache/shots 才給 provider 讀）。 */
     private fun postSelfNotification(context: Context): String {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("probe:selfNotification", "ERROR") {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
                 as android.app.NotificationManager
             val channelId = "wae_probe"
@@ -407,7 +404,7 @@ object Gen5Probe {
                 .build()
             manager.notify(9001, notification)
             "NOTIFIED"
-        }.getOrElse { t -> "ERROR:" + t.message }
+        }
     }
 
     private fun refutationsToText(context: Context): String {
