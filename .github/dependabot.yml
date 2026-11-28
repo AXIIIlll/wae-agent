@@ -33,6 +33,15 @@ updates:
       # 必須人工做一輪「工具鏈升級 + 真機回歸」，不能由 bot 自動開 PR。
       - dependency-name: "gradle-wrapper"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # Android Gradle Plugin 同屬「建置工具鏈」：8.4 → 8.13 這種 minor 跳版
+      # 會連帶影響 Kotlin 搭配、compileSdk、資源處理與 R8，必須人工驗證。
+      - dependency-name: "com.android.application"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "com.android.library"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # Kotlin 本身也是工具鏈的一部分（KGP 與 AGP 要搭配）
+      - dependency-name: "org.jetbrains.kotlin.android"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
