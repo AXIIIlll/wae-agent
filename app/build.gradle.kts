@@ -136,7 +136,7 @@ dependencies {
     // 依賴方向固定：app → core，core 不得反向依賴 Android（由 CorePurityTest 守門）。
     implementation(project(":core"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // 端側真實推理引擎（MiniLM 語意編碼；後續 NanoDet / PaddleOCR 共用同一引擎）
     // 注意：1.21.0 起官方 so 才符合 Android 15 的 16KB page size 對齊要求，
     // 用 1.19.x 會被系統判定「16 KB ELF 對齊檢查失敗」而彈窗阻止執行。
