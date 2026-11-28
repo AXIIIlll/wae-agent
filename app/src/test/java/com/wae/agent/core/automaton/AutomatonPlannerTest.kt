@@ -1,6 +1,7 @@
 package com.wae.agent.core.automaton
 
 import com.wae.agent.core.CandidateOption
+import com.wae.agent.core.action.SelectorKeys
 import com.wae.agent.core.CandidateSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -153,8 +154,9 @@ class AutomatonPlannerTest {
             cand(3, grid = intArrayOf(400, 800, 500, 900))
         )
         assertEquals(1, AutomatonRuntime.locate("id:search_box", options)?.markId)
+        // 文字型 selector 存的是雜湊（隱私），所以要用 hashOf 建鍵
         assertEquals(2, AutomatonRuntime.locate("role:list_item", options)?.markId)
-        assertEquals(2, AutomatonRuntime.locate("text:第一封信", options)?.markId)
+        assertEquals(2, AutomatonRuntime.locate("text:" + SelectorKeys.hashOf("第一封信"), options)?.markId)
         assertEquals(3, AutomatonRuntime.locate("grid:450,850", options)?.markId)
         assertNull("找不到就回 null，不可亂猜", AutomatonRuntime.locate("id:missing", options))
     }

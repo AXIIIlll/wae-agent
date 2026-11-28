@@ -114,7 +114,9 @@ object AutomatonPlanner {
         maxExpansions: Int = 512,
         edgeBonus: (AutomatonEdge) -> Double = { 0.0 }
     ): Plan? {
-        val tokens = tokenize(hint)
+        // selector 內的文字是雜湊（隱私），所以除了原文 token 之外，
+        // 也要用「整句雜湊」比對，否則 role:x:<hash> 永遠對不上。
+        val tokens = (tokenize(hint) + com.wae.agent.core.action.SelectorKeys.hashOf(hint))
         if (tokens.isEmpty()) return null
         val goals = automaton.states.filter { s ->
             automaton.edges.any { e ->

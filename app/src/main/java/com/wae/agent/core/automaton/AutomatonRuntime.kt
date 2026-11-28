@@ -1,5 +1,7 @@
 package com.wae.agent.core.automaton
 
+import com.wae.agent.core.action.SelectorKeys
+
 import com.wae.agent.core.CandidateOption
 
 /**
@@ -8,7 +10,7 @@ import com.wae.agent.core.CandidateOption
  * 選擇器格式必須與 `TwinFastPath.selectorOf` 完全一致，
  * 否則規劃出來的邊在畫面上永遠定位不到：
  * ```
- * id:<viewId 末段> ｜ role:<roleTag> ｜ text:<前 16 字> ｜ grid:x,y
+ * id:<viewId 末段> ｜ role:<roleTag>:<文字雜湊> ｜ text:<文字雜湊> ｜ grid:x,y
  * ```
  */
 object AutomatonRuntime {
@@ -41,13 +43,16 @@ object AutomatonRuntime {
                     options.firstOrNull { it.roleTag == role }
                 } else {
                     options.firstOrNull {
-                        it.roleTag == role && it.coreText.isNotEmpty() && it.coreText.take(16) == text
+                        it.roleTag == role && it.coreText.isNotEmpty() &&
+                            SelectorKeys.hashOf(it.coreText) == text
                     } ?: options.firstOrNull { it.roleTag == role }
                 }
             }
             selector.startsWith("text:") -> {
                 val token = selector.removePrefix("text:")
-                options.firstOrNull { it.coreText.isNotEmpty() && it.coreText.take(16) == token }
+                options.firstOrNull {
+                    it.coreText.isNotEmpty() && SelectorKeys.hashOf(it.coreText) == token
+                }
             }
             selector.startsWith("grid:") -> {
                 val parts = body.split(',')

@@ -12,6 +12,7 @@ import com.wae.agent.core.automaton.MinHash
 import com.wae.agent.core.twin.TwinFastPath
 import com.wae.agent.core.twin.TwinStep
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -83,11 +84,14 @@ class IntegrationConsistencyTest {
     }
 
     @Test
-    fun `role key contains text for disambiguation`() {
+    fun `role key contains a hash for disambiguation and never the raw text`() {
         val c = cand(text = "第一封", role = "list_item")
-        assertEquals("role:list_item:第一封", SelectorKeys.of(c))
-        assertEquals("list_item", SelectorKeys.rolePart(SelectorKeys.of(c)))
-        assertEquals("第一封", SelectorKeys.textPart(SelectorKeys.of(c)))
+        val key = SelectorKeys.of(c)
+        // 2026-11-28：文字部分改存雜湊，避免把畫面內容寫進圖／收據／負邊
+        assertEquals("role:list_item:" + SelectorKeys.hashOf("第一封"), key)
+        assertFalse("selector 不得含原文", key.contains("第一封"))
+        assertEquals("list_item", SelectorKeys.rolePart(key))
+        assertEquals(SelectorKeys.hashOf("第一封"), SelectorKeys.textPart(key))
     }
 
     // ── 2. 負邊必須真的擋住規劃器 ────────────────────────────────────
