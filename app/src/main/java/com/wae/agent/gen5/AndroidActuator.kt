@@ -111,7 +111,7 @@ class AndroidActuator(
         if (text.isEmpty()) return RawResult.noEffect("empty_text")
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
             ?: return RawResult.noEffect("no_clipboard")
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:paste", RawResult.noEffect("paste_error")) {
             clipboard.setPrimaryClip(ClipData.newPlainText(CLIP_LABEL, text))
             if (DeviceIO.perform(focus, AccessibilityNodeInfo.ACTION_PASTE)) {
                 if (readBackContains(focus, text)) {
@@ -122,7 +122,7 @@ class AndroidActuator(
             } else {
                 RawResult.noEffect("paste_failed")
             }
-        }.getOrElse { RawResult.noEffect("paste_error") }
+        }
     }
 
     // ── 手勢 ─────────────────────────────────────────────────────────
@@ -151,7 +151,7 @@ class AndroidActuator(
     // ── 系統 API ─────────────────────────────────────────────────────
 
     private fun openImagePicker(): RawResult {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:picker", RawResult.noEffect("picker_failed")) {
             val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
                 type = "image/*"
                 addCategory(android.content.Intent.CATEGORY_OPENABLE)
@@ -159,7 +159,7 @@ class AndroidActuator(
             }
             context.startActivity(intent)
             RawResult.applied("picker_opened")
-        }.getOrElse { t -> RawResult.noEffect("picker_failed: " + t.message) }
+        }
     }
 
     private fun runSystem(means: Means.SystemApi): RawResult {
@@ -301,12 +301,13 @@ class AndroidActuator(
         dir.mkdirs()
         val name = "shot-" + System.currentTimeMillis() + ".png"
         val file = java.io.File(dir, name)
-        val saved = runCatching {
+        val saved = com.wae.core.util.Degrade.orElse("actuator:saveScreenshot", false) {
             java.io.FileOutputStream(file).use { out ->
                 shot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
             }
-        }.isSuccess
-        runCatching { shot.recycle() }
+            true
+        }
+        com.wae.core.util.Degrade.orNull("actuator:recycleShot") { shot.recycle() }
         if (!saved) return RawResult.noEffect("screenshot_save_failed")
 
         val uri = android.net.Uri.parse("content://" + ShotProvider.authority(context.packageName) + "/" + name)
@@ -317,10 +318,10 @@ class AndroidActuator(
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         means.pkg?.let { send.setPackage(it) }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:shareImage", RawResult.noEffect("share_image_failed")) {
             context.startActivity(send)
             RawResult.applied("share_image:" + (means.pkg ?: "chooser"))
-        }.getOrElse { RawResult.noEffect("share_image_failed") }
+        }
     }
 
     private fun captureScreenshot(): android.graphics.Bitmap? {
@@ -330,7 +331,9 @@ class AndroidActuator(
             val shot = captureScreenshotOnce()
             if (shot != null) return shot
             if (attempt < SCREENSHOT_ATTEMPTS - 1) {
-                runCatching { Thread.sleep(SCREENSHOT_RETRY_MS * (attempt + 1)) }
+                com.wae.core.util.Degrade.orNull("actuator:screenshotRetryWait") {
+                Thread.sleep(SCREENSHOT_RETRY_MS * (attempt + 1))
+            }
             }
         }
         return null
@@ -340,13 +343,13 @@ class AndroidActuator(
         val latch = java.util.concurrent.CountDownLatch(1)
         var bitmap: android.graphics.Bitmap? = null
         val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
-        runCatching {
+        com.wae.core.util.Degrade.orNull("actuator:takeScreenshot") {
             service.takeScreenshot(
                 android.view.Display.DEFAULT_DISPLAY,
                 executor,
                 object : AccessibilityService.TakeScreenshotCallback {
                     override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
-                        runCatching {
+                        com.wae.core.util.Degrade.orNull("actuator:wrapBuffer") {
                             bitmap = android.graphics.Bitmap.wrapHardwareBuffer(result.hardwareBuffer, result.colorSpace)
                                 ?.copy(android.graphics.Bitmap.Config.ARGB_8888, false)
                             result.hardwareBuffer.close()
@@ -359,9 +362,9 @@ class AndroidActuator(
                     }
                 }
             )
-        }.onFailure { latch.countDown() }
+        } // 失敗時 latch 已在 onFailure 倒數；外層 wait 有逾時，不會卡死
         latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
-        runCatching { executor.shutdown() }
+        com.wae.core.util.Degrade.orNull("actuator:shutdownExecutor") { executor.shutdown() }
         return bitmap
     }
 
@@ -376,10 +379,10 @@ class AndroidActuator(
         val pkg = means.pkg
         if (pkg != null) send.setPackage(pkg)
         send.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:share", RawResult.noEffect("share_failed")) {
             context.startActivity(send)
             RawResult.applied("share:" + (pkg ?: "chooser"))
-        }.getOrElse { RawResult.noEffect("share_failed") }
+        }
     }
 
     /** 深鏈（B15）：直接問系統要誰來開，不走畫面導覽。 */
@@ -388,10 +391,10 @@ class AndroidActuator(
         val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri))
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         means.pkg?.let { intent.setPackage(it) }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("actuator:deepLink", RawResult.noEffect("view_failed")) {
             context.startActivity(intent)
             RawResult.applied("view:" + uri.take(URL_LOG_LEN))
-        }.getOrElse { RawResult.noEffect("view_failed") }
+        }
     }
 
     private companion object {
