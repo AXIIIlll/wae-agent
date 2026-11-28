@@ -67,7 +67,7 @@ jobs:
           ls -lh "$OUT"
 
       - name: 產生 Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.apk.outputs.tag }}
           name: ${{ steps.apk.outputs.tag }}
