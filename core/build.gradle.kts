@@ -3,7 +3,7 @@
 // 為什麼用 buildscript classpath 而不是 plugins { kotlin("jvm") }：
 // 這台機器的 Gradle 快取（E:\WAE\gradle-home）只有 kotlin-android 的外掛標記，
 // 沒有 org.jetbrains.kotlin.jvm 的 marker；離線環境下 plugins 區塊會解析失敗。
-// kotlin-gradle-plugin:1.9.24 本體已在快取，用 buildscript + apply 可完全離線。
+// kotlin-gradle-plugin 對應版本本體已在快取（E:\WAE\gradle-home），用 buildscript + apply 可完全離線。
 buildscript {
     repositories {
         mavenCentral()
