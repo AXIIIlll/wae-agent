@@ -31,7 +31,7 @@
 025	EASY	在電話查看通話紀錄	com.samsung.android.dialer	safe
 026	EASY	打開 Chrome 的歷史紀錄	com.android.chrome	safe
 027	EASY	在地圖看目前位置	com.google.android.apps.maps	safe
-028	EASY	在 YouTube 打開首頁	com.google.android.youtube	safe
+028	EASY	在 YouTube 查看訂閱內容	com.google.android.youtube	safe
 029	EASY	打開 Samsung 瀏覽器	com.sec.android.app.sbrowser	safe
 030	EASY	打開 YouTube Music	com.google.android.apps.youtube.music	safe	skip	這台裝置上該 App 已停用
 031	MEDIUM	在設定裡搜尋飛航模式並打開	com.android.settings	confirm
