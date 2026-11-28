@@ -284,7 +284,7 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             limits = com.wae.agent.core.runtime.BudgetSource.limits(ctx),
             onProgress = { msg ->
                 Log.i("WAE_AGENT_STEP", msg)
-                runCatching { onStep(msg) }
+                com.wae.core.util.Degrade.orNull("agent:onStep") { onStep(msg) }
             }
         )
         Log.i("WAE_AGENT", "phase=plan_ready ms=" + (SystemClock.elapsedRealtime() - t0))
@@ -298,10 +298,11 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
     }
 
     /** 播放驗證的第二訊號：系統是否正在輸出音訊（影片/音樂都會拿到 audio focus）。 */
-    private fun isAudioPlaying(): Boolean = runCatching {
-        val am = service.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-        am.isMusicActive
-    }.getOrDefault(false)
+    private fun isAudioPlaying(): Boolean =
+        com.wae.core.util.Degrade.orElse("agent:audioPlaying", false) {
+            val am = service.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+            am.isMusicActive
+        }
 
     // ── 通用動作 ────────────────────────────────────────────
     private fun act(d: AgentDecision): Boolean = try {
@@ -406,14 +407,14 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
      * 純本機、不需任何預設清單。
      */
     private fun rankAppsByGoal(goal: String): List<Pair<String, Float>> {
-        return runCatching {
+        return com.wae.core.util.Degrade.orEmpty("agent:semanticRank") {
             val ctx = service.applicationContext
-            if (!com.wae.agent.core.nlp.ZhEmbedder.ensureLoaded(ctx)) return emptyList()
+            if (!com.wae.agent.core.nlp.ZhEmbedder.ensureLoaded(ctx)) return@orEmpty emptyList()
             val simpGoal = tradToSimp(goal)
             val gv = com.wae.agent.core.nlp.ZhEmbedder.encode(listOf(simpGoal)).firstOrNull()
-                ?: return emptyList()
+                ?: return@orEmpty emptyList()
             val apps = installedAppsInfo()
-            if (apps.isEmpty()) return emptyList()
+            if (apps.isEmpty()) return@orEmpty emptyList()
             val labels = apps.map { it.first }
             val vecs = com.wae.agent.core.nlp.ZhEmbedder.encode(labels)
             val scored = apps.mapIndexedNotNull { idx, app ->
@@ -423,7 +424,7 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                 app.first to score
             }
             scored.sortedByDescending { it.second }.take(5)
-        }.getOrDefault(emptyList())
+        }
     }
 
     /** 系統分類的通用加成（不寫死任何 App；分類由 Android 提供）。 */
@@ -440,29 +441,31 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             android.content.pm.ApplicationInfo.CATEGORY_GAME -> "遊戲"
             else -> return 0f
         }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("agent:semanticBonus", 0f) {
             val cv = com.wae.agent.core.nlp.ZhEmbedder.encode(listOf(terms)).firstOrNull()
-                ?: return 0f
+                ?: return@orElse 0f
             val sim = com.wae.agent.core.nlp.ZhEmbedder.cosine(goalVec, cv)
             if (sim <= 0.25f) 0f else sim * 0.06f
-        }.getOrDefault(0f)
+        }
     }
 
     /** 已安裝 App：label、package、系統分類。 */
     private fun installedAppsInfo(): List<Triple<String, String, Int>> {
         val pm = service.packageManager
-        return runCatching {
+        return com.wae.core.util.Degrade.orEmpty("agent:installedApps") {
             pm.getInstalledApplications(0).mapNotNull { app ->
-                val label = runCatching { pm.getApplicationLabel(app).toString() }.getOrNull()
+                val label = com.wae.core.util.Degrade.orNull("agent:appLabel") {
+                    pm.getApplicationLabel(app).toString()
+                }
                 if (label.isNullOrBlank()) null else Triple(label, app.packageName, app.category)
             }
-        }.getOrDefault(emptyList())
+        }
     }
 
     /** 繁體 → 簡體（把目標轉成中文 embedding 較熟悉的簡體；使用現有繁簡對照資料）。 */
     private fun tradToSimp(text: String): String {
         if (tradToSimpMap == null) {
-            tradToSimpMap = runCatching {
+            tradToSimpMap = com.wae.core.util.Degrade.orNull("agent:tradSimpMap") {
                 val map = HashMap<Char, Char>()
                 service.assets.open("open_source_ai_databases/ui_asr_trad_map.tsv")
                     .bufferedReader().useLines { seq ->
@@ -474,7 +477,7 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
                         }
                     }
                 map
-            }.getOrDefault(emptyMap())
+            }
         }
         val m = tradToSimpMap ?: return text
         val sb = StringBuilder(text.length)
@@ -494,10 +497,12 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
             resolveBrowserPackage()?.let { return it }
         }
         val pm = service.packageManager
-        val apps = runCatching { pm.getInstalledApplications(0) }.getOrDefault(emptyList())
+        val apps = com.wae.core.util.Degrade.orEmpty("agent:apps") { pm.getInstalledApplications(0) }
         var contains: String? = null
         for (app in apps) {
-            val label = runCatching { pm.getApplicationLabel(app).toString() }.getOrNull() ?: continue
+            val label = com.wae.core.util.Degrade.orNull("agent:label") {
+                pm.getApplicationLabel(app).toString()
+            } ?: continue
             if (label.equals(n, ignoreCase = true)) return app.packageName
             if (contains == null && (label.contains(n, ignoreCase = true) ||
                     (n.contains(label, ignoreCase = true) && label.length >= 2))
@@ -509,13 +514,13 @@ class AgentRunner(private val service: WaeVisionAccessibilityService) {
     }
 
     /** 用系統 ACTION_VIEW 解析出可開網頁的 App（瀏覽器），不寫死任何品牌。 */
-    private fun resolveBrowserPackage(): String? = runCatching {
+    private fun resolveBrowserPackage(): String? = com.wae.core.util.Degrade.orNull("agent:browserPkg") {
         val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.example.com"))
             .addCategory(Intent.CATEGORY_BROWSABLE)
         val pm = service.packageManager
         val resolved = pm.resolveActivity(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
         resolved?.activityInfo?.packageName
-    }.getOrNull()
+    }
 
     /** 讓 AgentLoop 的 plan 步驟可用（保留給後續 prompt 調校）。 */
     @Suppress("unused")

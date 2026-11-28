@@ -78,9 +78,9 @@ object RuleEngineHost {
         facts: Map<String, String>,
         preset: Map<String, String> = emptyMap()
     ): RuleEngine.Decision? =
-        runCatching { engine(context).decide(command, facts, preset, allowOps = opsEnabled) }
-            .onFailure { Log.e(TAG, "decide failed", it) }
-            .getOrNull()
+        com.wae.core.util.Degrade.orNull("rules:decide") {
+            engine(context).decide(command, facts, preset, allowOps = opsEnabled)
+        }
 
     /**
      * 補槽：模糊指令缺 `app` 時，用「目的型路由表 → 類別 → 已安裝 App」補。
@@ -94,13 +94,13 @@ object RuleEngineHost {
             need.missingSlots.any { it.contains("app") }
         if (!missingApp) return emptyMap()
         ensureRoutes()
-        val categories = runCatching {
+        val categories = com.wae.core.util.Degrade.orNull("rules:categories") {
             com.wae.core.intent.IntentRouter.route(command)?.categories
-        }.getOrNull() ?: return emptyMap()
-        val apps = runCatching {
+        } ?: return emptyMap()
+        val apps = com.wae.core.util.Degrade.orEmpty("rules:appsByCategory") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
                 .filter { it.category in categories }
-        }.getOrDefault(emptyList())
+        }
         if (apps.size != 1) {
             Log.i(TAG, "fillSlots categories=$categories apps=${apps.size} (leave to router)")
             return emptyMap()
@@ -114,16 +114,18 @@ object RuleEngineHost {
 
     private fun ensureRoutes() {
         if (routesLoaded) return
-        runCatching { com.wae.core.intent.IntentRouter.loadFromLines(BundledData.intentRoutes()) }
+        com.wae.core.util.Degrade.orNull("rules:loadRoutes") {
+            com.wae.core.intent.IntentRouter.loadFromLines(BundledData.intentRoutes())
+        }
         routesLoaded = true
     }
 
     /** 用操作層執行計畫；回傳 null 表示「做不了」，上層退回舊分支。 */
     fun executeOps(context: android.content.Context, plan: RuleEngine.Decision.Plan): OpExecutor.Result? {
         if (!opsEnabled || plan.ops.isEmpty()) return null
-        val service = runCatching {
+        val service = com.wae.core.util.Degrade.orNull("rules:activeService") {
             com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
-        }.getOrNull()
+        }
         val result = OpExecutor.run(context, service, plan.purpose, plan.ops)
         Log.i(TAG, "ops ${plan.purpose.id} ${result.detail}")
         return result
@@ -157,10 +159,10 @@ object RuleEngineHost {
 
     /** 執行後回寫能力表（讓「這支手機做得到什麼」越用越準）。 */
     fun recordOutcome(context: android.content.Context, purposeId: String, ok: Boolean) {
-        val pkg = runCatching {
+        val pkg = com.wae.core.util.Degrade.orElse("rules:foregroundPkg", "") {
             com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
-                ?.rootInActiveWindow?.packageName?.toString()
-        }.getOrNull().orEmpty()
+                ?.rootInActiveWindow?.packageName?.toString() ?: ""
+        }
         if (pkg.isNotEmpty()) {
             com.wae.agent.gen5.AppCapabilityStore.record(context, pkg, purposeId, ok)
         }
@@ -168,9 +170,9 @@ object RuleEngineHost {
 
     /** `!facts`：把「這支手機有什麼」講清楚（模型與人看的是同一份事實）。 */
     fun factsText(context: android.content.Context): String {
-        val apps = runCatching {
+        val apps = com.wae.core.util.Degrade.orEmpty("rules:installedApps") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
-        }.getOrDefault(emptyList())
+        }
         val cats = apps.groupBy { it.category }.mapValues { it.value.size }
             .toList().sortedByDescending { it.second }.take(6)
             .joinToString(", ") { it.first + "=" + it.second }
@@ -181,10 +183,10 @@ object RuleEngineHost {
         ).joinToString(" ") { it.substringAfterLast('.') + "=" + probe.hasPermission(it) }
         val features = listOf("android.hardware.camera", "android.hardware.nfc")
             .joinToString(" ") { it.substringAfterLast('.') + "=" + probe.hasFeature(it) }
-        val fgPkg = runCatching {
+        val fgPkg = com.wae.core.util.Degrade.orElse("rules:fgPkg", "") {
             com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
-                ?.rootInActiveWindow?.packageName?.toString()
-        }.getOrNull().orEmpty()
+                ?.rootInActiveWindow?.packageName?.toString() ?: ""
+        }
         val family = if (fgPkg.isEmpty()) "-" else com.wae.agent.gen5.AppCategoryResolver.familyOf(context, fgPkg)
         return "FACTS apps=" + apps.size + " [" + cats + "]\n" +
             "foreground=" + fgPkg.ifEmpty { "-" } + " family=" + family + "\n" +
@@ -195,7 +197,8 @@ object RuleEngineHost {
 
     /** 給 probe／log 用的一行統計。 */
     fun status(context: android.content.Context): String {
-        val e = runCatching { engine(context) }.getOrNull() ?: return "RULES error"
+        val e = com.wae.core.util.Degrade.orNull("rules:engine") { engine(context) }
+            ?: return "RULES error"
         return "RULES " + (if (enabled) "on" else "off") +
             " purposes=" + e.purposeIds().size +
             " rules=" + e.ruleCount() +
@@ -207,10 +210,10 @@ object RuleEngineHost {
 
     /** 已安裝 App 標籤（給方法條件的 `app_installed($app)` 用）。 */
     fun installedAppsFacts(context: Context): Map<String, String> {
-        val labels = runCatching {
+        val labels = com.wae.core.util.Degrade.orEmpty("rules:installedLabels") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
                 .map { it.label }
-        }.getOrDefault(emptyList())
+        }
         return mapOf("installed_apps" to labels.joinToString("|"))
     }
 }
