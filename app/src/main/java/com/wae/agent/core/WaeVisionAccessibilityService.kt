@@ -260,7 +260,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 com.wae.agent.core.explore.ExplorationGuard.ensureLoaded(this)
                 com.wae.agent.core.transfer.TransferEngine.ensureLoaded(this)
                 com.wae.agent.core.explore.CoverageBandit.ensureLoaded(this)
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:loadDecisionMemo") {
                     val memoFile = java.io.File(filesDir, "decision_memo.json")
                     if (memoFile.exists()) {
                         com.wae.agent.core.decision.DecisionMemo.loadFromJson(memoFile.readText(Charsets.UTF_8))
@@ -313,7 +313,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         var typedOnce = false
         for ((idx, step) in plan.steps.withIndex()) {
             if (isCancelledOrTimedOut()) return false
-            val stepKind = runCatching { ActionKind.valueOf(step.action) }.getOrDefault(goal.actionKind)
+            val stepKind = com.wae.core.util.Degrade.orElse("service:stepKind", goal.actionKind) { ActionKind.valueOf(step.action) }
 
             // 慣性防護：重放不得把「當前的 goal 文字」打進輸入框。
             // TYPE 步驟只能用當前 goal 的 payload（且僅一次）；若當前 goal 不是 TYPE，
@@ -418,9 +418,9 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         if (pkg.isEmpty()) return null
         if (pkg == automatonCachePkg) return automatonCache
         automatonCachePkg = pkg
-        automatonCache = runCatching {
+        automatonCache = com.wae.core.util.Degrade.orNull("service:loadAutomaton") {
             com.wae.agent.core.automaton.AutomatonStore.load(this, pkg)
-        }.getOrNull()
+        }
         return automatonCache
     }
 
@@ -430,9 +430,9 @@ class WaeVisionAccessibilityService : AccessibilityService() {
 
     /** M4：輕量環境掃描（只取 class+viewId 結構，不取文字內容），用於被動記錄 */
     /** 從收據檔取「真的操作成功過的 App」，當被動記錄的種子白名單。 */
-    private fun knownPackagesFromReceipts(): Set<String> = runCatching {
+    private fun knownPackagesFromReceipts(): Set<String> = com.wae.core.util.Degrade.orElse("service:knownPkgs", emptySet()) {
         val file = java.io.File(filesDir, "mem/receipts.tsv")
-        if (!file.exists()) return emptySet()
+        if (!file.exists()) return@orElse emptySet()
         file.bufferedReader(Charsets.UTF_8).useLines { lines ->
             lines.filter { it.isNotBlank() && !it.startsWith("#") }
                 .mapNotNull { line ->
@@ -441,7 +441,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 }
                 .toSet()
         }
-    }.getOrDefault(emptySet())
+    }
 
     private fun computeAmbientSpine(): Pair<Long, List<Long>> {
         val root = rootInActiveWindow ?: return 0L to emptyList()
@@ -517,7 +517,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             }
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
                 // S25：記錄髒區（供下一幀做範圍剪枝）
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:incrementalPerceive") {
                     val src = event.source
                     if (src != null) {
                         val r = Rect()
@@ -590,12 +590,12 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             return false
         }
         val overlay = com.wae.agent.ui.FloatingOverlay(this)
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("service:showOverlay", false) {
             overlay.show()
             floatingOverlay = overlay
             Log.i("WAE_OVERLAY", "toggled on")
             true
-        }.getOrDefault(false)
+        }
     }
 
     fun isFloatingOverlayVisible(): Boolean = floatingOverlay?.isShowing() == true
@@ -606,7 +606,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     fun overlayExecuteCommand(raw: String, fromVoice: Boolean) {
         if (fromVoice) {
             voiceTaskActive = true
-            runCatching {
+            com.wae.core.util.Degrade.orNull("service:voiceProgressInit") {
                 if (voiceProgress == null) voiceProgress = com.wae.agent.core.VoiceProgressOverlay(this)
                 voiceProgress?.show("準備中…")
             }
@@ -662,9 +662,9 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         optionSet: com.wae.agent.core.ImmutableOptionSet,
         chosen: CandidateOption
     ) {
-        runCatching {
+        com.wae.core.util.Degrade.orNull("service:groundingTrace") {
             val opts = optionSet.selectableOptions
-            if (opts.isEmpty()) return
+            if (opts.isEmpty()) return@orNull
             val chosenIdx = opts.indexOfFirst { it.markId == chosen.markId }
             val traces = opts.mapIndexed { index, option ->
                 com.wae.agent.core.grounding.TraceCandidate(
@@ -825,21 +825,21 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                     val stepOk = executeSingleLocalGoalWithRecovery(goal, onStepUpdate)
                     // 目標層驗證：把「這步有反應」升級成「目標真的達成」。
                     // 目前只對「輸入類」強制生效（最常見的假成功），其餘先只記錄。
-                    val toggleGoalDetected = runCatching {
+                    val toggleGoalDetected = com.wae.core.util.Degrade.orElse("service:toggleDetected", false) {
                         val ti = com.wae.agent.core.nlu.ToggleIntent.parseForToggle(goal.goalText, goal.actionKind)
                             ?: com.wae.agent.core.nlu.ToggleIntent.parseForToggle(goal.inputPayload, goal.actionKind)
                         // 只要是開關指令就強制狀態驗證：找不到那個開關 → 直接判失敗（不可用「畫面變了」蒙混）
                         ti != null
-                    }.getOrDefault(false)
+                    }
                     val verified = if (stepOk) verifyGoalOutcome(goal, dispatchVerified = true) else false
                     // BACK 驗證收緊：返回若「畫面與套件都沒變」且目前不在桌面 → 判失敗。
                     // （在桌面按返回本來就不會有變化，那算合理）
-                    val onLauncher = runCatching {
+                    val onLauncher = com.wae.core.util.Degrade.orElse("service:onLauncher", false) {
                         val home = android.content.Intent(android.content.Intent.ACTION_MAIN)
                             .addCategory(android.content.Intent.CATEGORY_HOME)
                         packageManager.queryIntentActivities(home, 0)
                             .any { it.activityInfo.packageName == (rootInActiveWindow?.packageName?.toString() ?: "") }
-                    }.getOrDefault(false)
+                    }
                     val enforceVerify = goal.actionKind == ActionKind.TYPE ||
                         goal.actionKind == ActionKind.REPLACE_TEXT ||
                         (goal.actionKind == ActionKind.BACK && !onLauncher) ||
@@ -850,7 +850,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                     }
                     Log.i("WAE_EXEC", "Goal stepIdx=${goal.stepIdx} (${goal.goalText}) finished with stepOk=$goalOk")
                     if (goalOk) {
-                        runCatching {
+                        com.wae.core.util.Degrade.orNull("service:onGoalDone") {
                             com.wae.agent.core.runtime.ExtremeRuntimeHooks.onGoalDone(
                                 goal.targetPackageHint.ifEmpty { latestPackageName }, goalSelectors.toList()
                             )
@@ -858,7 +858,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                         succeededGoals += 1
                         continue
                     }
-                    runCatching {
+                    com.wae.core.util.Degrade.orNull("service:onGoalFailed") {
                         com.wae.agent.core.runtime.ExtremeRuntimeHooks.onGoalFailed(
                             goal.targetPackageHint.ifEmpty { latestPackageName }
                         )
@@ -941,7 +941,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 lastTaskSuccess = finalOk
                 Log.i("WAE_EXEC", "taskResult=${if (finalOk) "SUCCESS" else "FAIL"} seq=$taskRunSeq")
                 // G0：任務結束把 grounding trace 落盤（只在 debug 版；失敗不影響結果）
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:groundingFlush") {
                     val n = com.wae.agent.core.grounding.GroundingTraceRecorder.bufferedCount()
                     if (com.wae.agent.core.grounding.GroundingTraceRecorder.flushToFile(this)) {
                         Log.i("WAE_TRACE", "grounding trace flushed steps=$n")
@@ -949,13 +949,13 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                 }
                 if (voiceTaskActive) {
                     voiceTaskActive = false
-                    runCatching {
+                    com.wae.core.util.Degrade.orNull("service:voiceProgressDone") {
                         voiceProgress?.update(if (finalOk) "完成" else "失敗")
                         voiceProgress?.hide(900L)
                     }
                 }
                 // P0/P1：歷史結果 + 語音回饋（只有語音來源才出聲）
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:historyResult") {
                     com.wae.agent.voice.SessionHistory.markLastResult(this, finalOk)
                     val last = com.wae.agent.voice.SessionHistory.recent(this, 1).firstOrNull()
                     if (last != null && last.voice && System.currentTimeMillis() - last.ts < 120_000L) {
@@ -963,12 +963,12 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                     }
                 }
                 // 任務結束：把遙測落盤，讓「降權」跨啟動累積（P0-2）
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:persistTelemetry") {
                     com.wae.agent.core.action.ActionTelemetry.persist(this@WaeVisionAccessibilityService)
                     com.wae.agent.core.action.NegativeEdgeStore.persist(this@WaeVisionAccessibilityService)
                 }
                 // M2/P1：把本次軌跡編譯成該 App 的狀態圖（純程式、無模型；含去抖）
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:compileGraph") {
                     val ctx = this@WaeVisionAccessibilityService
                     val lowEnd = com.wae.agent.core.automaton.GraphBudget.isLowEndDevice(ctx)
                     // 必須用「剛落盤的最新軌跡」：twinHistory 是任務開始時載入的快照，
@@ -1002,7 +1002,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                                 "tier=${automaton.tier} sha=${automaton.sha256().take(12)}"
                         )
                         // S22：圖健康度（覆蓋 × 新鮮 × 成功 − 負邊密度）
-                        runCatching {
+                        com.wae.core.util.Degrade.orNull("service:graphHealth") {
                             val neg = com.wae.agent.core.action.NegativeEdgeStore
                                 .snapshot().count { it.pkg == p }
                             val health = com.wae.agent.core.observe.GraphHealth
@@ -1027,7 +1027,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                         lastCompileAtMs = nowMs
                     }
                     // §16 全子系統：任務結束分析（全部只記錄，不影響控制流）
-                    runCatching {
+                    com.wae.core.util.Degrade.orNull("service:buildIndex") {
                         for (p in pkgs.take(3)) {
                             val autoEnd = com.wae.agent.core.automaton.AutomatonStore.load(ctx, p) ?: continue
                             com.wae.agent.core.runtime.ExtremeRuntimeHooks.buildIndex(autoEnd)
@@ -1230,10 +1230,10 @@ class WaeVisionAccessibilityService : AccessibilityService() {
     ) {
         if (!EXPLORER_ENABLED) return
         com.wae.agent.core.explore.ExplorationScheduler.run(ctx, steps) {
-            runCatching {
+            com.wae.core.util.Degrade.orElse("service:charging", false) {
                 val bm = getSystemService(android.content.Context.BATTERY_SERVICE) as android.os.BatteryManager
                 bm.isCharging
-            }.getOrDefault(false)
+            }
         }
     }
 
@@ -1414,7 +1414,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             )
             forceOcrNextFrame = false
             frame0Selectors = optionSetW0.selectableOptions.map { selectorKeyOf(it) }.toSet()
-            runCatching {
+            com.wae.core.util.Degrade.orNull("service:onLoopStart") {
                 val sigs = optionSetW0.pageSpineSigs.toList()
                 val autoForHook = automatonFor(optionSetW0.packageName)
                 val liveFp = com.wae.agent.core.automaton.MinHash.fingerprint(sigs)
@@ -1525,7 +1525,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             // ── S32 動態 UI 閘門：載入中/廣告/權限彈窗/鍵盤遮擋 → 這輪先不要硬點 ──
             if (com.wae.agent.core.runtime.ExtremeRuntimeHooks.GROUNDING_2_ENABLED) {
                 var dynSignal: com.wae.agent.core.grounding.DynamicUiClassifier.Signal? = null
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:dynamicUiClassify") {
                     val dynTexts = optionSetW0.selectableOptions
                         .map { it.coreText }
                         .filter { it.isNotBlank() }
@@ -1559,7 +1559,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             // 走到目標頁後**不 return true**（導覽不等於完成），讓正常決策在該頁完成任務。
             if (AUTOMATON_PLANNER_ENABLED && automatonHopsThisGoal < AUTOMATON_MAX_HOPS) {
                 var navigated = false
-                runCatching {
+                com.wae.core.util.Degrade.orNull("service:stateSnapshot") {
                     val pkgNow = optionSetW0.packageName
                     val auto = automatonFor(pkgNow)
                     if (auto != null && auto.stateCount() > 1) {
@@ -1628,7 +1628,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                                     }
                                     executed++
                                     automatonHopsThisGoal++
-                                    runCatching {
+                                    com.wae.core.util.Degrade.orNull("service:onDispatch") {
                                         com.wae.agent.core.runtime.ExtremeRuntimeHooks.onDispatch(
                                             pkgNow, edge.selector, goalSelectors
                                         )
@@ -1927,7 +1927,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
                     // TYPE 找不到輸入埠 → 先退回上一層（YouTube 常直接回到上次播放的影片頁）
                     if (decision.reason.contains("NO_INPUT_ENTRY") && noInputEntryBacks < 2) {
                         noInputEntryBacks++
-                        runCatching {
+                        com.wae.core.util.Degrade.orNull("service:backRecovery") {
                             performGlobalAction(
                                 android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
                             )
@@ -2041,7 +2041,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         }
 
         // P4.1：量測真正的響應延遲（派發 → 第一次內容變化），而非整步耗時
-        runCatching {
+        com.wae.core.util.Degrade.orNull("service:waitForResponse") {
             val deadline = SystemClock.uptimeMillis() + 900L
             var responseMs = 0L
             while (SystemClock.uptimeMillis() < deadline) {
@@ -2119,15 +2119,15 @@ class WaeVisionAccessibilityService : AccessibilityService() {
             healLevel = 0
         )
         // 負向邊（S2）：把失敗寫成結構化事實；成功一次則讓負面經驗淡出
-        runCatching {
+        com.wae.core.util.Degrade.orNull("service:recordNegativeEdge") {
             val selKey = WaeV26PipelineOrchestrator.candidateSelectorKey(chosen)
             val opName = goal.actionKind.name
             // 若能量到當前狀態，就把負邊限定在該狀態（避免同一選擇器跨頁誤殺）
-            val stateId = runCatching {
+            val stateId = com.wae.core.util.Degrade.orElse("service:matchStateForEdge", "") {
                 automatonFor(optionSet.packageName)?.matchState(
                     com.wae.agent.core.automaton.MinHash.fingerprint(optionSet.pageSpineSigs.toList())
                 )?.id ?: ""
-            }.getOrDefault("")
+            }
             when (effect) {
                 com.wae.agent.core.action.ActionEffect.WRONG_EFFECT ->
                     com.wae.agent.core.action.NegativeEdgeStore.record(
@@ -2912,7 +2912,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         // S27：很多設定頁的「文字列」本身不可點，開關是同一列裡的子節點。
         // 這裡把「有文字、不可點、但內部有可勾選子節點」的列升級成可點的可切換列，
         // 否則『飛航模式』這種列會完全進不了候選（實測三星設定就是這樣）。
-        runCatching {
+        com.wae.core.util.Degrade.orNull("service:pairCheckables") {
             for (idx in rawList.indices) {
                 val r = rawList[idx]
                 if (r.isCheckable || r.isClickable || r.text.isBlank()) continue
@@ -3391,7 +3391,7 @@ class WaeVisionAccessibilityService : AccessibilityService() {
         while (stack.isNotEmpty() && visited < 400) {
             val n = stack.removeLast()
             visited++
-            runCatching {
+            com.wae.core.util.Degrade.orNull("service:collectText") {
                 n.text?.toString()?.takeIf { it.isNotBlank() }?.let { out.add(it) }
                 n.contentDescription?.toString()?.takeIf { it.isNotBlank() }?.let { out.add(it) }
                 for (i in 0 until n.childCount) {
