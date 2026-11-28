@@ -29,6 +29,10 @@ updates:
       # 只能靠真機語音／視覺回歸驗證，不適合自動開 PR。
       - dependency-name: "com.microsoft.onnxruntime:onnxruntime-android"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # Gradle wrapper 也鎖住：升級會改變建置工具鏈（AGP／Kotlin 相容性），
+      # 必須人工做一輪「工具鏈升級 + 真機回歸」，不能由 bot 自動開 PR。
+      - dependency-name: "gradle-wrapper"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
