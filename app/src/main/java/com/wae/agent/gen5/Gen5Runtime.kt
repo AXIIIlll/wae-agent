@@ -90,12 +90,12 @@ object Gen5Runtime {
     }
 
     private fun copyToClipboard(context: android.content.Context, text: String): Boolean {
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("gen5:copyClipboard", false) {
             val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
                 as android.content.ClipboardManager
             clipboard.setPrimaryClip(android.content.ClipData.newPlainText("WAE", text))
             true
-        }.getOrDefault(false)
+        }
     }
 
     /** 首頁至少要有的可點元素數（太少就當空白／載入中）。 */
@@ -151,7 +151,7 @@ object Gen5Runtime {
         // **語料收集**：把每一次真實指令寫進 commands.jsonl（一行一筆）。
         // 為什麼：模型路線需要「真實標註句」，而我們現在是 0 筆。
         // 先累積原文，之後再用規則粗標 + 人工抽驗，才有真資料可訓練。
-        runCatching {
+        com.wae.core.util.Degrade.orNull("gen5:logCommand") {
             java.io.File(context.filesDir, "commands.jsonl").appendText(
                 "{\"t\":${System.currentTimeMillis()},\"c\":\"" +
                     command.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}\n"
@@ -379,9 +379,9 @@ object Gen5Runtime {
                             )
                         }
                         // 混合計畫：照順序執行（cmd 交舊管線、wait 等、op 交操作層）
-                        val service = runCatching {
+                        val service = com.wae.core.util.Degrade.orNull("gen5:activeService") {
                             com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
-                        }.getOrNull()
+                        }
                         var ok = true
                         var detail = ""
                         RuleEngineHost.bypass = true
@@ -471,10 +471,10 @@ object Gen5Runtime {
                 val after = vague.afterCommand
                 // HOME 策略：開起來不算完成，要確認「有內容可以點」
                 if (after == null && vague.strategy == com.wae.core.intent.IntentRouter.Strategy.HOME) {
-                    val count = runCatching {
+                    val count = com.wae.core.util.Degrade.orElse("gen5:contentCount", 0) {
                         val svc = com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
                         if (svc == null) 0 else StepActor.contentCount(svc, context)
-                    }.getOrDefault(0)
+                    }
                     if (vague.purpose.isNotEmpty() && vague.pkg.isNotEmpty()) {
                         AppCapabilityStore.record(context, vague.pkg, vague.purpose, count >= CONTENT_MIN)
                     }
@@ -500,10 +500,10 @@ object Gen5Runtime {
                 if (second.summary.contains("SUCCESS")) return second
                 // 後援：App 沒有搜尋 intent 時，直接在畫面上做「聚焦→輸入→送出」
                 val query = after.substringAfter("搜尋", "").trim()
-                val ok = runCatching {
+                val ok = com.wae.core.util.Degrade.orElse("gen5:inAppSearch", false) {
                     val svc = com.wae.agent.core.WaeVisionAccessibilityService.activeInstance
                     svc != null && query.isNotEmpty() && StepActor.searchHere(svc, query, context)
-                }.getOrDefault(false)
+                }
                 return if (ok) {
                     RunResult(Outcome.Success, first.summary + " + inAppSearch=ok", 0)
                 } else {
@@ -586,7 +586,7 @@ object Gen5Runtime {
         val overlay = com.wae.core.util.Degrade.orNull("gen5:overlay") { com.wae.agent.core.VoiceProgressOverlay(service) }
         val progress: (String) -> Unit = { text ->
             if (text.isNotEmpty()) Log.i(TAG, "progress: $text")
-            runCatching {
+            com.wae.core.util.Degrade.orNull("gen5:overlay") {
                 if (text.isEmpty()) overlay?.hide() else overlay?.show(text)
             }
         }
@@ -597,7 +597,7 @@ object Gen5Runtime {
 
         // 分享相簿照片需要讀取媒體權限：沒有就帶使用者去授權，不要讓它「試了才知道」
         if (requested.any { it.target.startsWith("share:photo:") } && !PhotoLibrary.hasPermission(context)) {
-            runCatching {
+            com.wae.core.util.Degrade.orNull("gen5:openAppSettings") {
                 val intent = android.content.Intent(
                     android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 )
@@ -615,7 +615,7 @@ object Gen5Runtime {
         }
 
         if (requested.any { it.target.startsWith("brightness:") } && !android.provider.Settings.System.canWrite(context)) {
-            runCatching {
+            com.wae.core.util.Degrade.orNull("gen5:openWriteSettings") {
                 val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS)
                 intent.data = android.net.Uri.parse("package:" + context.packageName)
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -685,14 +685,13 @@ object Gen5Runtime {
             sleeper = { ms -> com.wae.core.util.Degrade.orNull("gen5:sleep") { Thread.sleep(ms) }; Unit }
         )
 
-        val outcome = runCatching { agent.run(command) }.getOrElse { t ->
-            Log.e(TAG, "run failed", t)
-            Outcome.Unknown("exception:" + t.message)
+        val outcome = com.wae.core.util.Degrade.orElse("gen5:agentRun", Outcome.Unknown("exception:degraded")) {
+            agent.run(command)
         }
         // 排錯用：把「這句話被編譯成什麼效果」寫出來（不含使用者原文）
         Log.i(TAG, "effects=" + effects.compile(command).joinToString(",") { it.key() })
         // 排錯用：同一幀上「計畫有沒有東西」（不影響執行）
-        runCatching {
+        com.wae.core.util.Degrade.orNull("gen5:dryRunPlan") {
             val probeFrame = rawSource.capture()
             val plan = Planner(solver, resolver, appResolver)
                 .plan(effects.compile(command), probeFrame, ContractDeriver(BundledData.contractRules()).derive(probeFrame), com.wae.core.model.Constraints.NONE)
@@ -740,9 +739,9 @@ object Gen5Runtime {
         steps: List<com.wae.core.rule.MethodExpander.Step>
     ): String? {
         val first = steps.firstOrNull() as? com.wae.core.rule.MethodExpander.Step.Cmd ?: return null
-        val apps = runCatching {
+        val apps = com.wae.core.util.Degrade.orEmpty("gen5:installedApps") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
-        }.getOrDefault(emptyList())
+        }
         return com.wae.agent.core.app.MissingAppGuard.missingLabel(
             firstStepText = first.text,
             // 系統目標（Wi-Fi／藍牙／飛航／亮度）不是 App：不能因為「找不到這個 App」就判死，
@@ -762,9 +761,9 @@ object Gen5Runtime {
         val resolver = NounHost.resolver(context)
         val resolved = resolver.resolve(command) ?: return null
         val service = com.wae.agent.core.WaeVisionAccessibilityService.activeInstance ?: return null
-        val apps = runCatching {
+        val apps = com.wae.core.util.Degrade.orEmpty("gen5:installedApps") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
-        }.getOrDefault(emptyList())
+        }
         // 名詞本身就是 App（日曆、Chrome、YouTube…）→ 直接開它，不要按型別亂挑
         val namedApp = apps.firstOrNull {
             it.label.equals(resolved.noun, true) || it.label.contains(resolved.noun, true) ||
@@ -832,11 +831,12 @@ object Gen5Runtime {
         )
     }
 
-    private fun uriCapable(pkg: String): Boolean = runCatching {
-        BundledData.uriSearchLines().any { line ->
-            !line.startsWith("#") && line.split('\t').firstOrNull()?.trim() == pkg
+    private fun uriCapable(pkg: String): Boolean =
+        com.wae.core.util.Degrade.orElse("gen5:uriCapable", false) {
+            BundledData.uriSearchLines().any { line ->
+                !line.startsWith("#") && line.split('\t').firstOrNull()?.trim() == pkg
+            }
         }
-    }.getOrDefault(false)
 
     private fun awaitForeground(
         service: com.wae.agent.core.WaeVisionAccessibilityService,
@@ -876,7 +876,7 @@ object Gen5Runtime {
 
     private fun loadConfig(context: Context): Config {
         val merged = LinkedHashMap(BundledData.tunables())
-        runCatching {
+        com.wae.core.util.Degrade.orNull("gen5:loadTunables") {
             context.assets.open(ASSET_TUNABLES).bufferedReader(Charsets.UTF_8).use { reader ->
                 merged.putAll(ConfigParser.parse(reader.readLines().asSequence()))
             }
@@ -886,11 +886,11 @@ object Gen5Runtime {
 
     /** 角色詞庫：assets 沒有就用內建預設（並記一筆 log，方便發現漏打包）。 */
     private fun loadLexicon(context: Context): RoleLexicon {
-        val fromAssets = runCatching {
+        val fromAssets = com.wae.core.util.Degrade.orNull("gen5:roleLexicon") {
             context.assets.open(ASSET_LEXICON).bufferedReader(Charsets.UTF_8).use { reader ->
                 RoleLexicon.parse(reader.readLines().asSequence())
             }
-        }.getOrNull()
+        }
         if (fromAssets == null) {
             Log.w(TAG, "role_lexicon.tsv 不在 assets，改用內建預設")
             return RoleLexicon.DEFAULT
