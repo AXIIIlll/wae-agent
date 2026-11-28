@@ -54,7 +54,7 @@ object OpExecutor {
     // ── 單一操作 ────────────────────────────────────────────────
 
     private fun runOne(context: Context, service: AccessibilityService?, op: OpCall): Boolean =
-        runCatching {
+        com.wae.core.util.Degrade.orElse("opExec:dispatch", false) {
             when (op.id) {
                 "INTENT_LAUNCH" -> launchApp(context, op.args.getOrNull(0).orEmpty())
                 "INTENT_SEARCH" -> launchApp(context, op.args.getOrNull(0).orEmpty()) &&
@@ -76,7 +76,7 @@ object OpExecutor {
                 "WAIT_FOR" -> waitFor(service, op.args.getOrNull(0).orEmpty(), op.args.getOrNull(1)?.toIntOrNull() ?: 2000)
                 else -> false
             }
-        }.getOrDefault(false)
+        }
 
     /**
      * 用前景 App 的 URI scheme 搜尋（`uri_search.tsv`）。
@@ -85,52 +85,53 @@ object OpExecutor {
      * 也不會誤點語音搜尋；URI 由 App 自己處理。
      */
     /** 直接用套件名啟動（不經舊管線，不會有重試／overlay）。 */
-    fun launchPkg(context: Context, pkg: String): Boolean = runCatching {
-        val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return false
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
-        true
-    }.getOrDefault(false)
+    fun launchPkg(context: Context, pkg: String): Boolean =
+        com.wae.core.util.Degrade.orElse("opExec:launchPkg", false) {
+            val intent = context.packageManager.getLaunchIntentForPackage(pkg) ?: return@orElse false
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        }
 
     /** 用「指定的 App」做 URI 搜尋（呼叫端已知要交給誰，不要靠前景猜）。 */
     fun uriSearchFor(context: Context, pkg: String, query: String): Boolean {
         if (pkg.isBlank() || query.isBlank()) return false
-        val template = runCatching {
+        val template = com.wae.core.util.Degrade.orNull("opExec:uriTemplate") {
             com.wae.core.config.BundledData.uriSearchLines().firstOrNull { line ->
                 !line.startsWith("#") && line.split('\t').firstOrNull()?.trim() == pkg
             }?.split('\t')?.getOrNull(1)?.trim()
-        }.getOrNull()
+        }
         if (template.isNullOrEmpty()) return false
         val uri = template.replace("{q}", android.net.Uri.encode(query))
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("opExec:uriSearch", false) {
             val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.setPackage(pkg)
             context.startActivity(intent)
             true
-        }.getOrDefault(false)
+        }
     }
 
     private fun uriSearch(context: Context, service: AccessibilityService?, query: String): Boolean {
         if (query.isBlank()) return false
-        val pkg = runCatching {
-            service?.rootInActiveWindow?.packageName?.toString()
-        }.getOrNull().orEmpty()
+        val pkg = com.wae.core.util.Degrade.orElse("opExec:foregroundPkg", "") {
+            service?.rootInActiveWindow?.packageName?.toString() ?: ""
+        }
         if (pkg.isEmpty()) return false
-        val template = runCatching {
+        val template = com.wae.core.util.Degrade.orNull("opExec:uriTemplate") {
             com.wae.core.config.BundledData.uriSearchLines().firstOrNull { line ->
                 !line.startsWith("#") && line.split('\t').firstOrNull()?.trim() == pkg
             }?.split('\t')?.getOrNull(1)?.trim()
-        }.getOrNull()
+        }
         if (template.isNullOrEmpty()) return false
         val uri = template.replace("{q}", android.net.Uri.encode(query))
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("opExec:openUri", false) {
             val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             if (pkg.isNotEmpty()) intent.setPackage(pkg)
             context.startActivity(intent)
             true
-        }.getOrDefault(false)
+        }
     }
 
     private fun launchApp(context: Context, appLabel: String): Boolean {
@@ -183,10 +184,10 @@ object OpExecutor {
             is com.wae.core.step.ClickResolver.Result.Hit -> snap.nodes[resolved.element.id]
             else -> null
         } ?: return false
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("opExec:click", false) {
             DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_CLICK) ||
                 (node.parent?.let { DeviceIO.perform(it, AccessibilityNodeInfo.ACTION_CLICK) } ?: false)
-        }.getOrDefault(false)
+        }
     }
 
     private fun typeIntoSearch(context: Context, service: AccessibilityService?, text: String): Boolean {
@@ -199,10 +200,10 @@ object OpExecutor {
         val args = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
         }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("opExec:setText", false) {
             DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_SET_TEXT, args) &&
                 (node.text?.toString()?.contains(text) == true)
-        }.getOrDefault(false)
+        }
     }
 
     private fun setText(service: AccessibilityService?, text: String): Boolean {
@@ -213,21 +214,21 @@ object OpExecutor {
         val args = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
         }
-        return runCatching {
+        return com.wae.core.util.Degrade.orElse("opExec:setText", false) {
             DeviceIO.perform(node, AccessibilityNodeInfo.ACTION_SET_TEXT, args) &&
                 (node.text?.toString()?.contains(text) == true)
-        }.getOrDefault(false)
+        }
     }
 
     private fun openPanel(service: AccessibilityService?): Boolean =
-        runCatching {
+        com.wae.core.util.Degrade.orElse("opExec:openPanel", false) {
             service?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS) ?: false
-        }.getOrDefault(false)
+        }
 
     private fun systemValue(context: Context, kind: String, dir: String): Boolean {
         val up = dir.contains("高") || dir.contains("亮") || dir.equals("up", true)
         return when (kind.lowercase()) {
-            "volume" -> runCatching {
+            "volume" -> com.wae.core.util.Degrade.orElse("opExec:volume", false) {
                 val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 val stream = AudioManager.STREAM_MUSIC
                 am.adjustStreamVolume(
@@ -236,15 +237,15 @@ object OpExecutor {
                     AudioManager.FLAG_SHOW_UI
                 )
                 true
-            }.getOrDefault(false)
-            "brightness" -> runCatching {
+            }
+            "brightness" -> com.wae.core.util.Degrade.orElse("opExec:brightness", false) {
                 val current = Settings.System.getInt(
                     context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, 128
                 )
                 val next = (current + if (up) 30 else -30).coerceIn(10, 255)
                 Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, next)
                 true
-            }.getOrDefault(false)
+            }
             else -> false
         }
     }
@@ -300,11 +301,11 @@ object OpExecutor {
         val pkg = root?.packageName?.toString().orEmpty()
         if (pkg.isNotEmpty()) {
             out["pkg"] = pkg
-            out["pkg_label"] = runCatching {
+            out["pkg_label"] = com.wae.core.util.Degrade.orElse("opExec:pkgLabel", pkg) {
                 context.packageManager.getApplicationLabel(
                     context.packageManager.getApplicationInfo(pkg, 0)
                 ).toString()
-            }.getOrDefault(pkg)
+            }
         }
         if (root != null) {
             val texts = ArrayList<String>()
@@ -333,9 +334,9 @@ object OpExecutor {
     }
 
     private fun resolvePkg(context: Context, appLabel: String): String? {
-        val installed = runCatching {
+        val installed = com.wae.core.util.Degrade.orEmpty("opExec:installedApps") {
             com.wae.agent.core.app.InstalledAppCatalog.load(context, force = false)
-        }.getOrDefault(emptyList())
+        }
         return installed.firstOrNull { it.label.equals(appLabel, true) }?.pkg
             ?: installed.firstOrNull { it.label.contains(appLabel, true) }?.pkg
     }
