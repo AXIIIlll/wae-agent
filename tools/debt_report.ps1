@@ -27,7 +27,7 @@ $files = Get-ChildItem $srcDirs -Recurse -Filter *.kt | ForEach-Object { $_.Full
 
 # 基準值＝整理開始時的量測結果。每完成一批就把基準往下調。
 $baseline = @{
-    runCatching = 471
+    runCatching = 445
     todo        = 0
     emoji       = 32
     maxFile     = 3784

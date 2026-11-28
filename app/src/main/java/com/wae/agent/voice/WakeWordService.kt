@@ -50,10 +50,10 @@ class WakeWordService : Service() {
 
     override fun onDestroy() {
         running = false
-        runCatching { audioRecord?.stop() }
-        runCatching { worker?.join(500) }
-        runCatching { audioRecord?.release() }
-        runCatching { spotter?.release() }
+        com.wae.core.util.Degrade.orNull("wakeWord:stopRecord") { audioRecord?.stop() }
+        com.wae.core.util.Degrade.orNull("wakeWord:joinWorker") { worker?.join(500) }
+        com.wae.core.util.Degrade.orNull("wakeWord:releaseRecord") { audioRecord?.release() }
+        com.wae.core.util.Degrade.orNull("wakeWord:releaseSpotter") { spotter?.release() }
         audioRecord = null
         spotter = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -102,8 +102,8 @@ class WakeWordService : Service() {
             } catch (t: Throwable) {
                 if (running) {
                     VoiceLog.error(TAG, "wake word loop failed", t)
-                    runCatching { ar.stop() }
-                    runCatching { ar.release() }
+                    com.wae.core.util.Degrade.orNull("wakeWord:stopRecord2") { ar.stop() }
+                    com.wae.core.util.Degrade.orNull("wakeWord:releaseRecord2") { ar.release() }
                     audioRecord = null
                     Thread.sleep(1500)
                 }
@@ -115,7 +115,7 @@ class WakeWordService : Service() {
         val now = System.currentTimeMillis()
         if (now - lastTriggerAt < TRIGGER_COOLDOWN_MS) return
         lastTriggerAt = now
-        runCatching {
+        com.wae.core.util.Degrade.orNull("wakeWord:openAssist") {
             startActivity(
                 Intent(this, AssistActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -181,7 +181,7 @@ class WakeWordService : Service() {
         }
         val kw = File(root, "keywords.txt")
         if (!kw.isFile) {
-            runCatching {
+            com.wae.core.util.Degrade.orNull("wakeWord:copyKeywords") {
                 assets.open("sherpa/kws-keywords.txt").use { input ->
                     FileOutputStream(kw).use { input.copyTo(it) }
                 }
@@ -190,7 +190,7 @@ class WakeWordService : Service() {
         return root
     }
 
-    private fun createAudioRecord(): AudioRecord? = runCatching {
+    private fun createAudioRecord(): AudioRecord? = com.wae.core.util.Degrade.orNull("wakeWord:createRecord") {
         val minBuf = AudioRecord.getMinBufferSize(
             SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT
         ).coerceAtLeast(CHUNK * 2)
@@ -205,7 +205,7 @@ class WakeWordService : Service() {
             ar.release()
             null
         } else ar
-    }.getOrNull()
+    }
 
     private fun buildNotification(text: String): Notification {
         val nm = getSystemService(NotificationManager::class.java)
@@ -228,7 +228,7 @@ class WakeWordService : Service() {
     }
 
     private fun notifyText(text: String) {
-        runCatching {
+        com.wae.core.util.Degrade.orNull("wakeWord:notify") {
             getSystemService(NotificationManager::class.java)
                 ?.notify(NOTIF_ID, buildNotification(text))
         }
@@ -255,7 +255,7 @@ class WakeWordService : Service() {
                 .putBoolean(KEY_ENABLED, enabled).apply()
             val intent = Intent(context, WakeWordService::class.java)
             if (enabled) {
-                runCatching {
+                com.wae.core.util.Degrade.orNull("wakeWord:startService") {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         context.startForegroundService(intent)
                     } else {
@@ -263,7 +263,7 @@ class WakeWordService : Service() {
                     }
                 }
             } else {
-                runCatching { context.stopService(intent) }
+                com.wae.core.util.Degrade.orNull("wakeWord:stopService") { context.stopService(intent) }
             }
         }
     }
