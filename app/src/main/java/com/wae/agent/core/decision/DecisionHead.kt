@@ -124,7 +124,7 @@ object DecisionHead {
             loadFromLines(DEFAULT_ROWS)
         }
         // 啟動時印一次，方便用 logcat 確認「權重真的有載入、決策頭是開的」
-        runCatching {
+        com.wae.core.util.Degrade.orNull("decisionHead:logLoaded") {
             android.util.Log.i(
                 TAG,
                 "loaded enabled=${active()} weights=${weightCount()} " +
@@ -210,8 +210,8 @@ object DecisionHead {
         f["flag:hasRange"] = if (c.hasRange) 1f else 0f
         f["flag:isAdjustable"] = if (c.isAdjustable) 1f else 0f
 
-        runCatching { f["flag:isNavigationRow"] = if (ContentItemEvidence.isNavigationRow(c)) 1f else 0f }
-        runCatching { f["flag:isContentItem"] = if (ContentItemEvidence.isContentItem(c)) 1f else 0f }
+        com.wae.core.util.Degrade.orNull("decisionHead:flagNav") { f["flag:isNavigationRow"] = if (ContentItemEvidence.isNavigationRow(c)) 1f else 0f }
+        com.wae.core.util.Degrade.orNull("decisionHead:flagContent") { f["flag:isContentItem"] = if (ContentItemEvidence.isContentItem(c)) 1f else 0f }
 
         f["num:sim"] = c.hybridSimScore.coerceIn(0f, 1f)
         f["num:detConfidence"] = c.detectorConfidence.coerceIn(0f, 1f)
@@ -264,11 +264,11 @@ object DecisionHead {
     /** 候選 bonus：加進 logits 的值；旗標關閉時恆為 0 */
     fun candidateBonus(goal: LocalGoal, c: CandidateOption): Float {
         if (!active()) return 0f
-        val f = runCatching { candidateFeatures(goal, c) }.getOrNull() ?: return 0f
-        val bonus = runCatching { score(candidateModel, f) }.getOrDefault(0f)
+        val f = com.wae.core.util.Degrade.orNull("decisionHead:candFeatures") { candidateFeatures(goal, c) } ?: return 0f
+        val bonus = com.wae.core.util.Degrade.orElse("decisionHead:candScore", 0f) { score(candidateModel, f) }
         if (bonus != 0f) {
-            // Log 在 JVM 單元測試沒有實作 → 獨立 runCatching，避免吃掉 bonus
-            runCatching {
+            // Log 在 JVM 單元測試沒有實作 → 獨立 Degrade，避免吃掉 bonus
+            com.wae.core.util.Degrade.orNull("decisionHead:logCand") {
                 android.util.Log.i(
                     TAG,
                     "cand bonus=${"%.2f".format(bonus)} " +
@@ -288,11 +288,12 @@ object DecisionHead {
         currentState: String = ""
     ): Double {
         if (!active()) return 0.0
-        val f = runCatching { edgeFeatures(hint, goalOp, e, negativePenalty, currentState) }
-            .getOrNull() ?: return 0.0
-        val bonus = runCatching { score(edgeModel, f) }.getOrDefault(0f)
+        val f = com.wae.core.util.Degrade.orNull("decisionHead:edgeFeatures") {
+            edgeFeatures(hint, goalOp, e, negativePenalty, currentState)
+        } ?: return 0.0
+        val bonus = com.wae.core.util.Degrade.orElse("decisionHead:edgeScore", 0f) { score(edgeModel, f) }
         if (bonus != 0f) {
-            runCatching {
+            com.wae.core.util.Degrade.orNull("decisionHead:logEdge") {
                 android.util.Log.i(
                     TAG,
                     "edge bonus=${"%.2f".format(bonus)} selector='${e.selector.take(24)}' " +
@@ -314,8 +315,8 @@ object DecisionHead {
         if (!active()) return
         val ctx = appContext ?: return
         if ((ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) == 0) return
-        runCatching {
-            if (options.isEmpty()) return
+        com.wae.core.util.Degrade.orNull("decisionHead:dumpSamples") {
+            if (options.isEmpty()) return@orNull
             val sb = StringBuilder()
             for ((i, c) in options.withIndex()) {
                 val feats = candidateFeatures(goal, c)
@@ -332,7 +333,7 @@ object DecisionHead {
     /** 清空開發樣本檔（開發卡片或 adb 觸發用；回傳是否成功） */
     fun clearSamples(): Boolean {
         val ctx = appContext ?: return false
-        return runCatching { java.io.File(ctx.filesDir, SAMPLES_FILE).delete() }.getOrDefault(false)
+        return com.wae.core.util.Degrade.orElse("decisionHead:deleteSamples", false) { java.io.File(ctx.filesDir, SAMPLES_FILE).delete() }
     }
 
     /** 線性組合 + clamp + alpha（供測試與訓練器對齊） */

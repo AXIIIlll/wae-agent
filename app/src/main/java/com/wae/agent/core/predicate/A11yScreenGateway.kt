@@ -61,7 +61,7 @@ class A11yScreenGateway(
         // **視窗診斷**（先量測再設計彈窗政策）：畫面變了才印一次，避免洗版
         if (frame.fp.isNotEmpty() && frame.fp != lastWinFp) {
             lastWinFp = frame.fp
-            runCatching { dumpWindows() }
+            com.wae.core.util.Degrade.orNull("gateway:dumpWindows") { dumpWindows() }
         }
         return frame
     }
@@ -124,7 +124,7 @@ class A11yScreenGateway(
 
     /** 印出所有可見視窗的層級資訊：id / type / layer / 套件。 */
     private fun dumpWindows() {
-        val ws = runCatching { service.windows }.getOrNull() ?: return
+        val ws = com.wae.core.util.Degrade.orNull("gateway:windows") { service.windows } ?: return
         val sb = StringBuilder("windows=${ws.size}")
         for (w in ws) {
             sb.append(" | id=").append(w.id)
@@ -132,7 +132,7 @@ class A11yScreenGateway(
                 .append(" layer=").append(w.layer)
                 .append(" active=").append(w.isActive)
                 .append(" pkg=").append(w.root?.packageName ?: "?")
-            runCatching { w.root?.recycle() }
+            com.wae.core.util.Degrade.orNull("gateway:recycleWindow") { w.root?.recycle() }
         }
         android.util.Log.i("WAE_WIN", sb.toString())
     }
@@ -387,9 +387,9 @@ class A11yScreenGateway(
         noopAction = false
         // LAUNCH：target 是「App 名稱」不是套件名 → 先用資料庫/裝置解析成 package
         if (op == TaskNode.Op.LAUNCH) {
-            val resolved = runCatching {
+            val resolved = com.wae.core.util.Degrade.orNull("gateway:resolveTarget") {
                 WaeOpenSourceDatabaseRegistry.resolveTargetAppFromDatabaseOrDevice(context, target)
-            }.getOrNull()
+            }
             val pkg = resolved?.packageName ?: target
             android.util.Log.i("WAE_TASK", "LAUNCH '$target' -> '$pkg'")
             return launchAndNormalize(pkg)
@@ -482,9 +482,9 @@ class A11yScreenGateway(
                 putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, target)
             }
             // ③ 先聚焦再寫入（有些 App 必須先 focus 才接受 SET_TEXT）
-            runCatching { DeviceIO.perform(editNode, AccessibilityNodeInfo.ACTION_FOCUS) }
+            com.wae.core.util.Degrade.orNull("gateway:focusEdit") { DeviceIO.perform(editNode, AccessibilityNodeInfo.ACTION_FOCUS) }
             var typed = DeviceIO.perform(editNode, AccessibilityNodeInfo.ACTION_SET_TEXT, args)
-            runCatching {
+            com.wae.core.util.Degrade.orNull("gateway:imeEnter") {
                 DeviceIO.perform(editNode, AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id, android.os.Bundle())
             }
             Thread.sleep(700)
@@ -502,7 +502,7 @@ class A11yScreenGateway(
                     putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, bestQuery)
                 }
                 DeviceIO.perform(editNode, AccessibilityNodeInfo.ACTION_SET_TEXT, retryArgs)
-                runCatching {
+                com.wae.core.util.Degrade.orNull("gateway:imeEnterRetry") {
                     DeviceIO.perform(editNode, AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id, android.os.Bundle())
                 }
                 Thread.sleep(600)
@@ -638,9 +638,9 @@ class A11yScreenGateway(
      * 正規化只加在其中一份 → 走別條路就不生效（實測踩過）。
      */
     fun launchAndNormalize(pkg: String): Boolean {
-        val launched = runCatching {
+        val launched = com.wae.core.util.Degrade.orElse("gateway:launchApp", false) {
             WaeOpenSourceDatabaseRegistry.launchAppByPackageName(context, pkg)
-        }.getOrDefault(false)
+        }
         Thread.sleep(if (launched) 900 else 300)
         normalizeToRoot(maxBacks = 3, pkg = pkg)
         return true
@@ -659,7 +659,7 @@ class A11yScreenGateway(
                 }
                 if (!hasBack) return
                 sawBack = true
-                runCatching {
+                com.wae.core.util.Degrade.orNull("gateway:back") {
                     service.performGlobalAction(
                         android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
                     )
@@ -675,21 +675,21 @@ class A11yScreenGateway(
         // 沒有可辨識的返回元素（很多 App 是純圖示箭頭）→ **重建任務棧**
         // CLEAR_TASK 會清空該 App 的 Activity 堆疊並回到入口 Activity，
         // 不依賴任何文字或座標，也不需要猜。
-        val intent = runCatching {
+        val intent = com.wae.core.util.Degrade.orNull("gateway:launchIntent") {
             context.packageManager.getLaunchIntentForPackage(pkg)
-        }.getOrNull()
+        }
         if (intent == null) {
             android.util.Log.w("WAE_TASK", "normalizeToRoot: no launch intent for $pkg")
             return
         }
-        val relaunched = runCatching {
+        val relaunched = com.wae.core.util.Degrade.orElse("gateway:relaunch", false) {
             intent.addFlags(
                 android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
                     android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
             )
             context.startActivity(intent)
             true
-        }.getOrDefault(false)
+        }
         if (relaunched) {
             Thread.sleep(1200)
             android.util.Log.i("WAE_TASK", "normalizeToRoot via relaunch($pkg)")
@@ -1092,7 +1092,7 @@ class A11yScreenGateway(
         var cur: AccessibilityNodeInfo? = node
         var up = 0
         while (cur != null && up < 4) {
-            val parent = runCatching { cur!!.parent }.getOrNull() ?: break
+            val parent = com.wae.core.util.Degrade.orNull("gateway:parent") { cur!!.parent } ?: break
             if (parent.isClickable) {
                 if (DeviceIO.tap(service, parent) || DeviceIO.perform(parent, AccessibilityNodeInfo.ACTION_CLICK)) {
                     return true
@@ -1124,7 +1124,7 @@ class A11yScreenGateway(
                     return true
                 }
             }
-            container = runCatching { container!!.parent }.getOrNull()
+            container = com.wae.core.util.Degrade.orNull("gateway:containerUp") { container!!.parent }
             hops += 1
         }
         return false
