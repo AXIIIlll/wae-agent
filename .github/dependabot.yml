@@ -24,6 +24,11 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # ONNX Runtime 刻意鎖住：jniLibs 內的 libsherpa_ort1.so 是 sherpa 自帶的 ORT 1.17
+      # 改名而來（避開符號衝突），升級 app 端 ORT 等於換掉推論引擎組合，
+      # 只能靠真機語音／視覺回歸驗證，不適合自動開 PR。
+      - dependency-name: "com.microsoft.onnxruntime:onnxruntime-android"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
