@@ -82,3 +82,4 @@ Agent Handoff、Agent Benchmark、EndToEnd Flow、COMPAT_MATRIX、NORTH_STAR）�
 
 整理期間每次改動都跑 	ools\debt_report.ps1（runCatching／TODO／emoji／最大檔行數，只能下降）。
 計畫：docs/superpowers/plans/2026-11-24-codebase-cleanup.md。
+- [WAE_Graph_Baseline.md](WAE_Graph_Baseline.md)：圖導航 M0 基準與落盤審計（selector 隱私修正、失敗歸因前置條件）
